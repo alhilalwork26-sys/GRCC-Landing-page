@@ -291,14 +291,15 @@ export default function InsightsPage() {
   };
 
   // Build rows: [large + 2 small] then [3 equal] ...
-  const rows: (typeof items)[][] = [];
+  type ItemType = (typeof items)[0];
+  const rows: ItemType[][] = [];
   let i = 0;
   while (i < filtered.length) {
     if (i === 0 && filtered.length >= 3) {
-      rows.push([filtered[0], filtered[1], filtered[2]]);
+      rows.push([filtered[0], filtered[1], filtered[2]] as ItemType[]);
       i += 3;
     } else {
-      const chunk = filtered.slice(i, i + 3);
+      const chunk = filtered.slice(i, i + 3) as ItemType[];
       rows.push(chunk);
       i += chunk.length;
     }
