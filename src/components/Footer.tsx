@@ -1,0 +1,96 @@
+import { ArrowUpRight } from "lucide-react";
+
+const footerNav = [
+  {
+    heading: "Services",
+    links: ["Governance Advisory", "Risk Management", "Compliance Solutions", "ESG Frameworks", "Training Programs"],
+  },
+  {
+    heading: "Programs",
+    links: ["Corporate Governance", "Public Sector Reform", "Anti-Corruption", "Data Privacy", "ESG Reporting"],
+  },
+  {
+    heading: "Company",
+    links: ["About GRCC", "Our Team", "Careers", "News & Events", "Contact"],
+  },
+  {
+    heading: "Contact",
+    links: ["info@grcc.org", "Jakarta, Indonesia", "+62 21 000 0000"],
+  },
+];
+
+export default function Footer() {
+  return (
+    <footer className="bg-dark text-white/60 border-t border-white/[0.08]">
+      <div className="max-w-[1280px] mx-auto px-6 lg:px-16 pt-[clamp(60px,8vw,100px)]">
+        {/* Top */}
+        <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-[clamp(40px,6vw,80px)] pb-[clamp(48px,6vw,80px)] border-b border-white/[0.08]">
+          {/* Brand */}
+          <div>
+            <a href="/" className="flex items-center mb-4">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="/grcc-logo.png"
+                alt="GRCC"
+                style={{ height: 110, width: "auto", display: "block" }}
+              />
+            </a>
+            <p className="text-[0.86rem] leading-[1.7] text-white/35 mb-7">
+              Center for Governance,<br />
+              Risk, Compliance &amp;<br />
+              Competitiveness
+            </p>
+            <div className="flex gap-2.5">
+              {/* LinkedIn */}
+              <a href="#" aria-label="LinkedIn" className="w-9 h-9 flex items-center justify-center rounded-md bg-white/[0.08] hover:bg-white/[0.16] transition-colors">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path d="M3 6h2v7H3V6zm1-3.5a1.25 1.25 0 110 2.5 1.25 1.25 0 010-2.5zM7 6h2v1h.03C9.42 6.4 10.28 6 11.25 6 13.3 6 14 7.2 14 9.4V13h-2V9.8c0-.9-.02-2.05-1.25-2.05S9.25 8.8 9.25 9.7V13H7V6z" fill="white" opacity=".7" />
+                </svg>
+              </a>
+              {/* X / Twitter */}
+              <a href="#" aria-label="X" className="w-9 h-9 flex items-center justify-center rounded-md bg-white/[0.08] hover:bg-white/[0.16] transition-colors">
+                <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
+                  <path d="M1.5 1.5l11 11M12.5 1.5l-5 5M1.5 12.5l5-5" stroke="white" strokeWidth="1.5" strokeLinecap="round" opacity=".7" />
+                </svg>
+              </a>
+            </div>
+          </div>
+
+          {/* Nav columns */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-8">
+            {footerNav.map((col) => (
+              <div key={col.heading}>
+                <h4 className="text-[0.75rem] font-bold tracking-[0.1em] uppercase text-white/75 mb-4">
+                  {col.heading}
+                </h4>
+                <ul className="flex flex-col gap-2.5">
+                  {col.links.map((link) => (
+                    <li key={link}>
+                      <a href="#" className="text-[0.84rem] text-white/35 hover:text-white transition-colors duration-200">
+                        {link}
+                      </a>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Bottom */}
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 py-6">
+          <p className="text-[0.76rem] text-white/22">
+            &copy; 2025 GRCC — Center for Governance, Risk, Compliance &amp; Competitiveness. All rights reserved.
+          </p>
+          <div className="flex gap-6 flex-wrap">
+            {["Privacy Policy", "Terms of Use", "Responsible Governance"].map((l) => (
+              <a key={l} href="#" className="text-[0.76rem] text-white/22 hover:text-white/55 transition-colors">
+                {l}
+              </a>
+            ))}
+          </div>
+        </div>
+      </div>
+    </footer>
+  );
+}
