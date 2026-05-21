@@ -55,6 +55,7 @@ export interface TrainingItem {
   color: string;
   description: string;
   published: boolean;
+  poster_url: string | null;
   created_at: string;
 }
 

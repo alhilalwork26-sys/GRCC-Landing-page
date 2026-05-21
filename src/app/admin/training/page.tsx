@@ -11,6 +11,7 @@ const EMPTY: Omit<TrainingItem,"id"|"created_at"> = {
   title:"", category:"", date_start:"", date_end:"", time:"Sabtu 08.00–17.00 WIB",
   format:"Online", location:"Zoom Meeting", price: null, price_label:"",
   max_participants: null, color:"#4F46E5", description:"", published: true,
+  poster_url: null,
 };
 
 export default function AdminTraining() {
