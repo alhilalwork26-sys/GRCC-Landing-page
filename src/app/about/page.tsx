@@ -1,12 +1,13 @@
 "use client";
 
-import { useRef } from "react";
+import { useRef, useEffect, useState } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { supabase, TeamMember } from "@/lib/supabase";
 
 // ── animation variants ──────────────────────────────────────────────────────
 const fadeUp = {
@@ -26,72 +27,6 @@ const fadeIn = {
   }),
 };
 
-// ── data ─────────────────────────────────────────────────────────────────────
-const team = [
-  {
-    num: "01",
-    name: "Prof. Dr. Bambang Tjahjadi, SE., MBA., Ak., CMA., CPM., CA., CSSL.",
-    role: "Director of Center for Governance, Risk, Compliance, and Competitiveness",
-    photo: "https://images.unsplash.com/photo-1560250097-0b93528c311a?w=800&q=90&fit=crop&crop=face",
-    bio: "Direktur GRCC bertanggung jawab atas arah strategis, pengembangan program, serta kualitas akademik dan profesional seluruh layanan GRCC. Dengan latar belakang akademik dan pengalaman luas dalam bidang tata kelola, manajemen risiko, akuntansi, dan keberlanjutan, kepemimpinan GRCC memastikan integrasi antara teori, praktik, dan standar profesional.",
-  },
-  {
-    num: "02",
-    name: "Tsanya El Karima, S.A",
-    role: "Manager GRCC",
-    photo: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=800&q=90&fit=crop&crop=face",
-    bio: "Tsanya El Karima berperan dalam mengoordinasikan pengelolaan operasional, perencanaan program, serta pelaksanaan layanan GRCC. Sebagai Manager GRCC, ia memastikan setiap aktivitas berjalan secara terstruktur, profesional, dan selaras dengan arah strategis pusat, mulai dari pengembangan program hingga koordinasi dengan mitra dan tim internal.",
-  },
-  {
-    num: "03",
-    name: "Yuni Wira Yasa, S.A",
-    role: "Consulting & Workshop",
-    photo: "https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=800&q=90&fit=crop&crop=face",
-    bio: "Yuni Wira Yasa berfokus pada pengelolaan program konsultasi dan workshop GRCC. Perannya mencakup penyusunan kebutuhan program, koordinasi pelaksanaan pelatihan, serta pendampingan kegiatan yang berhubungan dengan penguatan governance, risk, compliance, sustainability, dan daya saing organisasi.",
-  },
-  {
-    num: "04",
-    name: "Meilia Choirun Nisa, S.A.",
-    role: "Research",
-    photo: "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=800&q=90&fit=crop&crop=face",
-    bio: "Meilia Choirun Nisa berperan dalam mendukung aktivitas riset, kajian, dan pengembangan materi berbasis evidence-based approach. Dalam lingkup GRCC, ia membantu memastikan bahwa setiap program dan layanan memiliki dasar akademik, data, serta referensi yang relevan dengan kebutuhan organisasi mitra.",
-  },
-  {
-    num: "05",
-    name: "Alhilal Muzakkir",
-    role: "Creative, Marketing & IT Support",
-    photo: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=800&q=90&fit=crop&crop=face",
-    bio: "Alhilal Muzakkir bertanggung jawab dalam pengembangan materi kreatif, komunikasi pemasaran, serta dukungan teknologi informasi GRCC. Perannya mencakup pengemasan pesan visual, pengelolaan konten digital, publikasi program, penguatan identitas GRCC, serta pendukung teknis dalam pengelolaan media digital dan sistem informasi. Melalui peran ini, Alhilal membantu memastikan komunikasi GRCC tersampaikan secara profesional, menarik, mudah dipahami, dan didukung oleh tata kelola digital yang efektif bagi mitra strategis.",
-  },
-  {
-    num: "06",
-    name: "Putri Surya Apriliani, Amd. Akun",
-    role: "Finance & Administration",
-    photo: "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=800&q=90&fit=crop&crop=face",
-    bio: "Putri Surya Apriliani berperan dalam pengelolaan aspek keuangan GRCC, mulai dari pencatatan, administrasi keuangan, hingga dukungan pelaporan yang berkaitan dengan kegiatan program. Ia membantu memastikan tata kelola keuangan berjalan akurat, transparan, dan mendukung kelancaran operasional GRCC.",
-  },
-  {
-    num: "07",
-    name: "Leni Aditya Ardhana A.Md.Lib",
-    role: "Administrative",
-    photo: "https://images.unsplash.com/photo-1594744803329-e58b31de8bf5?w=800&q=90&fit=crop&crop=face",
-    bio: "Leni Aditya Ardhana mendukung pengelolaan administrasi GRCC, termasuk dokumentasi, pengarsipan, korespondensi, serta kebutuhan administratif dalam pelaksanaan program. Perannya penting dalam memastikan setiap kegiatan GRCC berjalan tertib, rapi, dan sesuai dengan kebutuhan operasional.",
-  },
-  {
-    num: "08",
-    name: "Tita Aulia Fasyad, S.Ant",
-    role: "Marketing & Partnership",
-    photo: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=800&q=90&fit=crop&crop=face",
-    bio: "Tita Aulia Fasyad berperan dalam aktivitas pemasaran, komunikasi dengan calon mitra, serta pengelolaan relasi eksternal GRCC. Ia mendukung proses promosi program, penyampaian informasi layanan, dan koordinasi dengan peserta maupun organisasi mitra agar proses kerja sama berjalan efektif dan responsif.",
-  },
-  {
-    num: "09",
-    name: "Yumna Tsabitah Ayu Nastiti, S.Tr.M",
-    role: "Creative & Multimedia",
-    photo: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=800&q=90&fit=crop&crop=face",
-    bio: "Yumna Tsabitah Ayu Nastiti mendukung pengembangan materi kreatif, visual, dan konten komunikasi GRCC. Perannya membantu menghadirkan tampilan visual yang profesional dan konsisten, sehingga identitas GRCC dapat dikomunikasikan secara lebih kuat melalui berbagai media publikasi dan promosi.",
-  },
-];
 
 const values = [
   {
@@ -128,7 +63,7 @@ function SectionLabel({ text }: { text: string }) {
   );
 }
 
-function TeamCard({ member, index }: { member: typeof team[0]; index: number }) {
+function TeamCard({ member, index }: { member: TeamMember; index: number }) {
   return (
     <motion.div
       custom={index}
@@ -139,12 +74,18 @@ function TeamCard({ member, index }: { member: typeof team[0]; index: number }) 
       className="relative aspect-[3/4] rounded-2xl overflow-hidden bg-dark/[0.05] group cursor-default"
     >
       {/* Photo */}
-      <Image
-        src={member.photo}
-        alt={member.name}
-        fill
-        className="object-cover object-top transition-transform duration-700 group-hover:scale-105"
-      />
+      {member.photo ? (
+        // eslint-disable-next-line @next/next/no-img-element
+        <img
+          src={member.photo}
+          alt={member.name}
+          className="absolute inset-0 w-full h-full object-cover object-top transition-transform duration-700 group-hover:scale-105"
+        />
+      ) : (
+        <div className="absolute inset-0 bg-dark/[0.07] flex items-center justify-center">
+          <span className="font-mono text-[3rem] font-bold text-dark/20">{member.num}</span>
+        </div>
+      )}
 
       {/* Number badge — top left */}
       <div className="absolute top-5 left-5 flex items-center gap-1.5 z-20 bg-white/30 backdrop-blur-sm rounded-full px-2.5 py-1">
@@ -183,12 +124,27 @@ function TeamCard({ member, index }: { member: typeof team[0]; index: number }) 
 
 // ── page ──────────────────────────────────────────────────────────────────────
 export default function AboutPage() {
+  const [team, setTeam] = useState<TeamMember[]>([]);
+  const [teamLoading, setTeamLoading] = useState(true);
+
   const parallaxRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({
     target: parallaxRef,
     offset: ["start end", "end start"],
   });
   const imgY = useTransform(scrollYProgress, [0, 1], ["-8%", "8%"]);
+
+  useEffect(() => {
+    supabase
+      .from("team_members")
+      .select("*")
+      .eq("active", true)
+      .order("order_index")
+      .then(({ data }) => {
+        setTeam(data ?? []);
+        setTeamLoading(false);
+      });
+  }, []);
 
   return (
     <>
@@ -411,9 +367,14 @@ export default function AboutPage() {
 
             {/* Card grid — 3 cols desktop, 2 tablet, 1 mobile */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-              {team.map((member, i) => (
-                <TeamCard key={member.num} member={member} index={i} />
-              ))}
+              {teamLoading
+                ? [1,2,3,4,5,6].map((n) => (
+                    <div key={n} className="aspect-[3/4] rounded-2xl bg-dark/[0.05] animate-pulse" />
+                  ))
+                : team.map((member, i) => (
+                    <TeamCard key={member.id} member={member} index={i} />
+                  ))
+              }
             </div>
           </div>
         </section>

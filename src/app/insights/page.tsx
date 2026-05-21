@@ -1,109 +1,17 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useRef, useState, useEffect } from "react";
 import {
   motion, useScroll, useTransform,
   AnimatePresence, useMotionValue, useSpring,
 } from "framer-motion";
 import { ArrowUpRight, Calendar, MapPin } from "lucide-react";
-import Image from "next/image";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { supabase, InsightItem } from "@/lib/supabase";
 
 // ── types ─────────────────────────────────────────────────────────────────────
 type Category = "Semua" | "Kegiatan" | "Publikasi" | "Berita";
-
-// ── data ─────────────────────────────────────────────────────────────────────
-const items = [
-  {
-    id: 1, type: "Kegiatan" as Category, tag: "Workshop",
-    title: "Workshop Nasional: Implementasi GCG di Era Transformasi Digital",
-    excerpt: "Workshop intensif dua hari bagi 80+ eksekutif dari perusahaan publik dan BUMN, membahas penerapan tata kelola perusahaan yang baik di tengah akselerasi digitalisasi.",
-    date: "14–15 Maret 2025", location: "Surabaya",
-    img: "https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1200&q=90&fit=crop",
-    color: "#4F46E5", featured: true,
-  },
-  {
-    id: 2, type: "Kegiatan" as Category, tag: "Seminar",
-    title: "Seminar ESG: Menuju Bisnis Berkelanjutan Berbasis Standar GRI & ISSB",
-    excerpt: "Pakar ESG dari OJK, Bursa Efek Indonesia, dan praktisi sustainability multinasional.",
-    date: "28 Februari 2025", location: "Jakarta",
-    img: "https://images.unsplash.com/photo-1591115765373-5207764f72e7?w=900&q=85&fit=crop",
-    color: "#10B981", featured: false,
-  },
-  {
-    id: 3, type: "Kegiatan" as Category, tag: "Pelatihan",
-    title: "Pelatihan Audit Internal Berbasis Risiko untuk Instansi Pemerintah",
-    excerpt: "Sertifikasi tiga hari untuk 60 auditor internal dari kementerian dan lembaga negara.",
-    date: "10–12 Feb 2025", location: "Universitas Airlangga",
-    img: "https://images.unsplash.com/photo-1524178232363-1fb2b075b655?w=900&q=85&fit=crop",
-    color: "#EF4444", featured: false,
-  },
-  {
-    id: 4, type: "Kegiatan" as Category, tag: "Webinar",
-    title: "Webinar: Kepatuhan UU PDP & Implikasinya bagi Korporasi Indonesia",
-    excerpt: "Dihadiri 300+ peserta dari sektor perbankan, teknologi, dan kesehatan.",
-    date: "22 Januari 2025", location: "Online",
-    img: "https://images.unsplash.com/photo-1587825140708-dfaf72ae4b04?w=900&q=85&fit=crop",
-    color: "#8B5CF6", featured: false,
-  },
-  {
-    id: 5, type: "Kegiatan" as Category, tag: "Forum",
-    title: "Forum Daya Saing: Inovasi & Strategi Pasca Pandemi",
-    excerpt: "Diskusi eksklusif bersama 12 CEO membahas transformasi model bisnis jangka panjang.",
-    date: "8 Januari 2025", location: "Hotel Majapahit, Surabaya",
-    img: "https://images.unsplash.com/photo-1511578314322-379afb476865?w=900&q=85&fit=crop",
-    color: "#0EA5E9", featured: false,
-  },
-  {
-    id: 6, type: "Publikasi" as Category, tag: "Policy Brief",
-    title: "Tata Kelola Digital: Kerangka Regulasi untuk Ekosistem Fintech Indonesia",
-    excerpt: "Analisis kesenjangan regulasi dan rekomendasi kerangka tata kelola berbasis risiko.",
-    date: "Maret 2025", location: "Working Paper GRCC #12",
-    img: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=900&q=85&fit=crop",
-    color: "#F59E0B", featured: false,
-  },
-  {
-    id: 7, type: "Publikasi" as Category, tag: "Riset",
-    title: "Indeks Kepatuhan Korporasi Indonesia 2025: Tren dan Tantangan",
-    excerpt: "Mengukur kepatuhan 200 perusahaan publik terhadap regulasi OJK dan standar GCG.",
-    date: "Februari 2025", location: "Laporan Tahunan GRCC",
-    img: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?w=900&q=85&fit=crop",
-    color: "#4F46E5", featured: false,
-  },
-  {
-    id: 8, type: "Publikasi" as Category, tag: "Jurnal",
-    title: "ESG Disclosure Quality and Firm Value: Evidence from IDX-Listed Companies",
-    excerpt: "Dipublikasikan di jurnal internasional terindeks Scopus — menguji 150 emiten BEI.",
-    date: "Januari 2025", location: "Journal of Corporate Governance",
-    img: "https://images.unsplash.com/photo-1434030216411-0b793f4b4173?w=900&q=85&fit=crop",
-    color: "#10B981", featured: false,
-  },
-  {
-    id: 9, type: "Berita" as Category, tag: "Kerjasama",
-    title: "GRCC dan BPKP Jalin MoU untuk Penguatan Audit Pemerintahan",
-    excerpt: "Penandatanganan MoU untuk program pelatihan auditor dan riset bersama.",
-    date: "10 Maret 2025", location: "Jakarta",
-    img: "https://images.unsplash.com/photo-1521791136064-7986c2920216?w=900&q=85&fit=crop",
-    color: "#EF4444", featured: false,
-  },
-  {
-    id: 10, type: "Berita" as Category, tag: "Penghargaan",
-    title: "GRCC Raih Pengakuan Pusat Riset GRC Terkemuka Indonesia Timur",
-    excerpt: "Indonesia Excellence Awards 2025 atas kontribusi pengembangan ilmu tata kelola.",
-    date: "25 Feb 2025", location: "Surabaya",
-    img: "https://images.unsplash.com/photo-1567427017947-545c5f8d16ad?w=900&q=85&fit=crop",
-    color: "#F59E0B", featured: false,
-  },
-  {
-    id: 11, type: "Berita" as Category, tag: "Internasional",
-    title: "Direktur GRCC Berbicara di Forum G20 tentang Tata Kelola Korporasi",
-    excerpt: "Prof. Bambang Tjahjadi sebagai pembicara utama tentang investasi berkelanjutan.",
-    date: "15 Feb 2025", location: "Berlin, Jerman",
-    img: "https://images.unsplash.com/photo-1529107386315-e1a2ed48a620?w=900&q=85&fit=crop",
-    color: "#0EA5E9", featured: false,
-  },
-];
 
 const cats: Category[] = ["Semua", "Kegiatan", "Publikasi", "Berita"];
 
@@ -111,7 +19,7 @@ const cats: Category[] = ["Semua", "Kegiatan", "Publikasi", "Berita"];
 function MagneticCard({
   item, large = false,
 }: {
-  item: (typeof items)[0];
+  item: InsightItem;
   large?: boolean;
 }) {
   const ref = useRef<HTMLDivElement>(null);
@@ -139,11 +47,11 @@ function MagneticCard({
       <div
         className={`relative overflow-hidden ${large ? "h-[480px]" : "h-[280px]"}`}
       >
-        <Image
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
           src={item.img}
           alt={item.title}
-          fill
-          className="object-cover transition-transform duration-700 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:scale-110"
+          className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 ease-[cubic-bezier(0.4,0,0.2,1)] group-hover:scale-110"
         />
         {/* Layered gradients */}
         <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
@@ -274,13 +182,28 @@ function FilterTabs({
 // ── page ──────────────────────────────────────────────────────────────────────
 export default function InsightsPage() {
   const [activeTab, setActiveTab] = useState<Category>("Semua");
+  const [allItems, setAllItems] = useState<InsightItem[]>([]);
+  const [loadingItems, setLoadingItems] = useState(true);
+
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
   const heroY   = useTransform(scrollYProgress, [0, 1], ["0%", "24%"]);
   const heroOpa = useTransform(scrollYProgress, [0, 0.75], [1, 0]);
 
-  const featured = items.find((i) => i.featured)!;
-  const rest = items.filter((i) => !i.featured);
+  useEffect(() => {
+    supabase
+      .from("insights")
+      .select("*")
+      .eq("published", true)
+      .order("created_at", { ascending: false })
+      .then(({ data }) => {
+        setAllItems(data ?? []);
+        setLoadingItems(false);
+      });
+  }, []);
+
+  const featured = allItems.find((i) => i.featured) ?? allItems[0];
+  const rest = featured ? allItems.filter((i) => i.id !== featured.id) : allItems;
   const filtered = activeTab === "Semua" ? rest : rest.filter((i) => i.type === activeTab);
 
   const counts: Record<Category, number> = {
@@ -290,16 +213,15 @@ export default function InsightsPage() {
     Berita: rest.filter((i) => i.type === "Berita").length,
   };
 
-  // Build rows: [large + 2 small] then [3 equal] ...
-  type ItemType = (typeof items)[0];
-  const rows: ItemType[][] = [];
+  // Build rows: alternating [1.6fr,1fr,1fr] and [1fr,1fr,1.6fr]
+  const rows: InsightItem[][] = [];
   let i = 0;
   while (i < filtered.length) {
     if (i === 0 && filtered.length >= 3) {
-      rows.push([filtered[0], filtered[1], filtered[2]] as ItemType[]);
+      rows.push([filtered[0], filtered[1], filtered[2]]);
       i += 3;
     } else {
-      const chunk = filtered.slice(i, i + 3) as ItemType[];
+      const chunk = filtered.slice(i, i + 3);
       rows.push(chunk);
       i += chunk.length;
     }
@@ -405,28 +327,30 @@ export default function InsightsPage() {
       </section>
 
       {/* ── FEATURED ────────────────────────────────────────────────── */}
-      <section className="py-[clamp(60px,8vw,100px)] bg-[#F7F7F5]">
-        <div className="max-w-[1280px] mx-auto px-6 lg:px-16">
-          <motion.div
-            initial={{ opacity: 0, y: 8 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            className="flex items-center gap-3 mb-7"
-          >
-            <span className="w-6 h-px bg-dark/30" />
-            <p className="text-[0.68rem] font-bold tracking-[0.2em] uppercase text-dark/40">Sorotan Utama</p>
-          </motion.div>
+      {!loadingItems && featured && (
+        <section className="py-[clamp(60px,8vw,100px)] bg-[#F7F7F5]">
+          <div className="max-w-[1280px] mx-auto px-6 lg:px-16">
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              className="flex items-center gap-3 mb-7"
+            >
+              <span className="w-6 h-px bg-dark/30" />
+              <p className="text-[0.68rem] font-bold tracking-[0.2em] uppercase text-dark/40">Sorotan Utama</p>
+            </motion.div>
 
-          <motion.div
-            initial={{ opacity: 0, y: 32 }}
-            whileInView={{ opacity: 1, y: 0 }}
-            viewport={{ once: true }}
-            transition={{ duration: 0.8, ease: [0.4, 0, 0.2, 1] }}
-          >
-            <MagneticCard item={featured} large />
-          </motion.div>
-        </div>
-      </section>
+            <motion.div
+              initial={{ opacity: 0, y: 32 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true }}
+              transition={{ duration: 0.8, ease: [0.4, 0, 0.2, 1] }}
+            >
+              <MagneticCard item={featured} large />
+            </motion.div>
+          </div>
+        </section>
+      )}
 
       {/* ── GRID ────────────────────────────────────────────────────── */}
       <section className="pb-[clamp(80px,10vw,130px)] bg-[#F7F7F5]">
@@ -461,12 +385,21 @@ export default function InsightsPage() {
           {/* Cards */}
           <AnimatePresence mode="wait">
             <motion.div
-              key={activeTab}
+              key={loadingItems ? "loading" : activeTab}
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: -8 }}
               transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
             >
+              {loadingItems && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  {[1,2,3,4,5,6].map((n) => (
+                    <div key={n} className="rounded-2xl overflow-hidden bg-dark/[0.05] animate-pulse">
+                      <div className="h-[280px]" />
+                    </div>
+                  ))}
+                </div>
+              )}
               {rows.map((row, ri) => (
                 <motion.div
                   key={ri}
@@ -484,7 +417,7 @@ export default function InsightsPage() {
                       : "grid-cols-1"
                   }`}
                 >
-                  {row.map((item, ci) => (
+                  {row.map((item) => (
                     <motion.div
                       key={item.id}
                       variants={{
@@ -498,7 +431,7 @@ export default function InsightsPage() {
                 </motion.div>
               ))}
 
-              {filtered.length === 0 && (
+              {!loadingItems && filtered.length === 0 && (
                 <div className="py-24 text-center text-muted text-[0.9rem]">
                   Belum ada konten untuk kategori ini.
                 </div>
@@ -607,7 +540,8 @@ export default function InsightsPage() {
                       key={i}
                       className="w-9 h-9 rounded-full border-2 border-[#0A0A0A] overflow-hidden relative"
                     >
-                      <Image src={src} alt="" fill className="object-cover" />
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={src} alt="" className="absolute inset-0 w-full h-full object-cover" />
                     </div>
                   ))}
                 </div>

@@ -1,0 +1,564 @@
+"use client";
+
+import { useEffect, useState, useRef } from "react";
+import { useParams } from "next/navigation";
+import { motion, AnimatePresence, useScroll, useTransform } from "framer-motion";
+import Link from "next/link";
+import {
+  ArrowLeft, Calendar, MapPin, Clock, Users, MessageCircle,
+  Mail, ChevronDown, ChevronUp, Check, Minus, Plus,
+  ArrowUpRight, PhoneCall, Sparkles
+} from "lucide-react";
+import Navbar from "@/components/Navbar";
+import Footer from "@/components/Footer";
+import { supabase, TrainingItem } from "@/lib/supabase";
+import { programs, toSlug } from "@/data/programs";
+
+const WHATSAPP = "6281234567890"; // ganti nomor WA admin
+
+function formatRupiah(n: number) {
+  return "Rp " + n.toLocaleString("id-ID");
+}
+
+// ── Booking Widget ─────────────────────────────────────────────────────────────
+function BookingWidget({
+  trainings,
+  accent,
+  subName,
+  programTitle,
+}: {
+  trainings: TrainingItem[];
+  accent: string;
+  subName: string;
+  programTitle: string;
+}) {
+  const [selected, setSelected] = useState<TrainingItem | null>(null);
+  const [qty, setQty] = useState(1);
+  const [open, setOpen] = useState<string | null>(null);
+
+  const price = selected?.price ?? 0;
+  const total = price * qty;
+  const waMsg = encodeURIComponent(
+    `Halo, saya ingin mendaftar program:\n\n*${subName}* (${programTitle})\n\n` +
+    (selected ? `Jadwal: ${selected.date_start}${selected.date_end ? ` – ${selected.date_end}` : ""} | ${selected.format} | ${selected.location}\n` : "") +
+    `Jumlah peserta: ${qty}\n\nMohon informasi lebih lanjut. Terima kasih.`
+  );
+
+  if (trainings.length === 0) {
+    return (
+      <div className="rounded-2xl border border-border bg-white p-8 text-center">
+        <div className="w-12 h-12 rounded-full bg-dark/[0.05] flex items-center justify-center mx-auto mb-4">
+          <Calendar size={20} className="text-muted" />
+        </div>
+        <p className="font-bold text-[0.95rem] mb-1">Jadwal Segera Hadir</p>
+        <p className="text-muted text-[0.82rem] mb-5">Belum ada jadwal yang dipublikasikan untuk program ini.</p>
+        <a
+          href={`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(`Halo, saya ingin info jadwal program *${subName}*. Terima kasih.`)}`}
+          target="_blank" rel="noopener noreferrer"
+          className="inline-flex items-center gap-2 bg-[#25D366] text-white text-[0.82rem] font-bold px-5 py-2.5 rounded-xl"
+        >
+          <MessageCircle size={14} /> Tanya Jadwal via WhatsApp
+        </a>
+      </div>
+    );
+  }
+
+  return (
+    <div className="rounded-2xl border border-border bg-white overflow-hidden">
+      {/* Header */}
+      <div className="px-6 pt-5 pb-4 border-b border-border">
+        <h3 className="font-extrabold text-[1rem]">Atur Tempat, Jadwal &amp; Jumlah</h3>
+        <p className="text-muted text-[0.75rem] mt-0.5">Pilih jadwal yang sesuai, lalu tentukan jumlah peserta</p>
+      </div>
+
+      <div className="p-6 flex flex-col gap-5">
+        {/* Session picker */}
+        <div>
+          <label className="block text-[0.7rem] font-bold tracking-[0.1em] uppercase text-muted mb-2">Pilih Jadwal</label>
+          <div className="flex flex-col gap-2">
+            {trainings.map((t) => {
+              const isOpen = open === t.id;
+              const isSelected = selected?.id === t.id;
+              return (
+                <div
+                  key={t.id}
+                  className={`rounded-xl border transition-all overflow-hidden ${isSelected ? "border-dark shadow-sm" : "border-border hover:border-dark/40"}`}
+                >
+                  {/* Collapsed header */}
+                  <button
+                    onClick={() => {
+                      setOpen(isOpen ? null : t.id);
+                      if (!isSelected) setSelected(t);
+                    }}
+                    className="w-full flex items-center justify-between px-4 py-3 text-left"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={`w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-colors ${isSelected ? "border-dark bg-dark" : "border-border"}`}
+                      >
+                        {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                      </div>
+                      <span className="text-[0.82rem] font-semibold line-clamp-1">
+                        {t.date_start}{t.date_end ? ` – ${t.date_end}` : ""} | {t.format}
+                        {t.title !== t.format && ` | ${t.title.length > 30 ? t.title.slice(0, 30) + "…" : t.title}`}
+                      </span>
+                    </div>
+                    {isOpen ? <ChevronUp size={14} className="text-muted flex-shrink-0" /> : <ChevronDown size={14} className="text-muted flex-shrink-0" />}
+                  </button>
+
+                  {/* Expanded detail */}
+                  <AnimatePresence>
+                    {isOpen && (
+                      <motion.div
+                        initial={{ height: 0, opacity: 0 }}
+                        animate={{ height: "auto", opacity: 1 }}
+                        exit={{ height: 0, opacity: 0 }}
+                        transition={{ duration: 0.25 }}
+                        className="overflow-hidden"
+                      >
+                        <div className="px-4 pb-4 border-t border-border bg-[#FAFAF8]">
+                          <p className="font-bold text-[0.85rem] pt-3 mb-2">{t.title}</p>
+                          <div className="flex flex-col gap-1.5 text-[0.75rem] text-muted mb-3">
+                            <span className="flex items-center gap-2"><Calendar size={12} /> {t.date_start}{t.date_end ? ` – ${t.date_end}` : ""}</span>
+                            {t.time && <span className="flex items-center gap-2"><Clock size={12} /> {t.time}</span>}
+                            <span className="flex items-center gap-2"><MapPin size={12} /> {t.location}</span>
+                            {t.max_participants && <span className="flex items-center gap-2"><Users size={12} /> Maks. {t.max_participants} peserta</span>}
+                          </div>
+                          {/* Ticket row */}
+                          {t.price_label && (
+                            <div className="flex items-center gap-3 bg-white rounded-lg border border-border px-3 py-2.5">
+                              <div className="w-4 h-4 rounded-full border-2 border-dark bg-dark flex items-center justify-center flex-shrink-0">
+                                <div className="w-1.5 h-1.5 rounded-full bg-white" />
+                              </div>
+                              <span className="text-[0.78rem] font-semibold flex-1">{t.date_start} | {t.format} | {t.title.slice(0, 25)}… — <span style={{ color: accent }}>{t.price_label}</span></span>
+                            </div>
+                          )}
+                        </div>
+                      </motion.div>
+                    )}
+                  </AnimatePresence>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Qty */}
+        <div>
+          <label className="block text-[0.7rem] font-bold tracking-[0.1em] uppercase text-muted mb-2">Jumlah Peserta</label>
+          <div className="flex items-center gap-3">
+            <div className="flex items-center border border-border rounded-xl overflow-hidden">
+              <button
+                onClick={() => setQty(Math.max(1, qty - 1))}
+                className="w-10 h-10 flex items-center justify-center hover:bg-dark/[0.05] transition-colors"
+              >
+                <Minus size={14} />
+              </button>
+              <span className="w-12 text-center font-bold text-[0.95rem]">{qty}</span>
+              <button
+                onClick={() => setQty(Math.min(selected?.max_participants ?? 99, qty + 1))}
+                className="w-10 h-10 flex items-center justify-center hover:bg-dark/[0.05] transition-colors"
+              >
+                <Plus size={14} />
+              </button>
+            </div>
+            <span className="text-[0.75rem] text-muted">peserta</span>
+          </div>
+        </div>
+
+        {/* Price summary */}
+        <div className="rounded-xl bg-[#F7F7F5] px-4 py-3 flex flex-col gap-1.5">
+          <div className="flex items-center justify-between text-[0.78rem] text-muted">
+            <span>Harga per peserta</span>
+            <span>{price > 0 ? formatRupiah(price) : (selected?.price_label || "—")}</span>
+          </div>
+          <div className="flex items-center justify-between text-[0.78rem] text-muted">
+            <span>Jumlah peserta</span>
+            <span>× {qty}</span>
+          </div>
+          <div className="h-px bg-border my-1" />
+          <div className="flex items-center justify-between font-extrabold text-[0.95rem]">
+            <span>Total</span>
+            <span>{total > 0 ? formatRupiah(total) : (selected ? "Hubungi kami" : "—")}</span>
+          </div>
+        </div>
+
+        {/* CTA */}
+        <motion.a
+          href={`https://wa.me/${WHATSAPP}?text=${waMsg}`}
+          target="_blank" rel="noopener noreferrer"
+          whileHover={{ scale: 1.02, y: -1 }}
+          whileTap={{ scale: 0.98 }}
+          className="flex items-center justify-center gap-2.5 text-white font-extrabold text-[0.9rem] py-3.5 rounded-xl transition-colors"
+          style={{ backgroundColor: selected ? accent : "#888" }}
+        >
+          {selected ? <><Check size={16} /> Daftar Sekarang</> : <><Calendar size={16} /> Pilih Jadwal Dulu</>}
+        </motion.a>
+
+        <p className="text-center text-[0.7rem] text-muted">
+          Klik tombol di atas untuk konfirmasi via WhatsApp
+        </p>
+      </div>
+    </div>
+  );
+}
+
+// ── Page ────────────────────────────────────────────────────────────────────
+export default function SubProgramPage() {
+  const { programId, subSlug } = useParams<{ programId: string; subSlug: string }>();
+  const heroRef = useRef<HTMLDivElement>(null);
+  const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
+  const heroY = useTransform(scrollYProgress, [0, 1], ["0%", "22%"]);
+  const heroOpa = useTransform(scrollYProgress, [0, 0.75], [1, 0]);
+
+  const program = programs.find((p) => p.id === programId);
+  const sub = program?.subs.find((s) => toSlug(s.name) === subSlug);
+  const subIndex = program?.subs.findIndex((s) => toSlug(s.name) === subSlug) ?? 0;
+
+  const [trainings, setTrainings] = useState<TrainingItem[]>([]);
+  const [loadingT, setLoadingT] = useState(true);
+
+  useEffect(() => {
+    if (!program) return;
+    supabase
+      .from("training")
+      .select("*")
+      .eq("published", true)
+      .order("created_at", { ascending: false })
+      .then(({ data }) => {
+        setTrainings(data ?? []);
+        setLoadingT(false);
+      });
+  }, [program]);
+
+  if (!program || !sub) {
+    return (
+      <>
+        <Navbar />
+        <div className="min-h-screen flex items-center justify-center text-muted">
+          Program tidak ditemukan.
+        </div>
+        <Footer />
+      </>
+    );
+  }
+
+  const Icon = program.icon;
+  const prevSub = subIndex > 0 ? program.subs[subIndex - 1] : null;
+  const nextSub = subIndex < program.subs.length - 1 ? program.subs[subIndex + 1] : null;
+
+  const waMsg = encodeURIComponent(
+    `Halo, saya ingin informasi lebih lanjut mengenai program:\n\n*${sub.name}*\n(${program.title})\n\nTerima kasih.`
+  );
+
+  return (
+    <>
+      <Navbar />
+
+      {/* ── HERO ──────────────────────────────────────────── */}
+      <section
+        ref={heroRef}
+        className="relative min-h-[62vh] flex flex-col justify-end overflow-hidden pb-[clamp(56px,7vw,90px)]"
+        style={{ background: program.bg }}
+      >
+        {/* Grid */}
+        <div
+          className="absolute inset-0 opacity-[0.04]"
+          style={{
+            backgroundImage: `linear-gradient(#fff 1px,transparent 1px),linear-gradient(90deg,#fff 1px,transparent 1px)`,
+            backgroundSize: "64px 64px",
+          }}
+        />
+        {/* Glow */}
+        <div
+          className="absolute top-[-20%] right-[-10%] w-[600px] h-[600px] rounded-full pointer-events-none"
+          style={{ background: `radial-gradient(circle, ${program.accent}20 0%, transparent 65%)` }}
+        />
+        <div
+          className="absolute bottom-[-10%] left-[-5%] w-[400px] h-[400px] rounded-full pointer-events-none"
+          style={{ background: `radial-gradient(circle, ${program.accent}10 0%, transparent 65%)` }}
+        />
+
+        <motion.div
+          style={{ y: heroY, opacity: heroOpa }}
+          className="relative z-10 max-w-[1280px] mx-auto px-6 lg:px-16 w-full"
+        >
+          {/* Breadcrumb */}
+          <motion.div
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5 }}
+            className="flex items-center gap-2 mb-8"
+          >
+            <Link
+              href="/programs"
+              className="flex items-center gap-1.5 text-white/40 hover:text-white/70 transition-colors text-[0.72rem] font-mono tracking-[0.15em] uppercase"
+            >
+              <ArrowLeft size={12} /> Programs
+            </Link>
+            <span className="text-white/20 text-[0.7rem]">/</span>
+            <span className="text-white/40 text-[0.72rem] font-mono tracking-[0.15em] uppercase truncate max-w-[180px]">{program.short}</span>
+          </motion.div>
+
+          {/* Badge */}
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.5, delay: 0.1 }}
+            className="flex items-center gap-3 mb-6"
+          >
+            <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border" style={{ borderColor: program.accent + "40", backgroundColor: program.accent + "18" }}>
+              <Icon size={13} style={{ color: program.accent }} />
+              <span className="text-[0.65rem] font-extrabold tracking-[0.12em] uppercase" style={{ color: program.accent }}>{program.short}</span>
+            </div>
+            <span className="text-white/25 text-[0.68rem] font-mono">#{String(subIndex + 1).padStart(2, "0")}</span>
+          </motion.div>
+
+          {/* Title */}
+          <div className="overflow-hidden mb-5">
+            <motion.h1
+              initial={{ y: "105%" }}
+              animate={{ y: 0 }}
+              transition={{ duration: 0.85, ease: [0.76, 0, 0.24, 1] }}
+              className="text-white font-extrabold leading-[1.05] tracking-[-0.025em]"
+              style={{ fontSize: "clamp(2rem, 5vw, 4rem)" }}
+            >
+              {sub.name}
+            </motion.h1>
+          </div>
+
+          {/* Desc */}
+          <motion.p
+            initial={{ opacity: 0, y: 18 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.65, delay: 0.28 }}
+            className="text-white/45 text-[0.95rem] leading-[1.85] max-w-[600px]"
+          >
+            {sub.desc}
+          </motion.p>
+        </motion.div>
+      </section>
+
+      {/* ── CONTENT ───────────────────────────────────────── */}
+      <main className="bg-[#F7F7F5]">
+        <div className="max-w-[1280px] mx-auto px-6 lg:px-16 py-[clamp(60px,8vw,100px)]">
+          <div className="grid grid-cols-1 lg:grid-cols-[1fr_400px] gap-12 items-start">
+
+            {/* LEFT */}
+            <div className="flex flex-col gap-12">
+
+              {/* About section */}
+              <motion.div
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.65 }}
+              >
+                <p className="text-[0.65rem] font-bold tracking-[0.2em] uppercase text-muted mb-4">Tentang Program</p>
+                <div className="bg-white rounded-2xl border border-border p-7">
+                  <div className="flex items-start gap-4 mb-5">
+                    <div
+                      className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
+                      style={{ backgroundColor: program.accent + "18" }}
+                    >
+                      <Icon size={22} style={{ color: program.accent }} />
+                    </div>
+                    <div>
+                      <p className="font-extrabold text-[1.05rem] leading-snug">{sub.name}</p>
+                      <p className="text-muted text-[0.78rem] mt-0.5">{program.title}</p>
+                    </div>
+                  </div>
+                  <p className="text-dark/65 text-[0.9rem] leading-[1.85]">{sub.desc}</p>
+                  <div className="mt-6 pt-5 border-t border-border">
+                    <p className="text-dark/65 text-[0.88rem] leading-[1.8]">{program.desc}</p>
+                  </div>
+
+                  {/* Info chips */}
+                  <div className="flex flex-wrap gap-2 mt-5">
+                    {["Sertifikat Kelulusan", "Modul & Materi", "Networking"].map((c) => (
+                      <span
+                        key={c}
+                        className="flex items-center gap-1.5 text-[0.7rem] font-semibold px-3 py-1.5 rounded-full border border-border text-muted"
+                      >
+                        <Sparkles size={10} style={{ color: program.accent }} />
+                        {c}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              </motion.div>
+
+              {/* Upcoming Training */}
+              <motion.div
+                initial={{ opacity: 0, y: 24 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.65, delay: 0.1 }}
+              >
+                <div className="flex items-center justify-between mb-4">
+                  <p className="text-[0.65rem] font-bold tracking-[0.2em] uppercase text-muted">Pelatihan Mendatang</p>
+                  <Link href="/insights" className="text-[0.72rem] font-semibold text-muted hover:text-dark flex items-center gap-1">
+                    Lihat semua <ArrowUpRight size={11} />
+                  </Link>
+                </div>
+
+                {loadingT ? (
+                  <div className="flex flex-col gap-3">
+                    {[1, 2].map((n) => (
+                      <div key={n} className="bg-white rounded-2xl border border-border p-5 animate-pulse h-24" />
+                    ))}
+                  </div>
+                ) : trainings.length === 0 ? (
+                  <div className="bg-white rounded-2xl border border-border p-8 text-center text-muted text-[0.85rem]">
+                    Belum ada jadwal pelatihan. Hubungi kami untuk informasi terbaru.
+                  </div>
+                ) : (
+                  <div className="flex flex-col gap-3">
+                    {trainings.map((t, i) => (
+                      <motion.div
+                        key={t.id}
+                        initial={{ opacity: 0, y: 16 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.5, delay: i * 0.08 }}
+                        className="bg-white rounded-2xl border border-border p-5 flex items-center gap-4 hover:shadow-sm transition-all"
+                      >
+                        <div className="w-1.5 h-14 rounded-full flex-shrink-0" style={{ backgroundColor: t.color }} />
+                        <div className="flex-1 min-w-0">
+                          <p className="font-bold text-[0.88rem] truncate">{t.title}</p>
+                          <div className="flex items-center gap-3 mt-1 text-[0.72rem] text-muted flex-wrap">
+                            {t.date_start && (
+                              <span className="flex items-center gap-1">
+                                <Calendar size={10} /> {t.date_start}{t.date_end ? ` – ${t.date_end}` : ""}
+                              </span>
+                            )}
+                            <span className="flex items-center gap-1">
+                              <MapPin size={10} /> {t.location}
+                            </span>
+                            <span className="px-2 py-0.5 rounded-full bg-dark/[0.06] font-medium">{t.format}</span>
+                          </div>
+                        </div>
+                        {t.price_label && (
+                          <span className="text-[0.78rem] font-extrabold flex-shrink-0" style={{ color: t.color }}>
+                            {t.price_label}
+                          </span>
+                        )}
+                      </motion.div>
+                    ))}
+                  </div>
+                )}
+              </motion.div>
+
+              {/* Prev / Next Sub */}
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                className="grid grid-cols-2 gap-3"
+              >
+                {prevSub ? (
+                  <Link
+                    href={`/programs/${program.id}/${toSlug(prevSub.name)}`}
+                    className="group flex flex-col gap-1 bg-white rounded-2xl border border-border p-5 hover:border-dark/30 hover:shadow-sm transition-all"
+                  >
+                    <span className="text-[0.65rem] font-bold tracking-[0.1em] uppercase text-muted flex items-center gap-1.5">
+                      <ArrowLeft size={10} /> Sebelumnya
+                    </span>
+                    <span className="text-[0.85rem] font-bold leading-snug line-clamp-2 group-hover:text-dark/80">{prevSub.name}</span>
+                  </Link>
+                ) : <div />}
+                {nextSub ? (
+                  <Link
+                    href={`/programs/${program.id}/${toSlug(nextSub.name)}`}
+                    className="group flex flex-col gap-1 bg-white rounded-2xl border border-border p-5 hover:border-dark/30 hover:shadow-sm transition-all text-right"
+                  >
+                    <span className="text-[0.65rem] font-bold tracking-[0.1em] uppercase text-muted flex items-center gap-1.5 justify-end">
+                      Berikutnya <ArrowUpRight size={10} />
+                    </span>
+                    <span className="text-[0.85rem] font-bold leading-snug line-clamp-2 group-hover:text-dark/80">{nextSub.name}</span>
+                  </Link>
+                ) : <div />}
+              </motion.div>
+            </div>
+
+            {/* RIGHT — sticky sidebar */}
+            <div className="flex flex-col gap-5 lg:sticky lg:top-[90px]">
+
+              {/* Booking widget */}
+              <motion.div
+                initial={{ opacity: 0, x: 24 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.65, delay: 0.25 }}
+              >
+                {loadingT ? (
+                  <div className="rounded-2xl border border-border bg-white p-6 animate-pulse h-64" />
+                ) : (
+                  <BookingWidget
+                    trainings={trainings}
+                    accent={program.accent}
+                    subName={sub.name}
+                    programTitle={program.title}
+                  />
+                )}
+              </motion.div>
+
+              {/* Chat Admin */}
+              <motion.div
+                initial={{ opacity: 0, x: 24 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ duration: 0.65, delay: 0.35 }}
+                className="rounded-2xl border border-border bg-white p-6"
+              >
+                <p className="font-extrabold text-[0.92rem] mb-1">Ada pertanyaan?</p>
+                <p className="text-muted text-[0.78rem] mb-4">Tim kami siap membantu Anda memilih program yang tepat.</p>
+                <div className="flex flex-col gap-2.5">
+                  <motion.a
+                    href={`https://wa.me/${WHATSAPP}?text=${waMsg}`}
+                    target="_blank" rel="noopener noreferrer"
+                    whileHover={{ scale: 1.02, y: -1 }}
+                    whileTap={{ scale: 0.97 }}
+                    className="flex items-center gap-3 bg-[#25D366] text-white font-bold text-[0.85rem] px-4 py-3 rounded-xl hover:bg-[#22c55e] transition-colors"
+                  >
+                    <MessageCircle size={16} />
+                    Chat via WhatsApp
+                    <ArrowUpRight size={13} className="ml-auto" />
+                  </motion.a>
+                  <motion.a
+                    href={`mailto:info@grcc.or.id?subject=Informasi Program: ${sub.name}`}
+                    whileHover={{ scale: 1.02, y: -1 }}
+                    whileTap={{ scale: 0.97 }}
+                    className="flex items-center gap-3 border border-border text-dark font-semibold text-[0.85rem] px-4 py-3 rounded-xl hover:bg-dark/[0.04] transition-colors"
+                  >
+                    <Mail size={16} />
+                    Kirim Email
+                    <ArrowUpRight size={13} className="ml-auto text-muted" />
+                  </motion.a>
+                  <motion.a
+                    href="tel:+6281234567890"
+                    whileHover={{ scale: 1.02, y: -1 }}
+                    whileTap={{ scale: 0.97 }}
+                    className="flex items-center gap-3 border border-border text-dark font-semibold text-[0.85rem] px-4 py-3 rounded-xl hover:bg-dark/[0.04] transition-colors"
+                  >
+                    <PhoneCall size={16} />
+                    Hubungi Kami
+                    <ArrowUpRight size={13} className="ml-auto text-muted" />
+                  </motion.a>
+                </div>
+              </motion.div>
+
+              {/* Back to program */}
+              <Link
+                href="/programs"
+                className="flex items-center justify-center gap-2 border border-border text-muted text-[0.8rem] font-semibold py-3 rounded-xl hover:bg-dark/[0.04] transition-colors"
+              >
+                <ArrowLeft size={13} /> Kembali ke Semua Program
+              </Link>
+            </div>
+          </div>
+        </div>
+      </main>
+
+      <Footer />
+    </>
+  );
+}

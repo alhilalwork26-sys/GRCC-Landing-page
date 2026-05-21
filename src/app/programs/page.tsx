@@ -2,12 +2,11 @@
 
 import { useRef, useState } from "react";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
-import {
-  ArrowUpRight, Shield, Leaf, BookOpen, Search,
-  TrendingUp, Users, Cpu, FlaskConical, ChevronRight
-} from "lucide-react";
+import { ArrowUpRight, ChevronRight } from "lucide-react";
+import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import { programs, toSlug } from "@/data/programs";
 
 // ── variants ─────────────────────────────────────────────────────────────────
 const fadeUp = {
@@ -20,182 +19,44 @@ const fadeUp = {
 
 const stagger = { hidden: {}, visible: { transition: { staggerChildren: 0.07 } } };
 
-// ── data ─────────────────────────────────────────────────────────────────────
-const programs = [
-  {
-    id: "01",
-    icon: Shield,
-    title: "Governance, Risk, and Compliance",
-    short: "GRC",
-    accent: "#4F46E5",
-    bg: "#1A1A2E",
-    tagline: "Bangun fondasi tata kelola yang kokoh dan sistem kepatuhan yang terukur.",
-    desc: "Program GRC GRCC dirancang untuk memperkuat kapasitas organisasi dalam menerapkan prinsip-prinsip tata kelola yang baik, mengelola risiko secara strategis, dan memastikan kepatuhan terhadap regulasi serta standar internasional.",
-    subs: [
-      { name: "Corporate Governance", desc: "Prinsip GCG, struktur dewan, dan akuntabilitas organisasi." },
-      { name: "Enterprise Risk Management", desc: "Kerangka COSO ERM, identifikasi, dan mitigasi risiko strategis." },
-      { name: "Compliance Management", desc: "Sistem kepatuhan, kebijakan internal, dan monitoring regulasi." },
-      { name: "Anti-Corruption & Integrity", desc: "ISO 37001, sistem integritas, dan whistleblowing yang efektif." },
-      { name: "Internal Control", desc: "Desain dan evaluasi sistem pengendalian internal berbasis risiko." },
-      { name: "Public Sector Governance", desc: "Reformasi birokrasi, akuntabilitas, dan transparansi instansi publik." },
-    ],
-  },
-  {
-    id: "02",
-    icon: Leaf,
-    title: "ESG dan Keberlanjutan Bisnis",
-    short: "ESG",
-    accent: "#10B981",
-    bg: "#071A0F",
-    tagline: "Integrasikan keberlanjutan ke dalam inti strategi bisnis Anda.",
-    desc: "Program ESG GRCC mempersiapkan organisasi untuk mengukur, mengelola, dan mengkomunikasikan kinerja lingkungan, sosial, dan tata kelola secara kredibel sesuai standar global GRI, TCFD, dan ISSB.",
-    subs: [
-      { name: "ESG Reporting & Disclosure", desc: "Penyusunan laporan ESG sesuai standar GRI, ISSB, dan OJK." },
-      { name: "Sustainability Strategy", desc: "Integrasi ESG dalam perencanaan strategis dan model bisnis." },
-      { name: "Green Finance", desc: "Obligasi hijau, taksonomi keuangan berkelanjutan, dan POJK." },
-      { name: "Climate Risk Management", desc: "Analisis risiko iklim berbasis TCFD dan skenario IPCC." },
-      { name: "Social Impact Measurement", desc: "Pengukuran dampak sosial, SROI, dan program komunitas." },
-      { name: "Net Zero & Carbon Management", desc: "Inventarisasi emisi GRK, target net zero, dan carbon market." },
-    ],
-  },
-  {
-    id: "03",
-    icon: BookOpen,
-    title: "Accounting",
-    short: "ACC",
-    accent: "#F59E0B",
-    bg: "#1C0E00",
-    tagline: "Kuasai standar akuntansi modern untuk keputusan keuangan yang tepat.",
-    desc: "Program akuntansi GRCC mencakup standar pelaporan keuangan internasional dan domestik, akuntansi manajemen berbasis kinerja, serta tata kelola keuangan sektor publik dan swasta.",
-    subs: [
-      { name: "Financial Accounting & Reporting", desc: "Implementasi PSAK/IFRS dan penyusunan laporan keuangan berkualitas." },
-      { name: "Management Accounting", desc: "Akuntansi biaya, budgeting, dan pengambilan keputusan strategis." },
-      { name: "Tax & Fiscal Management", desc: "Perencanaan pajak, kepatuhan perpajakan, dan transfer pricing." },
-      { name: "Public Sector Accounting", desc: "Standar SAP, pelaporan keuangan pemerintah, dan BPK audit." },
-      { name: "IFRS Implementation", desc: "Konvergensi IFRS, dampak transisi, dan praktik penerapan." },
-      { name: "Accounting Information System", desc: "Desain AIS, ERP accounting, dan pengendalian sistem keuangan." },
-    ],
-  },
-  {
-    id: "04",
-    icon: Search,
-    title: "Auditing",
-    short: "AUD",
-    accent: "#EF4444",
-    bg: "#1A0A0A",
-    tagline: "Tingkatkan kualitas audit untuk kepercayaan dan akuntabilitas yang lebih kuat.",
-    desc: "Program auditing GRCC membekali auditor internal dan eksternal dengan metodologi audit terkini, dari audit berbasis risiko hingga forensic accounting dan IT audit sesuai standar IIA dan IAPI.",
-    subs: [
-      { name: "Internal Audit", desc: "Standar IIA, audit berbasis risiko, dan peran strategic internal auditor." },
-      { name: "IT Audit & Cybersecurity", desc: "COBIT, ISACA framework, dan audit sistem informasi." },
-      { name: "Performance Audit", desc: "Audit efektivitas, efisiensi, dan ekonomi program pemerintah/BUMN." },
-      { name: "Forensic Accounting", desc: "Deteksi fraud, investigasi akuntansi, dan expert witness." },
-      { name: "Quality Assurance Review", desc: "QAIP, peer review, dan peningkatan kualitas fungsi audit." },
-      { name: "Audit Committee Effectiveness", desc: "Peran komite audit, interaksi dengan auditor, dan pelaporan." },
-    ],
-  },
-  {
-    id: "05",
-    icon: TrendingUp,
-    title: "Organizational Competitiveness",
-    short: "OC",
-    accent: "#0EA5E9",
-    bg: "#0A1520",
-    tagline: "Transformasikan organisasi Anda menjadi entitas yang adaptif dan berdaya saing tinggi.",
-    desc: "Program daya saing organisasi GRCC fokus pada penguatan kapabilitas strategis, transformasi bisnis, dan inovasi organisasi untuk menghadapi perubahan pasar dan lingkungan yang semakin dinamis.",
-    subs: [
-      { name: "Strategic Management", desc: "Analisis kompetitif, perumusan strategi, dan eksekusi strategis." },
-      { name: "Business Process Improvement", desc: "Lean, Six Sigma, dan optimalisasi proses bisnis." },
-      { name: "Change Management", desc: "Kotter's framework, manajemen perubahan, dan culture transformation." },
-      { name: "Innovation Management", desc: "Design thinking, inovasi disruptif, dan ekosistem inovasi." },
-      { name: "Digital Transformation", desc: "Roadmap transformasi digital, agile organization, dan OKR." },
-      { name: "Competitive Intelligence", desc: "Analisis pasar, benchmarking, dan strategi diferensiasi." },
-    ],
-  },
-  {
-    id: "06",
-    icon: Users,
-    title: "Human Capital Management",
-    short: "HCM",
-    accent: "#8B5CF6",
-    bg: "#120A1E",
-    tagline: "Optimalkan potensi sumber daya manusia sebagai aset strategis organisasi.",
-    desc: "Program HCM GRCC membantu organisasi membangun sistem manajemen SDM yang terintegrasi — dari talent acquisition, pengembangan kepemimpinan, hingga human capital analytics berbasis data.",
-    subs: [
-      { name: "Talent Management", desc: "Talent acquisition, succession planning, dan talent retention." },
-      { name: "Leadership Development", desc: "Leadership pipeline, coaching, dan pengembangan pemimpin masa depan." },
-      { name: "HR Analytics", desc: "People analytics, workforce planning, dan HR dashboard." },
-      { name: "Performance Management", desc: "KPI, OKR, sistem penilaian kinerja, dan reward management." },
-      { name: "Organizational Culture", desc: "Diagnosa budaya, culture building, dan nilai-nilai perusahaan." },
-      { name: "Learning & Development", desc: "L&D strategy, learning management system, dan competency framework." },
-    ],
-  },
-  {
-    id: "07",
-    icon: Cpu,
-    title: "Digital and Technology in Finance",
-    short: "DTF",
-    accent: "#06B6D4",
-    bg: "#071A1E",
-    tagline: "Manfaatkan teknologi digital untuk transformasi fungsi keuangan Anda.",
-    desc: "Program ini mempersiapkan profesional keuangan untuk menghadapi era digital — mulai dari FinTech, AI dalam akuntansi, analisis data keuangan, hingga keamanan siber dalam sistem keuangan.",
-    subs: [
-      { name: "FinTech & Digital Finance", desc: "Ekosistem FinTech, regulasi OJK/BI, dan model bisnis digital." },
-      { name: "Data Analytics for Finance", desc: "Python/R untuk analisis keuangan, visualisasi data, dan BI." },
-      { name: "AI & Automation in Accounting", desc: "RPA, AI accounting, dan efisiensi proses keuangan." },
-      { name: "Cybersecurity in Finance", desc: "Keamanan sistem keuangan, manajemen insiden, dan regulasi." },
-      { name: "Blockchain & Digital Assets", desc: "Teknologi blockchain, aset kripto, dan regulasi aset digital." },
-      { name: "Digital Reporting & XBRL", desc: "Pelaporan keuangan digital, XBRL taxonomy, dan iXBRL." },
-    ],
-  },
-  {
-    id: "08",
-    icon: FlaskConical,
-    title: "Penelitian",
-    short: "RES",
-    accent: "#F97316",
-    bg: "#1A0D00",
-    tagline: "Perkuat kapasitas riset untuk menghasilkan temuan yang berdampak.",
-    desc: "Program penelitian GRCC dirancang untuk meningkatkan kompetensi metodologi riset, analisis data, dan penulisan ilmiah bagi akademisi, praktisi, dan mahasiswa pascasarjana.",
-    subs: [
-      { name: "Research Methodology", desc: "Desain penelitian, pendekatan kuantitatif, kualitatif, dan mixed methods." },
-      { name: "Statistical Data Analysis", desc: "SPSS, SmartPLS, SEM, dan analisis data penelitian." },
-      { name: "Academic Writing & Publication", desc: "Penulisan artikel ilmiah, submit ke jurnal Scopus/SINTA." },
-      { name: "Policy Research", desc: "Riset kebijakan publik, analisis dampak, dan rekomendasi strategis." },
-      { name: "Impact Evaluation", desc: "Evaluasi program, quasi-experiment, dan RCT." },
-      { name: "Research Grant Writing", desc: "Proposal hibah penelitian, DIPA Kemendikbud, dan dana internasional." },
-    ],
-  },
-];
-
 // ── sub-program card ──────────────────────────────────────────────────────────
 function SubCard({
-  sub, accent, index,
+  sub, accent, index, programId,
 }: {
   sub: { name: string; desc: string };
   accent: string;
   index: number;
+  programId: string;
 }) {
   return (
-    <motion.div
-      custom={index}
-      variants={fadeUp}
-      whileHover={{ y: -3 }}
-      transition={{ type: "spring", stiffness: 320, damping: 22 }}
-      className="group flex flex-col gap-2.5 p-5 rounded-xl border border-border hover:shadow-md bg-white hover:border-transparent transition-all duration-300 cursor-default"
-      style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}
-    >
-      <div className="flex items-start gap-3">
-        <span
-          className="mt-[5px] w-2 h-2 rounded-full flex-shrink-0"
-          style={{ backgroundColor: accent }}
-        />
-        <div>
-          <h4 className="text-dark text-[0.9rem] font-bold leading-snug mb-1">{sub.name}</h4>
-          <p className="text-muted text-[0.78rem] leading-[1.65]">{sub.desc}</p>
+    <Link href={`/programs/${programId}/${toSlug(sub.name)}`}>
+      <motion.div
+        custom={index}
+        variants={fadeUp}
+        whileHover={{ y: -3, boxShadow: `0 8px 24px ${accent}18` }}
+        transition={{ type: "spring", stiffness: 320, damping: 22 }}
+        className="group flex flex-col gap-2.5 p-5 rounded-xl border border-border hover:shadow-md bg-white hover:border-transparent transition-all duration-300 cursor-pointer"
+        style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}
+      >
+        <div className="flex items-start gap-3">
+          <span
+            className="mt-[5px] w-2 h-2 rounded-full flex-shrink-0"
+            style={{ backgroundColor: accent }}
+          />
+          <div className="flex-1 min-w-0">
+            <h4 className="text-dark text-[0.9rem] font-bold leading-snug mb-1 group-hover:text-dark transition-colors">
+              {sub.name}
+            </h4>
+            <p className="text-muted text-[0.78rem] leading-[1.65]">{sub.desc}</p>
+          </div>
+          <ChevronRight
+            size={14}
+            className="flex-shrink-0 mt-1 text-muted/40 opacity-0 group-hover:opacity-100 transition-opacity"
+            style={{ color: accent }}
+          />
         </div>
-      </div>
-    </motion.div>
+      </motion.div>
+    </Link>
   );
 }
 
@@ -318,8 +179,8 @@ export default function ProgramsPage() {
                       key={p.id}
                       onClick={() => setActive(i)}
                       className={`group flex items-center gap-3.5 px-4 py-3.5 rounded-xl text-left transition-all duration-250 ${isActive
-                          ? "bg-dark text-white shadow-sm"
-                          : "hover:bg-dark/[0.05] text-dark/60 hover:text-dark"
+                        ? "bg-dark text-white shadow-sm"
+                        : "hover:bg-dark/[0.05] text-dark/60 hover:text-dark"
                         }`}
                     >
                       <div
@@ -420,7 +281,7 @@ export default function ProgramsPage() {
                     className="grid sm:grid-cols-2 gap-3"
                   >
                     {prog.subs.map((sub, i) => (
-                      <SubCard key={sub.name} sub={sub} accent={prog.accent} index={i} />
+                      <SubCard key={sub.name} sub={sub} accent={prog.accent} index={i} programId={prog.id} />
                     ))}
                   </motion.div>
                 </div>
