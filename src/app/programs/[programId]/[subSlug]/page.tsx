@@ -403,9 +403,15 @@ export default function SubProgramPage() {
                 </div>
 
                 {loadingT ? (
-                  <div className="flex flex-col gap-3">
+                  <div className="flex flex-col gap-4">
                     {[1, 2].map((n) => (
-                      <div key={n} className="bg-white rounded-2xl border border-border p-5 animate-pulse h-24" />
+                      <div key={n} className="rounded-2xl overflow-hidden border border-border bg-white animate-pulse">
+                        <div className="h-[140px] bg-dark/[0.06]" />
+                        <div className="p-4 flex flex-col gap-2">
+                          <div className="h-3 w-2/3 bg-dark/[0.07] rounded-full" />
+                          <div className="h-3 w-1/2 bg-dark/[0.05] rounded-full" />
+                        </div>
+                      </div>
                     ))}
                   </div>
                 ) : trainings.length === 0 ? (
@@ -413,36 +419,80 @@ export default function SubProgramPage() {
                     Belum ada jadwal pelatihan. Hubungi kami untuk informasi terbaru.
                   </div>
                 ) : (
-                  <div className="flex flex-col gap-3">
+                  <div className="flex flex-col gap-4">
                     {trainings.map((t, i) => (
                       <motion.div
                         key={t.id}
-                        initial={{ opacity: 0, y: 16 }}
+                        initial={{ opacity: 0, y: 18 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
-                        transition={{ duration: 0.5, delay: i * 0.08 }}
-                        className="bg-white rounded-2xl border border-border p-5 flex items-center gap-4 hover:shadow-sm transition-all"
+                        transition={{ duration: 0.5, delay: i * 0.09 }}
+                        whileHover={{ y: -3, boxShadow: `0 8px 28px ${t.color}22` }}
+                        className="rounded-2xl overflow-hidden border border-black/[0.07] bg-white cursor-pointer group"
+                        style={{ boxShadow: "0 2px 10px rgba(0,0,0,0.04)" }}
                       >
-                        <div className="w-1.5 h-14 rounded-full flex-shrink-0" style={{ backgroundColor: t.color }} />
-                        <div className="flex-1 min-w-0">
-                          <p className="font-bold text-[0.88rem] truncate">{t.title}</p>
-                          <div className="flex items-center gap-3 mt-1 text-[0.72rem] text-muted flex-wrap">
+                        {/* Poster / Banner */}
+                        <div className="relative h-[140px] overflow-hidden">
+                          {t.poster_url ? (
+                            <motion.img
+                              src={t.poster_url}
+                              alt={t.title}
+                              className="absolute inset-0 w-full h-full object-cover"
+                              variants={{ hover: { scale: 1.06 } }}
+                              transition={{ duration: 0.45, ease: [0.4, 0, 0.2, 1] }}
+                            />
+                          ) : (
+                            /* Placeholder */
+                            <div className="absolute inset-0" style={{ backgroundColor: t.color + "12" }}>
+                              <div className="absolute inset-0" style={{
+                                backgroundImage: `linear-gradient(${t.color}20 1px, transparent 1px), linear-gradient(90deg, ${t.color}20 1px, transparent 1px)`,
+                                backgroundSize: "28px 28px",
+                              }} />
+                              <div className="absolute inset-0" style={{
+                                background: `radial-gradient(ellipse at 70% 30%, ${t.color}40 0%, transparent 65%)`,
+                              }} />
+                              <div className="absolute inset-0 flex items-center justify-center">
+                                <span className="text-[2.8rem] font-black tracking-[-0.05em] select-none leading-none" style={{ color: t.color + "22" }}>
+                                  {(t.category || t.title).slice(0, 3).toUpperCase()}
+                                </span>
+                              </div>
+                            </div>
+                          )}
+                          {/* Gradient overlay */}
+                          <div className="absolute inset-x-0 bottom-0 h-[60%] bg-gradient-to-t from-black/60 to-transparent" />
+                          {/* Format badge */}
+                          <span
+                            className="absolute top-3 left-3 text-[0.58rem] font-extrabold tracking-[0.1em] uppercase px-2 py-1 rounded-full text-white"
+                            style={{ backgroundColor: t.color }}
+                          >
+                            {t.format}
+                          </span>
+                          {/* Price on poster */}
+                          {(t.price || t.price_label) && (
+                            <p className="absolute bottom-3 left-3 text-white font-extrabold text-[0.95rem] leading-none drop-shadow">
+                              {t.price ? `Rp ${t.price.toLocaleString("id-ID")}` : t.price_label}
+                            </p>
+                          )}
+                        </div>
+
+                        {/* Body */}
+                        <div className="p-4">
+                          <p className="font-bold text-[0.85rem] leading-snug line-clamp-2 mb-2.5">{t.title}</p>
+                          <div className="flex flex-col gap-1.5">
                             {t.date_start && (
-                              <span className="flex items-center gap-1">
-                                <Calendar size={10} /> {t.date_start}{t.date_end ? ` – ${t.date_end}` : ""}
-                              </span>
+                              <div className="flex items-center gap-2 text-[0.7rem] text-muted">
+                                <Calendar size={10} className="flex-shrink-0" />
+                                <span>{t.date_start}{t.date_end ? ` – ${t.date_end}` : ""}</span>
+                              </div>
                             )}
-                            <span className="flex items-center gap-1">
-                              <MapPin size={10} /> {t.location}
-                            </span>
-                            <span className="px-2 py-0.5 rounded-full bg-dark/[0.06] font-medium">{t.format}</span>
+                            {t.location && (
+                              <div className="flex items-center gap-2 text-[0.7rem] text-muted">
+                                <MapPin size={10} className="flex-shrink-0" />
+                                <span className="truncate">{t.location}</span>
+                              </div>
+                            )}
                           </div>
                         </div>
-                        {t.price_label && (
-                          <span className="text-[0.78rem] font-extrabold flex-shrink-0" style={{ color: t.color }}>
-                            {t.price_label}
-                          </span>
-                        )}
                       </motion.div>
                     ))}
                   </div>
