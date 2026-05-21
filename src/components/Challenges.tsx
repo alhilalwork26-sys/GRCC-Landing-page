@@ -3,83 +3,92 @@
 import { useRef } from "react";
 import { motion, useScroll, useTransform, MotionValue } from "framer-motion";
 
-// x/y = final resting position. fromX/fromY = entrance direction offset (px)
+// Two clean columns: left (x:"3%") and right (x:"67%")
+// y positions staggered so left/right alternate vertically
 const challenges = [
   {
-    text: "Governance frameworks that are outdated and fragmented",
-    x: "5%",   y: "10%",
-    fromX: -120, fromY: -20,
+    text: "Tata kelola organisasi yang belum sepenuhnya terintegrasi dan terdokumentasi dengan baik.",
+    x: "3%",  y: "5%",
+    fromX: -90, floatY: -7, floatDur: 4.2, floatDelay: 0,
   },
   {
-    text: "Slow compliance processes creating regulatory exposure",
-    x: "60%",  y: "7%",
-    fromX: 120,  fromY: -20,
+    text: "Risiko bisnis, operasional, dan kepatuhan yang semakin kompleks dan dinamis.",
+    x: "67%", y: "13%",
+    fromX: 90,  floatY: 8,  floatDur: 3.8, floatDelay: 0.6,
   },
   {
-    text: "Lack of accountability across departments and levels",
-    x: "72%",  y: "40%",
-    fromX: 120,  fromY: 0,
+    text: "Kebutuhan untuk menyesuaikan praktik organisasi dengan standar GRC dan sustainability global.",
+    x: "3%",  y: "29%",
+    fromX: -90, floatY: -9, floatDur: 4.6, floatDelay: 0.3,
   },
   {
-    text: "Siloed risk management with no unified view",
-    x: "3%",   y: "56%",
-    fromX: -120, fromY: 0,
+    text: "Tantangan dalam membangun sistem manajemen risiko yang efektif dan berkelanjutan.",
+    x: "67%", y: "37%",
+    fromX: 90,  floatY: 7,  floatDur: 3.6, floatDelay: 0.9,
   },
   {
-    text: "Difficulty measuring governance effectiveness",
-    x: "62%",  y: "72%",
-    fromX: 120,  fromY: 20,
+    text: "Keterbatasan kapasitas internal dalam merancang kebijakan, prosedur, dan kontrol organisasi.",
+    x: "3%",  y: "53%",
+    fromX: -90, floatY: -8, floatDur: 4.0, floatDelay: 0.5,
   },
   {
-    text: "Scaling compliance by adding headcount, not systems",
-    x: "16%",  y: "76%",
-    fromX: -80,  fromY: 20,
+    text: "Tekanan untuk meningkatkan transparansi, akuntabilitas, dan kepercayaan stakeholder.",
+    x: "67%", y: "60%",
+    fromX: 90,  floatY: 10, floatDur: 4.4, floatDelay: 0.2,
+  },
+  {
+    text: "Kebutuhan data, riset, dan asesmen yang kuat untuk mendukung pengambilan keputusan strategis.",
+    x: "3%",  y: "76%",
+    fromX: -90, floatY: -7, floatDur: 3.9, floatDelay: 0.7,
+  },
+  {
+    text: "Tantangan UMKM, BUMN/BUMD, sektor publik, dan korporasi dalam meningkatkan daya saing berkelanjutan.",
+    x: "67%", y: "81%",
+    fromX: 90,  floatY: 9,  floatDur: 4.1, floatDelay: 0.4,
   },
 ];
 
-// Each card reveals at evenly-spaced scroll intervals
-// 0.10–0.14: central text fades in
-// 0.16–0.90: cards appear one by one
-const TEXT_IN_START  = 0.05;
-const TEXT_IN_END    = 0.16;
-const CARDS_START    = 0.18;
-const CARDS_END      = 0.88;
+const TEXT_IN_START = 0.04;
+const TEXT_IN_END   = 0.15;
+const CARDS_START   = 0.16;
+const CARDS_END     = 0.88;
 
 function getCardThreshold(index: number, total: number) {
   const span = CARDS_END - CARDS_START;
   const step = span / total;
   const start = CARDS_START + index * step;
-  const end   = start + step * 0.55; // each card takes 55% of its step to fully appear
+  const end   = start + step * 0.6;
   return { start, end };
 }
 
 function WarningIcon() {
   return (
-    <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="flex-shrink-0 mt-[1px]">
-      <path d="M8 1L15 14H1L8 1Z" fill="#F59E0B" />
-      <path d="M8 6.5V9.5" stroke="white" strokeWidth="1.3" strokeLinecap="round" />
-      <circle cx="8" cy="11.5" r="0.7" fill="white" />
-    </svg>
+    <div className="w-7 h-7 rounded-lg bg-amber-50 flex items-center justify-center flex-shrink-0 mt-[1px]">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none">
+        <path d="M8 1.5L14.5 13.5H1.5L8 1.5Z" fill="#F59E0B" />
+        <path d="M8 6.5V9.5" stroke="white" strokeWidth="1.4" strokeLinecap="round" />
+        <circle cx="8" cy="11.5" r="0.75" fill="white" />
+      </svg>
+    </div>
   );
 }
 
 function ScrollCard({
-  text, x, y, fromX, fromY, index, scrollYProgress,
+  text, x, y, fromX, floatY, floatDur, floatDelay, index, scrollYProgress,
 }: {
   text: string; x: string; y: string;
-  fromX: number; fromY: number;
+  fromX: number;
+  floatY: number; floatDur: number; floatDelay: number;
   index: number;
   scrollYProgress: MotionValue<number>;
 }) {
   const { start, end } = getCardThreshold(index, challenges.length);
 
-  const opacity    = useTransform(scrollYProgress, [start, end], [0, 1]);
-  const translateX = useTransform(scrollYProgress, [start, end], [fromX, 0]);
-  const translateY = useTransform(scrollYProgress, [start, end], [fromY, 0]);
-
-  // Subtle continuous drift after appearing (parallax float)
-  const drift = index % 2 === 0 ? -18 : 14;
-  const floatY = useTransform(scrollYProgress, [end, 1], [0, drift]);
+  const opacity    = useTransform(scrollYProgress, [start, end],   [0, 1]);
+  const translateX = useTransform(scrollYProgress, [start, end],   [fromX, 0]);
+  const translateY = useTransform(scrollYProgress, [start, end],   [-14, 0]);
+  const blur       = useTransform(scrollYProgress, [start, end],   [6, 0]);
+  const scale      = useTransform(scrollYProgress, [start, end],   [0.92, 1]);
 
   return (
     <motion.div
@@ -89,35 +98,78 @@ function ScrollCard({
         top: y,
         opacity,
         x: translateX,
-        y: useTransform(
-          scrollYProgress,
-          [start, end, 1],
-          [fromY, 0, drift]
-        ),
+        y: translateY,
+        scale,
+        filter: blur.get() > 0
+          ? `blur(${blur.get()}px)`
+          : undefined,
       }}
-      className="flex items-start gap-2.5 bg-black/[0.04] rounded-lg px-4 py-3 w-[260px] xl:w-[295px] cursor-default select-none"
+      className="w-[270px] xl:w-[290px]"
     >
-      <WarningIcon />
-      <span className="text-[0.82rem] leading-[1.5] text-dark/80 font-medium">{text}</span>
+      {/* Inner element handles continuous float */}
+      <motion.div
+        animate={{ y: [0, floatY, 0] }}
+        transition={{
+          duration: floatDur,
+          repeat: Infinity,
+          ease: "easeInOut",
+          delay: floatDelay,
+          repeatType: "loop",
+        }}
+        className="group bg-white rounded-2xl border border-black/[0.07] px-4 py-4 flex items-start gap-3 cursor-default select-none"
+        style={{
+          boxShadow: "0 4px 20px rgba(0,0,0,0.06), 0 1px 4px rgba(0,0,0,0.04)",
+        }}
+      >
+        <WarningIcon />
+        <span className="text-[0.8rem] leading-[1.6] text-dark/75 font-medium pt-[1px]">
+          {text}
+        </span>
+      </motion.div>
     </motion.div>
   );
 }
 
 function CentralText({ scrollYProgress }: { scrollYProgress: MotionValue<number> }) {
   const opacity = useTransform(scrollYProgress, [TEXT_IN_START, TEXT_IN_END], [0, 1]);
-  const y       = useTransform(scrollYProgress, [TEXT_IN_START, TEXT_IN_END], [28, 0]);
+  const y       = useTransform(scrollYProgress, [TEXT_IN_START, TEXT_IN_END], [32, 0]);
+  const scale   = useTransform(scrollYProgress, [TEXT_IN_START, TEXT_IN_END], [0.95, 1]);
 
   return (
     <motion.div
-      style={{ opacity, y }}
+      style={{ opacity, y, scale }}
       className="absolute inset-0 flex items-center justify-center pointer-events-none px-8"
     >
-      <p className="text-[clamp(1.5rem,2.4vw,2rem)] font-bold leading-[1.4] tracking-[-0.025em] text-center max-w-[600px]">
-        We recognize the challenges you face.{" "}
-        <span className="text-dark/40 font-normal">
+      <div className="text-center max-w-[520px]">
+        <p className="text-[clamp(1.45rem,2.2vw,1.9rem)] font-extrabold leading-[1.35] tracking-[-0.03em] text-dark mb-3">
+          We recognize the challenges you face.
+        </p>
+        <p className="text-[clamp(0.95rem,1.2vw,1.1rem)] font-normal leading-[1.7] text-dark/40">
           That is why your path to governance excellence starts here.
-        </span>
-      </p>
+        </p>
+
+        {/* Decorative dots */}
+        <div className="flex items-center justify-center gap-1.5 mt-6">
+          {challenges.map((_, i) => (
+            <motion.div
+              key={i}
+              style={{
+                opacity: useTransform(
+                  scrollYProgress,
+                  [getCardThreshold(i, challenges.length).start, getCardThreshold(i, challenges.length).end],
+                  [0.15, 1]
+                ),
+                scale: useTransform(
+                  scrollYProgress,
+                  [getCardThreshold(i, challenges.length).start, getCardThreshold(i, challenges.length).end],
+                  [0.6, 1]
+                ),
+              }}
+              className="w-1.5 h-1.5 rounded-full bg-amber-400"
+            />
+          ))}
+        </div>
+      </div>
     </motion.div>
   );
 }
@@ -130,17 +182,26 @@ export default function Challenges() {
     offset: ["start start", "end end"],
   });
 
-  const SCROLL_STEPS = challenges.length + 3; // extra breathing room
+  const SCROLL_STEPS = challenges.length + 4;
 
   return (
     <>
-      {/* ── DESKTOP sticky scroll-pinned section ── */}
+      {/* ── DESKTOP sticky scroll-pinned ── */}
       <div
         ref={containerRef}
         className="hidden lg:block relative"
         style={{ height: `${SCROLL_STEPS * 100}vh` }}
       >
-        <div className="sticky top-0 h-screen overflow-hidden bg-[#FAFAF8]">
+        <div className="sticky top-0 h-screen overflow-hidden bg-[#F8F8F6]">
+          {/* Subtle grid background */}
+          <div
+            className="absolute inset-0 opacity-[0.035] pointer-events-none"
+            style={{
+              backgroundImage: `linear-gradient(#1a1a1a 1px, transparent 1px), linear-gradient(90deg, #1a1a1a 1px, transparent 1px)`,
+              backgroundSize: "72px 72px",
+            }}
+          />
+
           <CentralText scrollYProgress={scrollYProgress} />
 
           <div className="absolute inset-0">
@@ -157,32 +218,38 @@ export default function Challenges() {
       </div>
 
       {/* ── MOBILE stacked ── */}
-      <section className="lg:hidden bg-[#FAFAF8] py-20 px-6">
+      <section className="lg:hidden bg-[#F8F8F6] py-20 px-5">
         <div className="max-w-xl mx-auto flex flex-col gap-6">
-          <motion.p
+          <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6 }}
-            className="text-[1.5rem] font-bold leading-[1.4] tracking-[-0.02em] text-center mb-2"
+            className="text-center mb-2"
           >
-            We recognize the challenges you face.{" "}
-            <span className="text-dark/40 font-normal">
+            <p className="text-[1.5rem] font-extrabold leading-[1.35] tracking-[-0.025em] text-dark mb-2">
+              We recognize the challenges you face.
+            </p>
+            <p className="text-[0.95rem] text-dark/40 leading-[1.7]">
               That is why your path to governance excellence starts here.
-            </span>
-          </motion.p>
+            </p>
+          </motion.div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
             {challenges.map((c, i) => (
               <motion.div
                 key={c.text}
-                initial={{ opacity: 0, y: 16 }}
-                whileInView={{ opacity: 1, y: 0 }}
+                initial={{ opacity: 0, y: 18, scale: 0.95 }}
+                whileInView={{ opacity: 1, y: 0, scale: 1 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: i * 0.08 }}
-                className="flex items-start gap-2.5 bg-black/[0.04] rounded-lg px-4 py-3"
+                transition={{ duration: 0.5, delay: i * 0.07, ease: [0.4, 0, 0.2, 1] }}
+                className="bg-white rounded-2xl border border-black/[0.07] px-4 py-4 flex items-start gap-3"
+                style={{ boxShadow: "0 4px 16px rgba(0,0,0,0.05)" }}
               >
                 <WarningIcon />
-                <span className="text-[0.82rem] leading-[1.5] text-dark/80 font-medium">{c.text}</span>
+                <span className="text-[0.8rem] leading-[1.6] text-dark/75 font-medium pt-[1px]">
+                  {c.text}
+                </span>
               </motion.div>
             ))}
           </div>
