@@ -3,48 +3,49 @@
 import { useRef } from "react";
 import { motion, useScroll, useTransform, MotionValue } from "framer-motion";
 
-// Two clean columns: left (x:"3%") and right (x:"67%")
-// y positions staggered so left/right alternate vertically
+// Cards surround the central text (center zone: ~28%–68% x, ~25%–70% y)
+// Left column keeps cards to the left of center text
+// Right column keeps cards to the right of center text
 const challenges = [
   {
     text: "Tata kelola organisasi yang belum sepenuhnya terintegrasi dan terdokumentasi dengan baik.",
-    x: "3%",  y: "5%",
-    fromX: -90, floatY: -7, floatDur: 4.2, floatDelay: 0,
+    x: "2%",  y: "4%",
+    fromX: -80, floatY: -7, floatDur: 4.2, floatDelay: 0,
   },
   {
     text: "Risiko bisnis, operasional, dan kepatuhan yang semakin kompleks dan dinamis.",
-    x: "67%", y: "13%",
-    fromX: 90,  floatY: 8,  floatDur: 3.8, floatDelay: 0.6,
+    x: "71%", y: "7%",
+    fromX: 80,  floatY: 8,  floatDur: 3.8, floatDelay: 0.6,
   },
   {
     text: "Kebutuhan untuk menyesuaikan praktik organisasi dengan standar GRC dan sustainability global.",
-    x: "3%",  y: "29%",
-    fromX: -90, floatY: -9, floatDur: 4.6, floatDelay: 0.3,
+    x: "2%",  y: "31%",
+    fromX: -80, floatY: -9, floatDur: 4.6, floatDelay: 0.3,
   },
   {
     text: "Tantangan dalam membangun sistem manajemen risiko yang efektif dan berkelanjutan.",
-    x: "67%", y: "37%",
-    fromX: 90,  floatY: 7,  floatDur: 3.6, floatDelay: 0.9,
+    x: "71%", y: "34%",
+    fromX: 80,  floatY: 7,  floatDur: 3.6, floatDelay: 0.9,
   },
   {
     text: "Keterbatasan kapasitas internal dalam merancang kebijakan, prosedur, dan kontrol organisasi.",
-    x: "3%",  y: "53%",
-    fromX: -90, floatY: -8, floatDur: 4.0, floatDelay: 0.5,
+    x: "2%",  y: "58%",
+    fromX: -80, floatY: -8, floatDur: 4.0, floatDelay: 0.5,
   },
   {
     text: "Tekanan untuk meningkatkan transparansi, akuntabilitas, dan kepercayaan stakeholder.",
-    x: "67%", y: "60%",
-    fromX: 90,  floatY: 10, floatDur: 4.4, floatDelay: 0.2,
+    x: "71%", y: "61%",
+    fromX: 80,  floatY: 10, floatDur: 4.4, floatDelay: 0.2,
   },
   {
     text: "Kebutuhan data, riset, dan asesmen yang kuat untuk mendukung pengambilan keputusan strategis.",
-    x: "3%",  y: "76%",
-    fromX: -90, floatY: -7, floatDur: 3.9, floatDelay: 0.7,
+    x: "2%",  y: "80%",
+    fromX: -80, floatY: -7, floatDur: 3.9, floatDelay: 0.7,
   },
   {
     text: "Tantangan UMKM, BUMN/BUMD, sektor publik, dan korporasi dalam meningkatkan daya saing berkelanjutan.",
-    x: "67%", y: "81%",
-    fromX: 90,  floatY: 9,  floatDur: 4.1, floatDelay: 0.4,
+    x: "71%", y: "83%",
+    fromX: 80,  floatY: 9,  floatDur: 4.1, floatDelay: 0.4,
   },
 ];
 
@@ -84,11 +85,10 @@ function ScrollCard({
 }) {
   const { start, end } = getCardThreshold(index, challenges.length);
 
-  const opacity    = useTransform(scrollYProgress, [start, end],   [0, 1]);
-  const translateX = useTransform(scrollYProgress, [start, end],   [fromX, 0]);
-  const translateY = useTransform(scrollYProgress, [start, end],   [-14, 0]);
-  const blur       = useTransform(scrollYProgress, [start, end],   [6, 0]);
-  const scale      = useTransform(scrollYProgress, [start, end],   [0.92, 1]);
+  const opacity    = useTransform(scrollYProgress, [start, end], [0, 1]);
+  const translateX = useTransform(scrollYProgress, [start, end], [fromX, 0]);
+  const translateY = useTransform(scrollYProgress, [start, end], [-12, 0]);
+  const scale      = useTransform(scrollYProgress, [start, end], [0.93, 1]);
 
   return (
     <motion.div
@@ -100,11 +100,8 @@ function ScrollCard({
         x: translateX,
         y: translateY,
         scale,
-        filter: blur.get() > 0
-          ? `blur(${blur.get()}px)`
-          : undefined,
       }}
-      className="w-[270px] xl:w-[290px]"
+      className="w-[255px] xl:w-[270px]"
     >
       {/* Inner element handles continuous float */}
       <motion.div
