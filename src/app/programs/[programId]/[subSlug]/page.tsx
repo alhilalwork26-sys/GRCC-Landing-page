@@ -7,12 +7,15 @@ import Link from "next/link";
 import {
   ArrowLeft, Calendar, MapPin, Clock, Users, MessageCircle,
   Mail, ChevronDown, ChevronUp, Check, Minus, Plus,
-  ArrowUpRight, PhoneCall, Sparkles
+  ArrowUpRight, PhoneCall, Sparkles, BookOpen
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { supabase, TrainingItem } from "@/lib/supabase";
 import { programs, toSlug } from "@/data/programs";
+import dynamic from "next/dynamic";
+
+const FlipBookModal = dynamic(() => import("@/components/FlipBookModal"), { ssr: false });
 
 const WHATSAPP = "6281234567890"; // ganti nomor WA admin
 
@@ -217,6 +220,7 @@ export default function SubProgramPage() {
 
   const [trainings, setTrainings] = useState<TrainingItem[]>([]);
   const [loadingT, setLoadingT] = useState(true);
+  const [flipBookUrl, setFlipBookUrl] = useState<string | null>(null);
 
   useEffect(() => {
     if (!program) return;
@@ -254,6 +258,16 @@ export default function SubProgramPage() {
   return (
     <>
       <Navbar />
+
+      {/* FlipBook Modal */}
+      {flipBookUrl && (
+        <FlipBookModal
+          pdfUrl={flipBookUrl}
+          title={sub.name}
+          accent={program.accent}
+          onClose={() => setFlipBookUrl(null)}
+        />
+      )}
 
       {/* ── HERO ──────────────────────────────────────────── */}
       <section
@@ -332,10 +346,35 @@ export default function SubProgramPage() {
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.65, delay: 0.28 }}
-            className="text-white/45 text-[0.95rem] leading-[1.85] max-w-[600px]"
+            className="text-white/45 text-[0.95rem] leading-[1.85] max-w-[600px] mb-8"
           >
             {sub.desc}
           </motion.p>
+
+          {/* Brochure buttons — show for any training that has brochure_url */}
+          {trainings.some(t => t.brochure_url) && (
+            <motion.div
+              initial={{ opacity: 0, y: 14 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.55, delay: 0.4 }}
+              className="flex flex-wrap gap-3"
+            >
+              {trainings.filter(t => t.brochure_url).map((t) => (
+                <motion.button
+                  key={t.id}
+                  whileHover={{ scale: 1.03, y: -2 }}
+                  whileTap={{ scale: 0.97 }}
+                  onClick={() => setFlipBookUrl(t.brochure_url!)}
+                  className="flex items-center gap-2.5 px-5 py-2.5 rounded-xl font-bold text-[0.82rem] transition-all group"
+                  style={{ backgroundColor: program.accent, color: "#fff" }}
+                >
+                  <BookOpen size={15} />
+                  Brosur: {t.title.length > 28 ? t.title.slice(0, 28) + "…" : t.title}
+                  <span className="text-white/60 text-[0.65rem] font-normal">PDF</span>
+                </motion.button>
+              ))}
+            </motion.div>
+          )}
         </motion.div>
       </section>
 

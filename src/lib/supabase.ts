@@ -56,6 +56,7 @@ export interface TrainingItem {
   description: string;
   published: boolean;
   poster_url: string | null;
+  brochure_url: string | null;
   created_at: string;
 }
 

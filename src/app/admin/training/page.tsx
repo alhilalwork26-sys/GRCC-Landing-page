@@ -12,6 +12,7 @@ const EMPTY: Omit<TrainingItem,"id"|"created_at"> = {
   format:"Online", location:"Zoom Meeting", price: null, price_label:"",
   max_participants: null, color:"#4F46E5", description:"", published: true,
   poster_url: null,
+  brochure_url: null,
 };
 
 export default function AdminTraining() {
