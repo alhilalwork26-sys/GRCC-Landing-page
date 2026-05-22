@@ -45,9 +45,23 @@ export default function VideoProfile() {
               animate={{ opacity: 1, scale: 1, y: 0 }}
               exit={{ opacity: 0, scale: 0.92 }}
               transition={{ type: "spring", stiffness: 260, damping: 26 }}
-              className="fixed inset-0 z-[15001] flex items-center justify-center p-4 lg:p-12"
+              className="fixed inset-0 z-[15001] flex flex-col items-center justify-center gap-4 p-4 lg:p-12"
               onClick={(e) => e.stopPropagation()}
             >
+              {/* Close button — ABOVE the video, always visible */}
+              <div className="flex w-full max-w-5xl justify-end">
+                <motion.button
+                  whileHover={{ scale: 1.1, rotate: 90 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => setLightbox(false)}
+                  className="flex items-center gap-2 text-white/70 hover:text-white text-[0.82rem] font-semibold bg-white/10 hover:bg-white/20 backdrop-blur-sm px-4 py-2 rounded-full border border-white/15 transition-all"
+                >
+                  <X size={15} />
+                  Tutup
+                </motion.button>
+              </div>
+
+              {/* Video */}
               <div className="relative w-full max-w-5xl aspect-video rounded-2xl overflow-hidden shadow-[0_40px_120px_rgba(0,0,0,0.8)]">
                 <iframe
                   src={`${VIDEO_URL}?autoplay=1&rel=0&modestbranding=1`}
@@ -56,14 +70,9 @@ export default function VideoProfile() {
                   allowFullScreen
                 />
               </div>
-              <motion.button
-                whileHover={{ scale: 1.1, rotate: 90 }}
-                whileTap={{ scale: 0.9 }}
-                onClick={() => setLightbox(false)}
-                className="absolute top-6 right-6 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 flex items-center justify-center transition-all z-10"
-              >
-                <X size={18} className="text-white" />
-              </motion.button>
+
+              {/* ESC hint */}
+              <p className="text-white/25 text-[0.7rem]">Tekan ESC atau klik di luar untuk menutup</p>
             </motion.div>
           </>
         )}
