@@ -5,9 +5,9 @@ import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion"
 import { Play, Pause, Volume2, VolumeX, Maximize2, X } from "lucide-react";
 
 // ── Ganti dengan URL video company profile GRCC ───────────────────────────────
-const VIDEO_URL = "https://www.youtube.com/embed/dQw4w9WgXcQ"; // ganti dengan embed URL YouTube
-const VIDEO_THUMBNAIL = ""; // opsional: URL thumbnail custom, kosongkan untuk auto-generate dari YouTube
-const YOUTUBE_ID = "dQw4w9WgXcQ"; // ganti dengan YouTube video ID
+const VIDEO_URL = "https://www.youtube.com/embed/BCOjopku3bk";
+const VIDEO_THUMBNAIL = "";
+const YOUTUBE_ID = "BCOjopku3bk";
 
 export default function VideoProfile() {
   const sectionRef = useRef<HTMLDivElement>(null);
