@@ -58,6 +58,7 @@ export interface TrainingItem {
   poster_url: string | null;
   brochure_url: string | null;
   custom_fields: CustomField[] | null;
+  program_id: string | null;
   created_at: string;
 }
 
@@ -68,6 +69,12 @@ export interface CustomField {
   required: boolean;
   placeholder?: string;
   options?: string[]; // for select type
+}
+
+export interface Participant {
+  nama: string;
+  jabatan: string;
+  email: string;
 }
 
 export interface Registration {
@@ -83,6 +90,28 @@ export interface Registration {
   custom_data: Record<string, string>;
   status: "pending" | "confirmed" | "rejected";
   notes: string | null;
+  promo_code: string | null;
+  original_price: number | null;
+  discount_amount: number | null;
+  final_price: number | null;
+  participant_count: number;
+  is_group: boolean;
+  participants: Participant[];
+  created_at: string;
+}
+
+export interface PromoCode {
+  id: string;
+  code: string;
+  description: string | null;
+  discount_type: "percentage" | "fixed";
+  discount_value: number;
+  min_price: number;
+  max_uses: number | null;
+  used_count: number;
+  active: boolean;
+  expires_at: string | null;
+  promo_type: "individu" | "grup" | "semua";
   created_at: string;
 }
 

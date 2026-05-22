@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import Image from "next/image";
 
 const phrases = [
   "Governance you can trust.",
@@ -22,31 +21,24 @@ export default function Intro({ onComplete }: IntroProps) {
   const [exiting, setExiting] = useState(false);
 
   useEffect(() => {
-    const FADE_IN  = 300;
-    const HOLD_TEXT = 1100;
-    const HOLD_LOGO = 1600;
-    const FADE_OUT = 400;
-    const GAP      = 160;
+    const timers: ReturnType<typeof setTimeout>[] = [];
 
-    let t: ReturnType<typeof setTimeout>;
+    timers.push(setTimeout(() => setVisible(false), 1400));
+    timers.push(setTimeout(() => {
+      setStage(1);
+      setVisible(true);
+    }, 1900));
+    timers.push(setTimeout(() => setVisible(false), 3300));
+    timers.push(setTimeout(() => {
+      setStage(2);
+      setVisible(true);
+    }, 3800));
+    timers.push(setTimeout(() => setVisible(false), 5600));
+    timers.push(setTimeout(() => setExiting(true), 6100));
+    timers.push(setTimeout(onComplete, 6900));
 
-    const holdTime = stage === 2 ? HOLD_LOGO : HOLD_TEXT;
-
-    setVisible(true);
-    t = setTimeout(() => {
-      setVisible(false);
-      t = setTimeout(() => {
-        if (stage < 2) {
-          setStage((s) => (s + 1) as Stage);
-        } else {
-          setExiting(true);
-          t = setTimeout(onComplete, 800);
-        }
-      }, FADE_OUT + GAP);
-    }, FADE_IN + holdTime);
-
-    return () => clearTimeout(t);
-  }, [stage, onComplete]);
+    return () => timers.forEach(clearTimeout);
+  }, [onComplete]);
 
   return (
     <AnimatePresence>

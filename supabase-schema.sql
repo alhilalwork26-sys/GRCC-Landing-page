@@ -58,7 +58,52 @@ create table if not exists training (
   created_at        timestamptz default now()
 );
 
--- 4. TEAM MEMBERS
+alter table training add column if not exists poster_url text;
+alter table training add column if not exists brochure_url text;
+alter table training add column if not exists custom_fields jsonb default '[]';
+alter table training add column if not exists program_id text;
+
+-- 4. TRAINING REGISTRATIONS
+create table if not exists registrations (
+  id                    uuid primary key default gen_random_uuid(),
+  training_id           uuid references training(id) on delete set null,
+  nama_lengkap          text not null,
+  instansi              text not null,
+  jabatan               text not null,
+  email                 text not null,
+  telepon               text not null,
+  npwp                  text,
+  bukti_pembayaran_url  text,
+  custom_data           jsonb default '{}',
+  status                text default 'pending' check (status in ('pending','confirmed','rejected')),
+  notes                 text,
+  created_at            timestamptz default now()
+);
+
+alter table registrations add column if not exists promo_code text;
+alter table registrations add column if not exists original_price integer;
+alter table registrations add column if not exists discount_amount integer;
+alter table registrations add column if not exists final_price integer;
+alter table registrations add column if not exists participant_count integer default 1;
+alter table registrations add column if not exists is_group boolean default false;
+alter table registrations add column if not exists participants jsonb default '[]';
+
+-- 5. PROMO CODES / VOUCHER
+create table if not exists promo_codes (
+  id              uuid primary key default gen_random_uuid(),
+  code            text not null unique,
+  description     text,
+  discount_type   text not null check (discount_type in ('percentage','fixed')),
+  discount_value  integer not null default 0,
+  min_price       integer not null default 0,
+  max_uses        integer,
+  used_count      integer not null default 0,
+  expires_at      timestamptz,
+  active          boolean not null default true,
+  created_at      timestamptz default now()
+);
+
+-- 6. TEAM MEMBERS
 create table if not exists team_members (
   id           uuid primary key default gen_random_uuid(),
   num          text,
@@ -74,19 +119,100 @@ create table if not exists team_members (
 alter table promo        enable row level security;
 alter table insights     enable row level security;
 alter table training     enable row level security;
+alter table registrations enable row level security;
+alter table promo_codes  enable row level security;
 alter table team_members enable row level security;
+
+drop policy if exists "Public read promo" on promo;
+drop policy if exists "Public read insights" on insights;
+drop policy if exists "Public read training" on training;
+drop policy if exists "Public read team" on team_members;
+drop policy if exists "Public insert registrations" on registrations;
+drop policy if exists "Public read active promo codes" on promo_codes;
+drop policy if exists "Admin all promo" on promo;
+drop policy if exists "Admin all promo codes" on promo_codes;
+drop policy if exists "Admin all insights" on insights;
+drop policy if exists "Admin all training" on training;
+drop policy if exists "Admin all registrations" on registrations;
+drop policy if exists "Admin all team" on team_members;
 
 -- Public can read published content
 create policy "Public read promo"        on promo        for select using (true);
 create policy "Public read insights"     on insights     for select using (published = true);
 create policy "Public read training"     on training     for select using (published = true);
 create policy "Public read team"         on team_members for select using (active = true);
+create policy "Public insert registrations" on registrations for insert with check (true);
+create policy "Public read active promo codes" on promo_codes for select using (active = true);
 
 -- Authenticated users (admin) can do everything
 create policy "Admin all promo"        on promo        for all using (auth.role() = 'authenticated');
+create policy "Admin all promo codes"  on promo_codes  for all using (auth.role() = 'authenticated');
 create policy "Admin all insights"     on insights     for all using (auth.role() = 'authenticated');
 create policy "Admin all training"     on training     for all using (auth.role() = 'authenticated');
+create policy "Admin all registrations" on registrations for all using (auth.role() = 'authenticated');
 create policy "Admin all team"         on team_members for all using (auth.role() = 'authenticated');
+
+-- Storage bucket for payment proofs.
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values (
+  'payment-proofs',
+  'payment-proofs',
+  false,
+  5242880,
+  array['image/jpeg','image/png','image/webp','application/pdf']
+)
+on conflict (id) do update set
+  public = false,
+  file_size_limit = 5242880,
+  allowed_mime_types = array['image/jpeg','image/png','image/webp','application/pdf'];
+
+drop policy if exists "Public upload payment proofs" on storage.objects;
+drop policy if exists "Admin read payment proofs" on storage.objects;
+
+create policy "Public upload payment proofs"
+on storage.objects for insert
+with check (
+  bucket_id = 'payment-proofs'
+  and array_length(storage.foldername(name), 1) >= 2
+);
+
+create policy "Admin read payment proofs"
+on storage.objects for select
+using (bucket_id = 'payment-proofs' and auth.role() = 'authenticated');
+
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values (
+  'training-posters',
+  'training-posters',
+  true,
+  5242880,
+  array['image/jpeg','image/png','image/webp']
+)
+on conflict (id) do update set
+  public = true,
+  file_size_limit = 5242880,
+  allowed_mime_types = array['image/jpeg','image/png','image/webp'];
+
+drop policy if exists "Admin upload training posters" on storage.objects;
+drop policy if exists "Admin update training posters" on storage.objects;
+drop policy if exists "Admin delete training posters" on storage.objects;
+drop policy if exists "Public read training posters" on storage.objects;
+
+create policy "Public read training posters"
+on storage.objects for select
+using (bucket_id = 'training-posters');
+
+create policy "Admin upload training posters"
+on storage.objects for insert
+with check (bucket_id = 'training-posters' and auth.role() = 'authenticated');
+
+create policy "Admin update training posters"
+on storage.objects for update
+using (bucket_id = 'training-posters' and auth.role() = 'authenticated');
+
+create policy "Admin delete training posters"
+on storage.objects for delete
+using (bucket_id = 'training-posters' and auth.role() = 'authenticated');
 
 -- ── Seed: promo data awal ────────────────────────────────────────────────────
 insert into promo (title, subtitle, description, status, highlights, facilitators, cta_href) values (

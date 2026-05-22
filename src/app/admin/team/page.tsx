@@ -126,6 +126,7 @@ export default function AdminTeam() {
                     <input value={form.role} onChange={e=>setForm({...form,role:e.target.value})} placeholder="Manager GRCC" className="input"/></div>
                   <div><label className="label">URL Foto</label>
                     <input value={form.photo} onChange={e=>setForm({...form,photo:e.target.value})} placeholder="https://..." className="input"/>
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
                     {form.photo && <img src={form.photo} alt="" className="mt-2 w-16 h-16 rounded-xl object-cover"/>}
                   </div>
                   <div><label className="label">Bio</label>

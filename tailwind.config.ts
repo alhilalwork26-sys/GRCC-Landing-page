@@ -16,7 +16,15 @@ const config: Config = {
         surface: "#EDECE6",
       },
       fontFamily: {
-        sans: ["var(--font-jakarta)", "system-ui", "sans-serif"],
+        sans: [
+          "Inter",
+          "ui-sans-serif",
+          "system-ui",
+          "-apple-system",
+          "BlinkMacSystemFont",
+          "Segoe UI",
+          "sans-serif",
+        ],
       },
       fontSize: {
         "hero": ["clamp(3rem, 7vw, 7rem)", { lineHeight: "1.0", letterSpacing: "-0.03em" }],

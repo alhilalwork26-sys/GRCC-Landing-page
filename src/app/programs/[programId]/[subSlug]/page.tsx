@@ -7,17 +7,17 @@ import Link from "next/link";
 import {
   ArrowLeft, Calendar, MapPin, Clock, Users, MessageCircle,
   Mail, ChevronDown, ChevronUp, Check, Minus, Plus,
-  ArrowUpRight, PhoneCall, Sparkles, BookOpen
+  ArrowUpRight, PhoneCall, Sparkles, BookOpen,
+  Tag, BadgePercent, CheckCircle2, X, AlertCircle, Loader2,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { supabase, TrainingItem } from "@/lib/supabase";
+import { supabase, TrainingItem, PromoCode } from "@/lib/supabase";
+import { siteConfig, telHref, whatsappHref } from "@/lib/site-config";
 import { programs, toSlug } from "@/data/programs";
 import dynamic from "next/dynamic";
 
 const FlipBookModal = dynamic(() => import("@/components/FlipBookModal"), { ssr: false });
-
-const WHATSAPP = "6281234567890"; // ganti nomor WA admin
 
 function formatRupiah(n: number) {
   return "Rp " + n.toLocaleString("id-ID");
@@ -39,13 +39,72 @@ function BookingWidget({
   const [qty, setQty] = useState(1);
   const [open, setOpen] = useState<string | null>(null);
 
-  const price = selected?.price ?? 0;
-  const total = price * qty;
-  const waMsg = encodeURIComponent(
-    `Halo, saya ingin mendaftar program:\n\n*${subName}* (${programTitle})\n\n` +
-    (selected ? `Jadwal: ${selected.date_start}${selected.date_end ? ` – ${selected.date_end}` : ""} | ${selected.format} | ${selected.location}\n` : "") +
-    `Jumlah peserta: ${qty}\n\nMohon informasi lebih lanjut. Terima kasih.`
-  );
+  // Promo state
+  const [promoInput, setPromoInput]     = useState("");
+  const [promoLoading, setPromoLoading] = useState(false);
+  const [appliedPromo, setAppliedPromo] = useState<PromoCode | null>(null);
+  const [promoError, setPromoError]     = useState("");
+
+  // Gunakan price numerik; jika null, coba parse dari price_label ("Rp 4.750.000" → 4750000)
+  const parsePriceLabel = (label: string | null | undefined): number => {
+    if (!label) return 0;
+    const digits = label.replace(/[^\d]/g, "");
+    return digits ? parseInt(digits, 10) : 0;
+  };
+
+  const price    = selected?.price ?? parsePriceLabel(selected?.price_label);
+  const subtotal = price * qty;
+
+  // Discount calculation
+  const discountAmt = appliedPromo && subtotal > 0
+    ? appliedPromo.discount_type === "percentage"
+      ? Math.round(subtotal * appliedPromo.discount_value / 100)
+      : Math.min(appliedPromo.discount_value, subtotal)
+    : 0;
+  const total = subtotal - discountAmt;
+
+  // Human-readable total label
+  const totalLabel = (() => {
+    if (!selected) return "—";
+    if (total > 0) return formatRupiah(total);
+    return "Hubungi kami";
+  })();
+
+  // Validate & apply promo
+  const applyPromo = async () => {
+    const code = promoInput.trim().toUpperCase();
+    if (!code) return;
+    setPromoLoading(true);
+    setPromoError("");
+    setAppliedPromo(null);
+
+    const { data } = await supabase
+      .from("promo_codes")
+      .select("*")
+      .eq("code", code)
+      .eq("active", true)
+      .maybeSingle();
+
+    if (!data) {
+      setPromoError("Kode promo tidak ditemukan atau tidak aktif.");
+    } else if (data.expires_at && new Date(data.expires_at) < new Date()) {
+      setPromoError("Kode promo sudah kadaluarsa.");
+    } else if (data.max_uses !== null && data.used_count >= data.max_uses) {
+      setPromoError("Kode promo sudah habis digunakan.");
+    } else if (subtotal > 0 && data.min_price > subtotal) {
+      setPromoError(`Kode berlaku untuk transaksi minimal ${formatRupiah(data.min_price)}.`);
+    } else {
+      setAppliedPromo(data);
+    }
+    setPromoLoading(false);
+  };
+
+  const removePromo = () => { setAppliedPromo(null); setPromoInput(""); setPromoError(""); };
+
+  // Build daftar URL with promo + qty
+  const daftarHref = selected
+    ? `/daftar/${selected.id}?qty=${qty}${appliedPromo ? `&promo=${appliedPromo.code}` : ""}`
+    : "#";
 
   if (trainings.length === 0) {
     return (
@@ -56,7 +115,7 @@ function BookingWidget({
         <p className="font-bold text-[0.95rem] mb-1">Jadwal Segera Hadir</p>
         <p className="text-muted text-[0.82rem] mb-5">Belum ada jadwal yang dipublikasikan untuk program ini.</p>
         <a
-          href={`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(`Halo, saya ingin info jadwal program *${subName}*. Terima kasih.`)}`}
+          href={whatsappHref(`Halo, saya ingin info jadwal program *${subName}*. Terima kasih.`)}
           target="_blank" rel="noopener noreferrer"
           className="inline-flex items-center gap-2 bg-[#25D366] text-white text-[0.82rem] font-bold px-5 py-2.5 rounded-xl"
         >
@@ -87,18 +146,12 @@ function BookingWidget({
                   key={t.id}
                   className={`rounded-xl border transition-all overflow-hidden ${isSelected ? "border-dark shadow-sm" : "border-border hover:border-dark/40"}`}
                 >
-                  {/* Collapsed header */}
                   <button
-                    onClick={() => {
-                      setOpen(isOpen ? null : t.id);
-                      if (!isSelected) setSelected(t);
-                    }}
+                    onClick={() => { setOpen(isOpen ? null : t.id); if (!isSelected) { setSelected(t); setAppliedPromo(null); setPromoInput(""); setPromoError(""); } }}
                     className="w-full flex items-center justify-between px-4 py-3 text-left"
                   >
                     <div className="flex items-center gap-3">
-                      <div
-                        className={`w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-colors ${isSelected ? "border-dark bg-dark" : "border-border"}`}
-                      >
+                      <div className={`w-4 h-4 rounded-full border-2 flex-shrink-0 flex items-center justify-center transition-colors ${isSelected ? "border-dark bg-dark" : "border-border"}`}>
                         {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
                       </div>
                       <span className="text-[0.82rem] font-semibold line-clamp-1">
@@ -109,16 +162,9 @@ function BookingWidget({
                     {isOpen ? <ChevronUp size={14} className="text-muted flex-shrink-0" /> : <ChevronDown size={14} className="text-muted flex-shrink-0" />}
                   </button>
 
-                  {/* Expanded detail */}
                   <AnimatePresence>
                     {isOpen && (
-                      <motion.div
-                        initial={{ height: 0, opacity: 0 }}
-                        animate={{ height: "auto", opacity: 1 }}
-                        exit={{ height: 0, opacity: 0 }}
-                        transition={{ duration: 0.25 }}
-                        className="overflow-hidden"
-                      >
+                      <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: "auto", opacity: 1 }} exit={{ height: 0, opacity: 0 }} transition={{ duration: 0.25 }} className="overflow-hidden">
                         <div className="px-4 pb-4 border-t border-border bg-[#FAFAF8]">
                           <p className="font-bold text-[0.85rem] pt-3 mb-2">{t.title}</p>
                           <div className="flex flex-col gap-1.5 text-[0.75rem] text-muted mb-3">
@@ -127,7 +173,6 @@ function BookingWidget({
                             <span className="flex items-center gap-2"><MapPin size={12} /> {t.location}</span>
                             {t.max_participants && <span className="flex items-center gap-2"><Users size={12} /> Maks. {t.max_participants} peserta</span>}
                           </div>
-                          {/* Ticket row */}
                           {t.price_label && (
                             <div className="flex items-center gap-3 bg-white rounded-lg border border-border px-3 py-2.5">
                               <div className="w-4 h-4 rounded-full border-2 border-dark bg-dark flex items-center justify-center flex-shrink-0">
@@ -151,17 +196,11 @@ function BookingWidget({
           <label className="block text-[0.7rem] font-bold tracking-[0.1em] uppercase text-muted mb-2">Jumlah Peserta</label>
           <div className="flex items-center gap-3">
             <div className="flex items-center border border-border rounded-xl overflow-hidden">
-              <button
-                onClick={() => setQty(Math.max(1, qty - 1))}
-                className="w-10 h-10 flex items-center justify-center hover:bg-dark/[0.05] transition-colors"
-              >
+              <button onClick={() => setQty(Math.max(1, qty - 1))} className="w-10 h-10 flex items-center justify-center hover:bg-dark/[0.05] transition-colors">
                 <Minus size={14} />
               </button>
               <span className="w-12 text-center font-bold text-[0.95rem]">{qty}</span>
-              <button
-                onClick={() => setQty(Math.min(selected?.max_participants ?? 99, qty + 1))}
-                className="w-10 h-10 flex items-center justify-center hover:bg-dark/[0.05] transition-colors"
-              >
+              <button onClick={() => setQty(Math.min(selected?.max_participants ?? 99, qty + 1))} className="w-10 h-10 flex items-center justify-center hover:bg-dark/[0.05] transition-colors">
                 <Plus size={14} />
               </button>
             </div>
@@ -169,43 +208,147 @@ function BookingWidget({
           </div>
         </div>
 
+        {/* ── Promo Code ── */}
+        <div>
+          <label className="block text-[0.7rem] font-bold tracking-[0.1em] uppercase text-muted mb-2">Kode Voucher / Promo</label>
+
+          {appliedPromo ? (
+            <motion.div
+              initial={{ opacity: 0, scale: 0.97 }}
+              animate={{ opacity: 1, scale: 1 }}
+              className="flex items-center justify-between gap-3 px-3.5 py-3 rounded-xl border border-emerald-200 bg-emerald-50"
+            >
+              <div className="flex items-center gap-2.5">
+                <CheckCircle2 size={16} className="text-emerald-600 flex-shrink-0" />
+                <div>
+                  <div className="flex items-center gap-1.5">
+                    <p className="text-[0.8rem] font-extrabold text-emerald-800 font-mono tracking-wider">{appliedPromo.code}</p>
+                    {appliedPromo.promo_type && appliedPromo.promo_type !== "semua" && (
+                      <span className={`text-[0.6rem] font-bold px-1.5 py-0.5 rounded-full uppercase tracking-wide ${
+                        appliedPromo.promo_type === "individu"
+                          ? "bg-sky-100 text-sky-600"
+                          : "bg-violet-100 text-violet-600"
+                      }`}>
+                        {appliedPromo.promo_type === "individu" ? "Individu" : "Grup"}
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-[0.68rem] text-emerald-700">
+                    Diskon {appliedPromo.discount_type === "percentage" ? `${appliedPromo.discount_value}%` : formatRupiah(appliedPromo.discount_value)}
+                    {subtotal > 0 && ` — hemat `}
+                    {subtotal > 0 && <strong>{formatRupiah(discountAmt)}</strong>}
+                  </p>
+                </div>
+              </div>
+              <button onClick={removePromo} className="w-6 h-6 rounded-full bg-emerald-200 hover:bg-emerald-300 flex items-center justify-center flex-shrink-0 transition-colors">
+                <X size={10} className="text-emerald-700" />
+              </button>
+            </motion.div>
+          ) : (
+            <div className="flex gap-2">
+              <div className="relative flex-1">
+                <Tag size={13} className="absolute left-3 top-1/2 -translate-y-1/2 text-dark/30 pointer-events-none" />
+                <input
+                  type="text"
+                  placeholder="Masukkan kode promo"
+                  value={promoInput}
+                  onChange={(e) => { setPromoInput(e.target.value.toUpperCase()); setPromoError(""); }}
+                  onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), applyPromo())}
+                  className={`w-full pl-9 pr-3 py-2.5 rounded-xl border text-[0.82rem] font-mono tracking-widest uppercase outline-none transition-all
+                    ${promoError ? "border-red-300 bg-red-50/50" : "border-border hover:border-dark/30 focus:border-dark bg-white"}`}
+                />
+              </div>
+              <button
+                onClick={applyPromo}
+                disabled={promoLoading || !promoInput.trim()}
+                className="px-4 py-2.5 rounded-xl text-white text-[0.78rem] font-bold flex items-center gap-1.5 disabled:opacity-40 transition-all flex-shrink-0"
+                style={{ backgroundColor: accent }}
+              >
+                {promoLoading ? <Loader2 size={13} className="animate-spin" /> : <BadgePercent size={13} />}
+                Pakai
+              </button>
+            </div>
+          )}
+
+          <AnimatePresence>
+            {promoError && (
+              <motion.p
+                initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }}
+                className="flex items-center gap-1.5 text-[0.68rem] text-red-500 mt-1.5"
+              >
+                <AlertCircle size={10} /> {promoError}
+              </motion.p>
+            )}
+          </AnimatePresence>
+        </div>
+
         {/* Price summary */}
         <div className="rounded-xl bg-[#F7F7F5] px-4 py-3 flex flex-col gap-1.5">
           <div className="flex items-center justify-between text-[0.78rem] text-muted">
             <span>Harga per peserta</span>
-            <span>{price > 0 ? formatRupiah(price) : (selected?.price_label || "—")}</span>
+            <span>{selected?.price_label || (price > 0 ? formatRupiah(price) : "—")}</span>
           </div>
           <div className="flex items-center justify-between text-[0.78rem] text-muted">
             <span>Jumlah peserta</span>
             <span>× {qty}</span>
           </div>
+
+          <AnimatePresence>
+            {appliedPromo && subtotal > 0 && (
+              <motion.div
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: "auto" }}
+                exit={{ opacity: 0, height: 0 }}
+                className="overflow-hidden"
+              >
+                <div className="flex items-center justify-between text-[0.78rem] text-emerald-600 font-semibold">
+                  <span className="flex items-center gap-1"><Tag size={10} /> {appliedPromo.code}</span>
+                  <span>− {formatRupiah(discountAmt)}</span>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
           <div className="h-px bg-border my-1" />
           <div className="flex items-center justify-between font-extrabold text-[0.95rem]">
             <span>Total</span>
-            <span>{total > 0 ? formatRupiah(total) : (selected ? "Hubungi kami" : "—")}</span>
+            <motion.span key={totalLabel} initial={{ scale: 1.06 }} animate={{ scale: 1 }} style={{ color: appliedPromo && subtotal > 0 ? accent : undefined }}>
+              {totalLabel}
+            </motion.span>
           </div>
+          {appliedPromo && subtotal > 0 && (
+            <p className="text-[0.65rem] text-emerald-600 text-right">
+              Hemat {formatRupiah(discountAmt)} dari harga normal {formatRupiah(subtotal)}
+            </p>
+          )}
         </div>
 
         {/* CTA */}
         {selected ? (
-          <Link
-            href={`/daftar/${selected.id}`}
-            className="flex items-center justify-center gap-2.5 text-white font-extrabold text-[0.9rem] py-3.5 rounded-xl transition-all hover:opacity-90 hover:-translate-y-0.5"
-            style={{ backgroundColor: accent, boxShadow: `0 6px 20px ${accent}40` }}
-          >
-            <Check size={16} /> Daftar Sekarang
-          </Link>
+          <div className="flex flex-col gap-2">
+            <Link
+              href={daftarHref}
+              className="flex items-center justify-center gap-2.5 text-white font-extrabold text-[0.9rem] py-3.5 rounded-xl transition-all hover:opacity-90 hover:-translate-y-0.5"
+              style={{ backgroundColor: accent, boxShadow: `0 6px 20px ${accent}40` }}
+            >
+              <Check size={16} /> Daftar Sekarang
+            </Link>
+            <Link
+              href={`/daftar-grup/${selected.id}?qty=${qty}${appliedPromo ? `&promo=${appliedPromo.code}` : ""}`}
+              className="flex items-center justify-center gap-2.5 font-bold text-[0.85rem] py-3 rounded-xl border-2 transition-all hover:opacity-80"
+              style={{ borderColor: accent, color: accent }}
+            >
+              <Users size={15} /> Daftar sebagai Grup
+            </Link>
+          </div>
         ) : (
-          <button
-            disabled
-            className="flex items-center justify-center gap-2.5 text-white font-extrabold text-[0.9rem] py-3.5 rounded-xl bg-dark/30 cursor-not-allowed w-full"
-          >
+          <button disabled className="flex items-center justify-center gap-2.5 text-white font-extrabold text-[0.9rem] py-3.5 rounded-xl bg-dark/30 cursor-not-allowed w-full">
             <Calendar size={16} /> Pilih Jadwal Dulu
           </button>
         )}
 
         <p className="text-center text-[0.7rem] text-muted">
-          {selected ? "Isi formulir pendaftaran online" : "Pilih sesi pelatihan terlebih dahulu"}
+          {selected ? "Individu atau grup? Pilih sesuai kebutuhan" : "Pilih sesi pelatihan terlebih dahulu"}
         </p>
       </div>
     </div>
@@ -230,10 +373,12 @@ export default function SubProgramPage() {
 
   useEffect(() => {
     if (!program) return;
+    // Filter by program_id jika ada; fallback ke semua training published (program_id null = global)
     supabase
       .from("training")
       .select("*")
       .eq("published", true)
+      .or(`program_id.eq.${program.id},program_id.is.null`)
       .order("created_at", { ascending: false })
       .then(({ data }) => {
         setTrainings(data ?? []);
@@ -257,9 +402,7 @@ export default function SubProgramPage() {
   const prevSub = subIndex > 0 ? program.subs[subIndex - 1] : null;
   const nextSub = subIndex < program.subs.length - 1 ? program.subs[subIndex + 1] : null;
 
-  const waMsg = encodeURIComponent(
-    `Halo, saya ingin informasi lebih lanjut mengenai program:\n\n*${sub.name}*\n(${program.title})\n\nTerima kasih.`
-  );
+  const waMsg = `Halo, saya ingin informasi lebih lanjut mengenai program:\n\n*${sub.name}*\n(${program.title})\n\nTerima kasih.`;
 
   return (
     <>
@@ -608,7 +751,7 @@ export default function SubProgramPage() {
                 <p className="text-muted text-[0.78rem] mb-4">Tim kami siap membantu Anda memilih program yang tepat.</p>
                 <div className="flex flex-col gap-2.5">
                   <motion.a
-                    href={`https://wa.me/${WHATSAPP}?text=${waMsg}`}
+                    href={whatsappHref(waMsg)}
                     target="_blank" rel="noopener noreferrer"
                     whileHover={{ scale: 1.02, y: -1 }}
                     whileTap={{ scale: 0.97 }}
@@ -619,7 +762,7 @@ export default function SubProgramPage() {
                     <ArrowUpRight size={13} className="ml-auto" />
                   </motion.a>
                   <motion.a
-                    href={`mailto:info@grcc.or.id?subject=Informasi Program: ${sub.name}`}
+                    href={`mailto:${siteConfig.contactEmail}?subject=${encodeURIComponent(`Informasi Program: ${sub.name}`)}`}
                     whileHover={{ scale: 1.02, y: -1 }}
                     whileTap={{ scale: 0.97 }}
                     className="flex items-center gap-3 border border-border text-dark font-semibold text-[0.85rem] px-4 py-3 rounded-xl hover:bg-dark/[0.04] transition-colors"
@@ -629,7 +772,7 @@ export default function SubProgramPage() {
                     <ArrowUpRight size={13} className="ml-auto text-muted" />
                   </motion.a>
                   <motion.a
-                    href="tel:+6281234567890"
+                    href={telHref()}
                     whileHover={{ scale: 1.02, y: -1 }}
                     whileTap={{ scale: 0.97 }}
                     className="flex items-center gap-3 border border-border text-dark font-semibold text-[0.85rem] px-4 py-3 rounded-xl hover:bg-dark/[0.04] transition-colors"

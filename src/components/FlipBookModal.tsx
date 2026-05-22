@@ -111,7 +111,6 @@ export default function FlipBookModal({ pdfUrl, title, accent, onClose }: Props)
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [currentPage, setCurrentPage] = useState(0);
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const flipRef = useRef<any>(null);
 
   // Load PDF on mount

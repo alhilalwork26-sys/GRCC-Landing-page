@@ -4,40 +4,46 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { supabase } from "@/lib/supabase";
-import { Megaphone, Newspaper, CalendarDays, Users, ArrowUpRight, TrendingUp } from "lucide-react";
+import { Megaphone, Newspaper, CalendarDays, Users, ArrowUpRight, TrendingUp, ClipboardList, Tag } from "lucide-react";
 
-interface Stats { promo: number; insights: number; training: number; team: number; }
+interface Stats { promo: number; insights: number; training: number; team: number; registrations: number; promoCodes: number; }
 
 const cards = [
-  { key: "promo",    label: "Promo Aktif",    icon: Megaphone,    href: "/admin/promo",    color: "#4F46E5" },
-  { key: "insights", label: "Total Insights", icon: Newspaper,    href: "/admin/insights", color: "#10B981" },
-  { key: "training", label: "Program Training",icon: CalendarDays, href: "/admin/training", color: "#F59E0B" },
-  { key: "team",     label: "Anggota Tim",    icon: Users,        href: "/admin/team",     color: "#EF4444" },
+  { key: "promo",         label: "Promo Aktif",      icon: Megaphone,    href: "/admin/promo",          color: "#4F46E5" },
+  { key: "insights",      label: "Total Insights",   icon: Newspaper,    href: "/admin/insights",       color: "#10B981" },
+  { key: "training",      label: "Program Training", icon: CalendarDays, href: "/admin/training",       color: "#F59E0B" },
+  { key: "registrations", label: "Registrasi",       icon: ClipboardList,href: "/admin/registrations",  color: "#8B5CF6" },
+  { key: "team",          label: "Anggota Tim",      icon: Users,        href: "/admin/team",           color: "#EF4444" },
+  { key: "promoCodes",    label: "Kode Promo",       icon: Tag,          href: "/admin/promo-codes",    color: "#0EA5E9" },
 ];
 
 const quickActions = [
-  { label: "Tambah Insight Baru",   href: "/admin/insights", icon: Newspaper,    color: "#10B981" },
-  { label: "Update Promo Modal",    href: "/admin/promo",    icon: Megaphone,    color: "#4F46E5" },
-  { label: "Tambah Training",       href: "/admin/training", icon: CalendarDays, color: "#F59E0B" },
-  { label: "Update Tim",            href: "/admin/team",     icon: Users,        color: "#EF4444" },
+  { label: "Lihat Registrasi",    href: "/admin/registrations", icon: ClipboardList, color: "#8B5CF6" },
+  { label: "Tambah Insight Baru", href: "/admin/insights",      icon: Newspaper,     color: "#10B981" },
+  { label: "Update Promo Modal",  href: "/admin/promo",         icon: Megaphone,     color: "#4F46E5" },
+  { label: "Tambah Training",     href: "/admin/training",      icon: CalendarDays,  color: "#F59E0B" },
 ];
 
 export default function AdminDashboard() {
-  const [stats, setStats] = useState<Stats>({ promo: 0, insights: 0, training: 0, team: 0 });
+  const [stats, setStats] = useState<Stats>({ promo: 0, insights: 0, training: 0, team: 0, registrations: 0, promoCodes: 0 });
 
   useEffect(() => {
     const load = async () => {
-      const [p, i, tr, tm] = await Promise.all([
-        supabase.from("promo").select("id", { count: "exact", head: true }),
+      const [p, i, tr, tm, rg, pc] = await Promise.all([
+        supabase.from("promo").select("id", { count: "exact", head: true }).eq("active", true),
         supabase.from("insights").select("id", { count: "exact", head: true }),
         supabase.from("training").select("id", { count: "exact", head: true }),
         supabase.from("team_members").select("id", { count: "exact", head: true }),
+        supabase.from("registrations").select("id", { count: "exact", head: true }),
+        supabase.from("promo_codes").select("id", { count: "exact", head: true }),
       ]);
       setStats({
-        promo:    p.count    ?? 0,
-        insights: i.count    ?? 0,
-        training: tr.count   ?? 0,
-        team:     tm.count   ?? 0,
+        promo:         p.count  ?? 0,
+        insights:      i.count  ?? 0,
+        training:      tr.count ?? 0,
+        team:          tm.count ?? 0,
+        registrations: rg.count ?? 0,
+        promoCodes:    pc.count ?? 0,
       });
     };
     load();
@@ -52,7 +58,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
         {cards.map(({ key, label, icon: Icon, href, color }, i) => (
           <motion.div
             key={key}

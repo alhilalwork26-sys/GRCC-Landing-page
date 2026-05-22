@@ -1,4 +1,5 @@
 import { ArrowUpRight } from "lucide-react";
+import Link from "next/link";
 
 const footerNav = [
   {
@@ -27,14 +28,14 @@ export default function Footer() {
         <div className="grid grid-cols-1 lg:grid-cols-[280px_1fr] gap-[clamp(40px,6vw,80px)] pb-[clamp(48px,6vw,80px)] border-b border-white/[0.08]">
           {/* Brand */}
           <div>
-            <a href="/" className="flex items-center mb-4">
+            <Link href="/" className="flex items-center mb-4">
               {/* eslint-disable-next-line @next/next/no-img-element */}
               <img
                 src="/grcc-logo.png"
                 alt="GRCC"
                 style={{ height: 110, width: "auto", display: "block" }}
               />
-            </a>
+            </Link>
             <p className="text-[0.86rem] leading-[1.7] text-white/35 mb-7">
               Center for Governance,<br />
               Risk, Compliance &amp;<br />

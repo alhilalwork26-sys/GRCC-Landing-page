@@ -6,15 +6,17 @@ import Link from "next/link";
 import { supabase } from "@/lib/supabase";
 import {
   LayoutDashboard, Megaphone, Newspaper,
-  CalendarDays, Users, LogOut, ExternalLink, Menu, X
+  CalendarDays, Users, LogOut, ExternalLink, Menu, X, ClipboardList, Tag
 } from "lucide-react";
 
 const nav = [
-  { href: "/admin",          icon: LayoutDashboard, label: "Dashboard"      },
-  { href: "/admin/promo",    icon: Megaphone,        label: "Promo Modal"   },
-  { href: "/admin/insights", icon: Newspaper,        label: "Insights"      },
-  { href: "/admin/training", icon: CalendarDays,     label: "Training"      },
-  { href: "/admin/team",     icon: Users,            label: "Tim"           },
+  { href: "/admin",                 icon: LayoutDashboard, label: "Dashboard"      },
+  { href: "/admin/promo",           icon: Megaphone,        label: "Promo Modal"   },
+  { href: "/admin/insights",        icon: Newspaper,        label: "Insights"      },
+  { href: "/admin/training",        icon: CalendarDays,     label: "Training"      },
+  { href: "/admin/promo-codes",     icon: Tag,              label: "Kode Promo"    },
+  { href: "/admin/registrations",   icon: ClipboardList,    label: "Registrasi"    },
+  { href: "/admin/team",            icon: Users,            label: "Tim"           },
 ];
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {

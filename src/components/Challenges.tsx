@@ -148,26 +148,30 @@ function CentralText({ scrollYProgress }: { scrollYProgress: MotionValue<number>
         {/* Decorative dots */}
         <div className="flex items-center justify-center gap-1.5 mt-6">
           {challenges.map((_, i) => (
-            <motion.div
-              key={i}
-              style={{
-                opacity: useTransform(
-                  scrollYProgress,
-                  [getCardThreshold(i, challenges.length).start, getCardThreshold(i, challenges.length).end],
-                  [0.15, 1]
-                ),
-                scale: useTransform(
-                  scrollYProgress,
-                  [getCardThreshold(i, challenges.length).start, getCardThreshold(i, challenges.length).end],
-                  [0.6, 1]
-                ),
-              }}
-              className="w-1.5 h-1.5 rounded-full bg-amber-400"
-            />
+            <ProgressDot key={i} index={i} scrollYProgress={scrollYProgress} />
           ))}
         </div>
       </div>
     </motion.div>
+  );
+}
+
+function ProgressDot({
+  index,
+  scrollYProgress,
+}: {
+  index: number;
+  scrollYProgress: MotionValue<number>;
+}) {
+  const threshold = getCardThreshold(index, challenges.length);
+  const opacity = useTransform(scrollYProgress, [threshold.start, threshold.end], [0.15, 1]);
+  const scale = useTransform(scrollYProgress, [threshold.start, threshold.end], [0.6, 1]);
+
+  return (
+    <motion.div
+      style={{ opacity, scale }}
+      className="w-1.5 h-1.5 rounded-full bg-amber-400"
+    />
   );
 }
 

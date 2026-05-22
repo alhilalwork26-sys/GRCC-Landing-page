@@ -1,18 +1,28 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase, TrainingItem, CustomField } from "@/lib/supabase";
-import { Plus, Pencil, Trash2, Eye, EyeOff, X, Check, Loader2, GripVertical, Settings2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Eye, EyeOff, X, Check, Loader2, GripVertical, Settings2, Upload, Image as ImageIcon } from "lucide-react";
 
 const COLORS   = ["#4F46E5","#10B981","#EF4444","#F59E0B","#8B5CF6","#0EA5E9","#F97316"];
 const FORMATS  = ["Online","In-Person","Hybrid","In-House"];
 const FIELD_TYPES = ["text","textarea","select","number","date"] as const;
+const PROGRAMS = [
+  { id: "01", label: "Governance, Risk, and Compliance (GRC)" },
+  { id: "02", label: "ESG dan Keberlanjutan Bisnis (ESG)" },
+  { id: "03", label: "Accounting (ACC)" },
+  { id: "04", label: "Auditing (AUD)" },
+  { id: "05", label: "Organizational Competitiveness (OC)" },
+  { id: "06", label: "Human Capital Management (HCM)" },
+  { id: "07", label: "Digital and Technology in Finance (DTF)" },
+  { id: "08", label: "Penelitian (RES)" },
+];
 const EMPTY: Omit<TrainingItem,"id"|"created_at"> = {
   title:"", category:"", date_start:"", date_end:"", time:"Sabtu 08.00–17.00 WIB",
   format:"Online", location:"Zoom Meeting", price: null, price_label:"",
   max_participants: null, color:"#4F46E5", description:"", published: true,
-  poster_url: null, brochure_url: null, custom_fields: [],
+  poster_url: null, brochure_url: null, custom_fields: [], program_id: null,
 };
 
 export default function AdminTraining() {
@@ -21,11 +31,19 @@ export default function AdminTraining() {
   const [form,    setForm]    = useState<typeof EMPTY | null>(null);
   const [editId,  setEditId]  = useState<string | null>(null);
   const [saving,  setSaving]  = useState(false);
+  const [uploadingPoster, setUploadingPoster] = useState(false);
   const [msg,     setMsg]     = useState("");
+  const posterInputRef = useRef<HTMLInputElement>(null);
 
   const load = async () => {
     setLoading(true);
-    const { data } = await supabase.from("training").select("*").order("created_at",{ascending:false});
+    const { data, error } = await supabase.from("training").select("*").order("created_at",{ascending:false});
+    if (error) {
+      setMsg(`Gagal memuat training: ${error.message}`);
+      setItems([]);
+      setLoading(false);
+      return;
+    }
     setItems(data ?? []);
     setLoading(false);
   };
@@ -41,9 +59,14 @@ export default function AdminTraining() {
   const save = async () => {
     if (!form) return;
     setSaving(true);
-    if (editId) await supabase.from("training").update(form).eq("id", editId);
-    else        await supabase.from("training").insert(form);
+    const { error } = editId
+      ? await supabase.from("training").update(form).eq("id", editId)
+      : await supabase.from("training").insert(form);
     setSaving(false);
+    if (error) {
+      setMsg(`Gagal menyimpan training: ${error.message}`);
+      return;
+    }
     setMsg(editId ? "Training diperbarui!" : "Training ditambahkan!");
     setTimeout(() => setMsg(""),2500);
     closeForm(); load();
@@ -51,13 +74,50 @@ export default function AdminTraining() {
 
   const del = async (id: string) => {
     if (!confirm("Hapus training ini?")) return;
-    await supabase.from("training").delete().eq("id", id);
+    const { error } = await supabase.from("training").delete().eq("id", id);
+    if (error) {
+      setMsg(`Gagal menghapus training: ${error.message}`);
+      return;
+    }
     load();
   };
 
   const togglePublish = async (id:string, val:boolean) => {
-    await supabase.from("training").update({published:!val}).eq("id",id);
+    const { error } = await supabase.from("training").update({published:!val}).eq("id",id);
+    if (error) {
+      setMsg(`Gagal mengubah status: ${error.message}`);
+      return;
+    }
     load();
+  };
+
+  const uploadPoster = async (file: File) => {
+    if (!form) return;
+    const allowed = ["image/jpeg", "image/png", "image/webp"];
+    if (!allowed.includes(file.type)) {
+      setMsg("Format poster harus JPG, PNG, atau WebP.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setMsg("Ukuran poster maksimal 5MB.");
+      return;
+    }
+
+    setUploadingPoster(true);
+    const ext = file.name.split(".").pop();
+    const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const { data, error } = await supabase.storage
+      .from("training-posters")
+      .upload(filename, file, { contentType: file.type, upsert: false });
+    setUploadingPoster(false);
+
+    if (error) {
+      setMsg(`Gagal upload poster: ${error.message}`);
+      return;
+    }
+
+    const { data: publicUrl } = supabase.storage.from("training-posters").getPublicUrl(data.path);
+    setForm((current) => current ? { ...current, poster_url: publicUrl.publicUrl } : current);
   };
 
   return (
@@ -131,6 +191,83 @@ export default function AdminTraining() {
                 <div className="px-7 py-6 flex flex-col gap-4">
                   <div><label className="label">Judul *</label>
                     <input value={form.title} onChange={e=>setForm({...form,title:e.target.value})} placeholder="Nama program pelatihan" className="input"/></div>
+
+                  <div><label className="label">Program</label>
+                    <select
+                      value={form.program_id ?? ""}
+                      onChange={e=>setForm({...form,program_id:e.target.value || null})}
+                      className="input"
+                    >
+                      <option value="">— Tampilkan di semua program —</option>
+                      {PROGRAMS.map(p => <option key={p.id} value={p.id}>{p.label}</option>)}
+                    </select>
+                  </div>
+
+                  <div>
+                    <label className="label">Poster Training</label>
+                    <input
+                      ref={posterInputRef}
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) uploadPoster(file);
+                        e.currentTarget.value = "";
+                      }}
+                    />
+                    <div className="rounded-2xl border border-dashed border-border bg-[#FAFAFA] p-3">
+                      {form.poster_url ? (
+                        <div className="flex gap-3">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={form.poster_url}
+                            alt="Preview poster training"
+                            className="h-28 w-20 rounded-xl object-cover border border-border bg-white"
+                          />
+                          <div className="flex min-w-0 flex-1 flex-col justify-between">
+                            <div>
+                              <p className="text-[0.8rem] font-bold text-dark">Poster aktif</p>
+                              <p className="mt-1 truncate text-[0.72rem] text-muted">{form.poster_url}</p>
+                            </div>
+                            <div className="flex flex-wrap gap-2">
+                              <button
+                                type="button"
+                                onClick={() => posterInputRef.current?.click()}
+                                disabled={uploadingPoster}
+                                className="inline-flex items-center gap-1.5 rounded-lg bg-dark px-3 py-2 text-[0.72rem] font-bold text-white disabled:opacity-50"
+                              >
+                                {uploadingPoster ? <Loader2 size={13} className="animate-spin" /> : <Upload size={13} />}
+                                Ganti poster
+                              </button>
+                              <button
+                                type="button"
+                                onClick={() => setForm({ ...form, poster_url: null })}
+                                className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-[0.72rem] font-bold text-muted hover:text-dark"
+                              >
+                                <X size={13} /> Hapus
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <button
+                          type="button"
+                          onClick={() => posterInputRef.current?.click()}
+                          disabled={uploadingPoster}
+                          className="flex w-full items-center gap-3 rounded-xl px-4 py-4 text-left transition-colors hover:bg-dark/[0.03] disabled:opacity-50"
+                        >
+                          <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl bg-dark/[0.06]">
+                            {uploadingPoster ? <Loader2 size={18} className="animate-spin text-muted" /> : <ImageIcon size={18} className="text-muted" />}
+                          </span>
+                          <span className="min-w-0">
+                            <span className="block text-[0.82rem] font-bold text-dark">Upload poster JPG, PNG, atau WebP</span>
+                            <span className="block text-[0.72rem] text-muted">Maksimal 5MB. Poster tampil di kartu training halaman utama.</span>
+                          </span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
 
                   <div className="grid grid-cols-2 gap-3">
                     <div><label className="label">Kategori</label>

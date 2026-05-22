@@ -1,16 +1,18 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useParams, useRouter } from "next/navigation";
+import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import {
   ArrowLeft, Calendar, MapPin, User, Building2, Briefcase,
   Mail, Phone, CreditCard, Upload, Check, ChevronRight,
-  AlertCircle, Loader2, FileText, X, Sparkles
+  AlertCircle, Loader2, FileText, X, Sparkles, Tag,
+  BadgePercent, CheckCircle2,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
-import { supabase, TrainingItem, CustomField } from "@/lib/supabase";
+import { supabase, TrainingItem, CustomField, PromoCode } from "@/lib/supabase";
+import { paymentInstruction, siteConfig, whatsappHref } from "@/lib/site-config";
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 function formatRp(n: number) {
@@ -261,6 +263,7 @@ function SuccessScreen({ training, accent }: { training: TrainingItem; accent: s
 // ── Main Page ─────────────────────────────────────────────────────────────────
 export default function DaftarPage() {
   const { trainingId } = useParams<{ trainingId: string }>();
+  const searchParams   = useSearchParams();
   const router = useRouter();
 
   const [training, setTraining] = useState<TrainingItem | null>(null);
@@ -278,10 +281,35 @@ export default function DaftarPage() {
   const [paymentFile, setPaymentFile] = useState<File | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
+  // Promo code state
+  const [promoInput, setPromoInput] = useState("");
+  const [promoLoading, setPromoLoading] = useState(false);
+  const [appliedPromo, setAppliedPromo] = useState<PromoCode | null>(null);
+  const [promoError, setPromoError] = useState("");
+
   useEffect(() => {
     supabase.from("training").select("*").eq("id", trainingId).maybeSingle()
       .then(({ data }) => { setTraining(data); setLoading(false); });
   }, [trainingId]);
+
+  // Auto-apply promo & qty from URL params (passed from booking widget)
+  useEffect(() => {
+    const promoFromUrl = searchParams.get("promo");
+    if (promoFromUrl && !appliedPromo) {
+      setPromoInput(promoFromUrl.toUpperCase());
+      // validate & apply
+      supabase.from("promo_codes").select("*").eq("code", promoFromUrl.toUpperCase()).eq("active", true).maybeSingle()
+        .then(({ data }) => {
+          if (data &&
+              (data.promo_type ?? "semua") !== "grup" &&
+              !(data.expires_at && new Date(data.expires_at) < new Date()) &&
+              !(data.max_uses !== null && data.used_count >= data.max_uses)) {
+            setAppliedPromo(data);
+          }
+        });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams]);
 
   // Calculate progress
   useEffect(() => {
@@ -318,6 +346,56 @@ export default function DaftarPage() {
     return Object.keys(e).length === 0;
   };
 
+  // ── Promo code helpers ────────────────────────────────────────────────────
+  const basePrice = training?.price ?? 0;
+
+  const calcDiscount = (promo: PromoCode): number => {
+    if (!basePrice) return 0;
+    if (promo.discount_type === "percentage") {
+      return Math.round(basePrice * promo.discount_value / 100);
+    }
+    return Math.min(promo.discount_value, basePrice);
+  };
+
+  const finalPrice = appliedPromo ? basePrice - calcDiscount(appliedPromo) : basePrice;
+
+  const applyPromo = async () => {
+    const code = promoInput.trim().toUpperCase();
+    if (!code) return;
+    setPromoLoading(true);
+    setPromoError("");
+    setAppliedPromo(null);
+
+    const { data } = await supabase
+      .from("promo_codes")
+      .select("*")
+      .eq("code", code)
+      .eq("active", true)
+      .maybeSingle();
+
+    if (!data) {
+      setPromoError("Kode promo tidak ditemukan atau tidak aktif.");
+    } else if ((data.promo_type ?? "semua") === "grup") {
+      setPromoError("Kode ini hanya berlaku untuk pendaftaran grup.");
+    } else if (data.expires_at && new Date(data.expires_at) < new Date()) {
+      setPromoError("Kode promo sudah kadaluarsa.");
+    } else if (data.max_uses !== null && data.used_count >= data.max_uses) {
+      setPromoError("Kode promo sudah habis digunakan.");
+    } else if (basePrice > 0 && data.min_price > basePrice) {
+      setPromoError(`Kode berlaku untuk transaksi minimal ${formatRp(data.min_price)}.`);
+    } else {
+      setAppliedPromo(data);
+      setPromoError("");
+    }
+    setPromoLoading(false);
+  };
+
+  const removePromo = () => {
+    setAppliedPromo(null);
+    setPromoInput("");
+    setPromoError("");
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) {
@@ -331,16 +409,16 @@ export default function DaftarPage() {
       let buktiUrl: string | null = null;
       if (paymentFile) {
         const ext = paymentFile.name.split(".").pop();
-        const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+        const filename = `${trainingId}/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
         const { data: uploadData, error: uploadErr } = await supabase.storage
           .from("payment-proofs")
           .upload(filename, paymentFile, { contentType: paymentFile.type });
         if (uploadErr) throw uploadErr;
-        const { data: urlData } = supabase.storage.from("payment-proofs").getPublicUrl(uploadData.path);
-        buktiUrl = urlData.publicUrl;
+        buktiUrl = uploadData.path;
       }
 
       // 2. Insert registration
+      const discountAmt = appliedPromo ? calcDiscount(appliedPromo) : null;
       const { error: insertErr } = await supabase.from("registrations").insert({
         training_id: trainingId,
         nama_lengkap: form.nama_lengkap.trim(),
@@ -352,7 +430,17 @@ export default function DaftarPage() {
         bukti_pembayaran_url: buktiUrl,
         custom_data: customData,
         status: "pending",
+        promo_code: appliedPromo?.code ?? null,
+        original_price: basePrice || null,
+        discount_amount: discountAmt,
+        final_price: basePrice ? finalPrice : null,
+        participant_count: 1,
       });
+
+      // 3. Increment promo used_count (atomic RPC, avoids race condition)
+      if (appliedPromo) {
+        await supabase.rpc("increment_promo_used_count", { promo_id: appliedPromo.id });
+      }
       if (insertErr) throw insertErr;
 
       setSubmitted(true);
@@ -556,8 +644,110 @@ export default function DaftarPage() {
                   </>
                 )}
 
-                {/* ── Section 4: Pembayaran ── */}
-                <SectionHeader num={customFields.length > 0 ? "4" : "3"} title="Bukti Pembayaran" accent={accent} />
+                {/* ── Section: Kode Promo ── */}
+                {training.price && training.price > 0 && (
+                  <div className="mb-10">
+                    <SectionHeader
+                      num={customFields.length > 0 ? "4" : "3"}
+                      title="Kode Promo"
+                      accent={accent}
+                    />
+
+                    {appliedPromo ? (
+                      <motion.div
+                        initial={{ opacity: 0, scale: 0.97 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="flex items-center justify-between gap-3 px-4 py-4 rounded-xl border border-emerald-200 bg-emerald-50"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="w-9 h-9 rounded-xl bg-emerald-100 flex items-center justify-center flex-shrink-0">
+                            <CheckCircle2 size={18} className="text-emerald-600" />
+                          </div>
+                          <div>
+                            <p className="text-[0.84rem] font-extrabold text-emerald-800 tracking-wide font-mono">
+                              {appliedPromo.code}
+                            </p>
+                            <p className="text-[0.72rem] text-emerald-700">
+                              {appliedPromo.discount_type === "percentage"
+                                ? `Diskon ${appliedPromo.discount_value}%`
+                                : `Diskon ${formatRp(appliedPromo.discount_value)}`}
+                              {" "}— hemat{" "}
+                              <strong>{formatRp(calcDiscount(appliedPromo))}</strong>
+                            </p>
+                          </div>
+                        </div>
+                        <button
+                          type="button"
+                          onClick={removePromo}
+                          className="w-7 h-7 rounded-full bg-emerald-200 hover:bg-emerald-300 flex items-center justify-center flex-shrink-0 transition-colors"
+                        >
+                          <X size={12} className="text-emerald-700" />
+                        </button>
+                      </motion.div>
+                    ) : (
+                      <div className="flex gap-2">
+                        <div className="relative flex-1">
+                          <Tag size={14} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-dark/30 pointer-events-none" />
+                          <input
+                            type="text"
+                            placeholder="Masukkan kode promo"
+                            value={promoInput}
+                            onChange={(e) => {
+                              setPromoInput(e.target.value.toUpperCase());
+                              setPromoError("");
+                            }}
+                            onKeyDown={(e) => e.key === "Enter" && (e.preventDefault(), applyPromo())}
+                            className={`w-full pl-10 pr-4 py-3 rounded-xl border text-[0.88rem] font-mono tracking-widest bg-white outline-none transition-all focus:ring-2 focus:ring-offset-0 uppercase
+                              ${promoError
+                                ? "border-red-300 focus:border-red-400 focus:ring-red-100"
+                                : "border-black/[0.1] focus:border-[#4F46E5] focus:ring-[#4F46E5]/10"
+                              }`}
+                          />
+                        </div>
+                        <motion.button
+                          type="button"
+                          onClick={applyPromo}
+                          disabled={promoLoading || !promoInput.trim()}
+                          whileHover={{ scale: 1.02 }}
+                          whileTap={{ scale: 0.97 }}
+                          className="px-5 py-3 rounded-xl text-white text-[0.84rem] font-bold flex items-center gap-2 disabled:opacity-50 transition-all flex-shrink-0"
+                          style={{ backgroundColor: accent }}
+                        >
+                          {promoLoading
+                            ? <Loader2 size={15} className="animate-spin" />
+                            : <BadgePercent size={15} />
+                          }
+                          Pakai
+                        </motion.button>
+                      </div>
+                    )}
+
+                    <AnimatePresence>
+                      {promoError && (
+                        <motion.p
+                          initial={{ opacity: 0, y: -4 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -4 }}
+                          className="flex items-center gap-1.5 text-[0.72rem] text-red-500 mt-2"
+                        >
+                          <AlertCircle size={11} /> {promoError}
+                        </motion.p>
+                      )}
+                    </AnimatePresence>
+                  </div>
+                )}
+
+                {/* ── Section: Bukti Pembayaran ── */}
+                <SectionHeader
+                  num={(() => {
+                    let n = 3;
+                    if (customFields.length > 0) n++;
+                    if (training.price && training.price > 0) n++;
+                    return String(n);
+                  })()}
+                  title="Bukti Pembayaran"
+                  accent={accent}
+                />
                 <div className="mb-10">
                   <FileUpload
                     value={paymentFile}
@@ -572,7 +762,7 @@ export default function DaftarPage() {
                   >
                     <AlertCircle size={15} className="text-amber-500 flex-shrink-0 mt-0.5" />
                     <p className="text-[0.75rem] text-amber-700 leading-[1.7]">
-                      Transfer ke <strong>Bank BCA · No. Rek: 1234567890 · a.n. PT GRCC Indonesia</strong>.
+                      <strong>{paymentInstruction()}</strong>
                       Pastikan nominal sesuai dengan biaya program yang tertera.
                     </p>
                   </motion.div>
@@ -658,6 +848,59 @@ export default function DaftarPage() {
                   </div>
                 </motion.div>
 
+                {/* ── Price summary (shown when price exists) ── */}
+                {training.price && training.price > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 16 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: 0.25 }}
+                    className="bg-white rounded-2xl border border-black/[0.07] p-5"
+                    style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.04)" }}
+                  >
+                    <p className="text-[0.68rem] font-bold tracking-[0.12em] uppercase text-muted mb-3">
+                      Ringkasan Biaya
+                    </p>
+                    <div className="flex flex-col gap-2.5">
+                      <div className="flex justify-between text-[0.82rem]">
+                        <span className="text-muted">Biaya program</span>
+                        <span className="font-semibold">{formatRp(training.price)}</span>
+                      </div>
+
+                      <AnimatePresence>
+                        {appliedPromo && (
+                          <motion.div
+                            initial={{ opacity: 0, height: 0 }}
+                            animate={{ opacity: 1, height: "auto" }}
+                            exit={{ opacity: 0, height: 0 }}
+                          >
+                            <div className="flex justify-between text-[0.82rem]">
+                              <span className="text-emerald-600 flex items-center gap-1">
+                                <Tag size={11} /> {appliedPromo.code}
+                              </span>
+                              <span className="font-semibold text-emerald-600">
+                                − {formatRp(calcDiscount(appliedPromo))}
+                              </span>
+                            </div>
+                          </motion.div>
+                        )}
+                      </AnimatePresence>
+
+                      <div className="border-t border-black/[0.06] pt-2.5 flex justify-between items-center">
+                        <span className="text-[0.82rem] font-extrabold">Total</span>
+                        <motion.span
+                          key={finalPrice}
+                          initial={{ scale: 1.08 }}
+                          animate={{ scale: 1 }}
+                          className="font-extrabold text-[1rem]"
+                          style={{ color: accent }}
+                        >
+                          {formatRp(finalPrice)}
+                        </motion.span>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+
                 {/* Progress card */}
                 <motion.div
                   initial={{ opacity: 0, y: 16 }}
@@ -695,12 +938,12 @@ export default function DaftarPage() {
                     Hubungi tim GRCC jika ada pertanyaan seputar pendaftaran.
                   </p>
                   <a
-                    href="https://wa.me/6281234567890"
+                    href={whatsappHref("Halo, saya membutuhkan bantuan terkait pendaftaran program GRCC.")}
                     target="_blank" rel="noreferrer"
                     className="flex items-center gap-2 text-[0.78rem] font-semibold text-white px-4 py-2.5 rounded-xl transition-all w-full justify-center"
                     style={{ backgroundColor: "#25D366" }}
                   >
-                    <Phone size={13} /> WhatsApp Admin
+                    <Phone size={13} /> {siteConfig.whatsappNumber ? "WhatsApp Admin" : "Email Admin"}
                   </a>
                 </motion.div>
               </div>
