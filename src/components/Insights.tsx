@@ -177,7 +177,7 @@ function TrainingCard({ t, index }: { t: TrainingItem; index: number }) {
 
         {/* CTA */}
         <motion.a
-          href="mailto:info@grcc.org"
+          href={`/daftar/${t.id}`}
           onClick={(e) => e.stopPropagation()}
           whileHover={{ scale: 1.015 }}
           whileTap={{ scale: 0.97 }}

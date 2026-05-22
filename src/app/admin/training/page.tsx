@@ -2,17 +2,17 @@
 
 import { useEffect, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { supabase, TrainingItem } from "@/lib/supabase";
-import { Plus, Pencil, Trash2, Eye, EyeOff, X, Check, Loader2 } from "lucide-react";
+import { supabase, TrainingItem, CustomField } from "@/lib/supabase";
+import { Plus, Pencil, Trash2, Eye, EyeOff, X, Check, Loader2, GripVertical, Settings2 } from "lucide-react";
 
 const COLORS   = ["#4F46E5","#10B981","#EF4444","#F59E0B","#8B5CF6","#0EA5E9","#F97316"];
 const FORMATS  = ["Online","In-Person","Hybrid","In-House"];
+const FIELD_TYPES = ["text","textarea","select","number","date"] as const;
 const EMPTY: Omit<TrainingItem,"id"|"created_at"> = {
   title:"", category:"", date_start:"", date_end:"", time:"Sabtu 08.00–17.00 WIB",
   format:"Online", location:"Zoom Meeting", price: null, price_label:"",
   max_participants: null, color:"#4F46E5", description:"", published: true,
-  poster_url: null,
-  brochure_url: null,
+  poster_url: null, brochure_url: null, custom_fields: [],
 };
 
 export default function AdminTraining() {
@@ -182,6 +182,113 @@ export default function AdminTraining() {
                     </div>
                     <span className="text-[0.82rem] font-semibold">Tampilkan di website</span>
                   </label>
+
+                  {/* ── Custom Fields ── */}
+                  <div className="border-t border-border pt-5">
+                    <div className="flex items-center justify-between mb-3">
+                      <div className="flex items-center gap-2">
+                        <Settings2 size={14} className="text-muted" />
+                        <span className="text-[0.82rem] font-bold">Kolom Tambahan Formulir</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const newField: CustomField = {
+                            id: Math.random().toString(36).slice(2),
+                            label: "", type: "text", required: false, placeholder: ""
+                          };
+                          setForm({...form, custom_fields: [...(form.custom_fields||[]), newField]});
+                        }}
+                        className="flex items-center gap-1.5 text-[0.75rem] font-semibold text-dark/60 hover:text-dark border border-dashed border-dark/20 hover:border-dark/40 px-3 py-1.5 rounded-lg transition-all"
+                      >
+                        <Plus size={12}/> Tambah Kolom
+                      </button>
+                    </div>
+                    {(form.custom_fields||[]).length === 0 && (
+                      <p className="text-[0.75rem] text-muted text-center py-4 border border-dashed border-border rounded-xl">
+                        Belum ada kolom tambahan
+                      </p>
+                    )}
+                    <div className="flex flex-col gap-3">
+                      {(form.custom_fields||[]).map((cf, idx) => (
+                        <div key={cf.id} className="flex flex-col gap-2 p-3 rounded-xl border border-border bg-dark/[0.02]">
+                          <div className="flex items-center gap-2">
+                            <GripVertical size={13} className="text-muted flex-shrink-0"/>
+                            <input
+                              value={cf.label}
+                              onChange={e => {
+                                const updated = [...(form.custom_fields||[])];
+                                updated[idx] = {...cf, label: e.target.value};
+                                setForm({...form, custom_fields: updated});
+                              }}
+                              placeholder="Nama kolom (contoh: Ukuran Baju)"
+                              className="input flex-1 text-[0.78rem] py-2"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => {
+                                const updated = (form.custom_fields||[]).filter((_,i) => i !== idx);
+                                setForm({...form, custom_fields: updated});
+                              }}
+                              className="w-6 h-6 rounded-lg bg-red-50 hover:bg-red-100 flex items-center justify-center flex-shrink-0 transition-colors"
+                            >
+                              <X size={11} className="text-red-500"/>
+                            </button>
+                          </div>
+                          <div className="flex items-center gap-2 ml-5">
+                            <select
+                              value={cf.type}
+                              onChange={e => {
+                                const updated = [...(form.custom_fields||[])];
+                                updated[idx] = {...cf, type: e.target.value as CustomField["type"]};
+                                setForm({...form, custom_fields: updated});
+                              }}
+                              className="input text-[0.75rem] py-1.5 flex-1"
+                            >
+                              {FIELD_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                            </select>
+                            <input
+                              value={cf.placeholder||""}
+                              onChange={e => {
+                                const updated = [...(form.custom_fields||[])];
+                                updated[idx] = {...cf, placeholder: e.target.value};
+                                setForm({...form, custom_fields: updated});
+                              }}
+                              placeholder="Placeholder (opsional)"
+                              className="input flex-1 text-[0.75rem] py-1.5"
+                            />
+                            <label className="flex items-center gap-1.5 text-[0.72rem] font-semibold text-muted whitespace-nowrap cursor-pointer">
+                              <input
+                                type="checkbox"
+                                checked={cf.required}
+                                onChange={e => {
+                                  const updated = [...(form.custom_fields||[])];
+                                  updated[idx] = {...cf, required: e.target.checked};
+                                  setForm({...form, custom_fields: updated});
+                                }}
+                                className="w-3.5 h-3.5 rounded"
+                              />
+                              Wajib
+                            </label>
+                          </div>
+                          {cf.type === "select" && (
+                            <div className="ml-5">
+                              <input
+                                value={(cf.options||[]).join(",")}
+                                onChange={e => {
+                                  const updated = [...(form.custom_fields||[])];
+                                  updated[idx] = {...cf, options: e.target.value.split(",").map(s=>s.trim()).filter(Boolean)};
+                                  setForm({...form, custom_fields: updated});
+                                }}
+                                placeholder="Opsi dipisah koma: Pilihan A, Pilihan B, Pilihan C"
+                                className="input w-full text-[0.75rem] py-1.5"
+                              />
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
                 <div className="flex justify-end gap-3 px-7 py-5 border-t border-border">
                   <button onClick={closeForm} className="text-[0.82rem] font-semibold px-4 py-2.5 rounded-xl hover:bg-dark/[0.06]">Batal</button>

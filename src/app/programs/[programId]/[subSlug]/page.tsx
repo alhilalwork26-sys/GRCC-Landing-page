@@ -187,19 +187,25 @@ function BookingWidget({
         </div>
 
         {/* CTA */}
-        <motion.a
-          href={`https://wa.me/${WHATSAPP}?text=${waMsg}`}
-          target="_blank" rel="noopener noreferrer"
-          whileHover={{ scale: 1.02, y: -1 }}
-          whileTap={{ scale: 0.98 }}
-          className="flex items-center justify-center gap-2.5 text-white font-extrabold text-[0.9rem] py-3.5 rounded-xl transition-colors"
-          style={{ backgroundColor: selected ? accent : "#888" }}
-        >
-          {selected ? <><Check size={16} /> Daftar Sekarang</> : <><Calendar size={16} /> Pilih Jadwal Dulu</>}
-        </motion.a>
+        {selected ? (
+          <Link
+            href={`/daftar/${selected.id}`}
+            className="flex items-center justify-center gap-2.5 text-white font-extrabold text-[0.9rem] py-3.5 rounded-xl transition-all hover:opacity-90 hover:-translate-y-0.5"
+            style={{ backgroundColor: accent, boxShadow: `0 6px 20px ${accent}40` }}
+          >
+            <Check size={16} /> Daftar Sekarang
+          </Link>
+        ) : (
+          <button
+            disabled
+            className="flex items-center justify-center gap-2.5 text-white font-extrabold text-[0.9rem] py-3.5 rounded-xl bg-dark/30 cursor-not-allowed w-full"
+          >
+            <Calendar size={16} /> Pilih Jadwal Dulu
+          </button>
+        )}
 
         <p className="text-center text-[0.7rem] text-muted">
-          Klik tombol di atas untuk konfirmasi via WhatsApp
+          {selected ? "Isi formulir pendaftaran online" : "Pilih sesi pelatihan terlebih dahulu"}
         </p>
       </div>
     </div>

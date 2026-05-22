@@ -20,7 +20,19 @@
       "Bash(git push *)",
       "Bash(npm list *)",
       "Bash(npx tsc *)",
-      "Bash(grep -v \"^$\")"
+      "Bash(grep -v \"^$\")",
+      "mcp__cad83ee8-8beb-45e9-8c2d-bb18bac6b8d3__list_projects",
+      "mcp__cad83ee8-8beb-45e9-8c2d-bb18bac6b8d3__apply_migration",
+      "mcp__cad83ee8-8beb-45e9-8c2d-bb18bac6b8d3__execute_sql",
+      "Bash(npm run *)",
+      "Bash(curl -s http://localhost:3000 -o /dev/null -w \"%{http_code}\")",
+      "Bash(ps -p 35889 -o pid,lstart,command)",
+      "Bash(kill 35889)",
+      "Bash(mkdir -p \"/Users/macbook/Documents/17 Company Website GRCC/src/app/programs/[programId]/[subSlug]\")",
+      "Bash(kill 43587)",
+      "Read(//private/tmp/**)",
+      "Bash(git commit -m 'feat: set GRCC company profile video \\(BCOjopku3bk\\) *)",
+      "Bash(git commit -m 'fix: move video lightbox close button above iframe \\(was hidden behind it\\) *)"
     ]
   }
 }
