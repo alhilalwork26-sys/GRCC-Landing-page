@@ -37,7 +37,10 @@ Penerapan tata kelola yang baik (good governance) merupakan pondasi utama bagi k
 
 Implementasi tata kelola yang telah direncanakan perlu dievaluasi secara berkala untuk memastikan bahwa setiap program dan kebijakan yang dijalankan benar-benar memberikan dampak yang diharapkan. Tanpa mekanisme audit dan evaluasi yang terstruktur, perusahaan berisiko menghadapi penyimpangan, inefisiensi, dan ketidakpatuhan yang tidak terdeteksi. Kegiatan ini hadir sebagai instrumen kontrol kualitas sekaligus alat pembelajaran perusahaan — memastikan tata kelola tidak hanya ada di atas kertas, tetapi benar-benar hidup dalam praktik sehari-hari.`
       },
-      { name: "Pengembangan Soft Skill Tata Kelola", desc: "Program pengembangan kompetensi soft skill yang mendukung penerapan tata kelola organisasi secara efektif." },
+      {
+        name: "Pengembangan Soft Skill Tata Kelola", desc: `Program Pengembangan Soft Skill Tata Kelola dirancang untuk membangun kompetensi non-teknis yang menjadi fondasi efektivitas implementasi tata kelola di seluruh level perusahaan. Program ini meyakini bahwa tata kelola yang baik tidak hanya ditopang oleh sistem dan regulasi, tetapi juga oleh kapasitas individu mulai dari cara berkomunikasi, mengambil keputusan etis, memimpin dengan integritas, hingga membangun kolaborasi yang sehat di dalam dan antar unit kerja. 
+Keberhasilan implementasi tata kelola sangat bergantung pada kualitas sumber daya manusia yang menjalankannya.Keterampilan teknis saja tidak cukup dibutuhkan kemampuan interpersonal, kepemimpinan, dan etika yang kuat agar setiap individu mampu berkontribusi secara nyata terhadap budaya tata kelola yang sehat.Program ini hadir untuk menjembatani gap antara pemahaman teknis tata kelola dengan kemampuan menerapkannya secara efektif dalam interaksi dan dinamika perusahaan sehari- hari.
+` },
       { name: "The Essential of Good Corporate Governance / Governance Fundamentals", desc: "Program penguatan pemahaman dasar mengenai prinsip dan praktik good corporate governance." },
       { name: "Risk Assessment", desc: "Program identifikasi dan analisis risiko yang dihadapi organisasi sebagai dasar pengelolaan risiko." },
       { name: "Enterprise Risk Management (ERM)", desc: "Program pengembangan dan penerapan sistem manajemen risiko terintegrasi di tingkat organisasi." },
