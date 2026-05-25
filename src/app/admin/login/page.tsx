@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { supabase } from "@/lib/supabase";
 import { Eye, EyeOff, LogIn } from "lucide-react";
 
 export default function AdminLogin() {
@@ -18,12 +17,22 @@ export default function AdminLogin() {
     e.preventDefault();
     setLoading(true);
     setError("");
-    const { error: err } = await supabase.auth.signInWithPassword({ email, password });
-    if (err) {
-      setError("Email atau password salah.");
+    try {
+      const res = await fetch("/api/admin/login", {
+        method:  "POST",
+        headers: { "Content-Type": "application/json" },
+        body:    JSON.stringify({ email, password }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        setError(data.error ?? "Email atau password salah.");
+        setLoading(false);
+      } else {
+        router.replace("/admin");
+      }
+    } catch {
+      setError("Terjadi kesalahan. Coba lagi.");
       setLoading(false);
-    } else {
-      router.replace("/admin");
     }
   };
 

@@ -1,9 +1,8 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
-import { supabase } from "@/lib/supabase";
 import {
   LayoutDashboard, Megaphone, Newspaper,
   CalendarDays, Users, LogOut, ExternalLink, Menu, X, ClipboardList, Tag
@@ -22,32 +21,16 @@ const nav = [
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const router   = useRouter();
   const pathname = usePathname();
-  const [checking, setChecking] = useState(true);
-  const [email,    setEmail]    = useState("");
-  const [open,     setOpen]     = useState(false);
+  const [open, setOpen] = useState(false);
 
-  useEffect(() => {
-    supabase.auth.getSession().then(({ data }) => {
-      if (!data.session && pathname !== "/admin/login") {
-        router.replace("/admin/login");
-      } else {
-        setEmail(data.session?.user?.email ?? "");
-        setChecking(false);
-      }
-    });
-  }, [pathname, router]);
+  // Auth is handled server-side by middleware.ts — no client-side auth check needed.
 
   const logout = async () => {
-    await supabase.auth.signOut();
+    await fetch("/api/admin/logout", { method: "POST" });
     router.replace("/admin/login");
   };
 
   if (pathname === "/admin/login") return <>{children}</>;
-  if (checking) return (
-    <div className="min-h-screen bg-[#0D0D0D] flex items-center justify-center">
-      <div className="w-6 h-6 rounded-full border-2 border-white/20 border-t-white animate-spin" />
-    </div>
-  );
 
   return (
     <div className="min-h-screen bg-[#F7F7F5] flex">
@@ -102,7 +85,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             <LogOut size={13} />
             Keluar
           </button>
-          <p className="text-white/20 text-[0.65rem] px-3 truncate">{email}</p>
+          <p className="text-white/20 text-[0.65rem] px-3 truncate">GRCC Admin</p>
         </div>
       </aside>
 
