@@ -66,7 +66,10 @@ Pemahaman yang kuat tentang prinsip-prinsip dasar tata kelola merupakan prasyara
     tagline: "Integrasikan keberlanjutan ke dalam inti strategi bisnis Anda.",
     desc: "Program ESG GRCC mempersiapkan organisasi untuk mengukur, mengelola, dan mengkomunikasikan kinerja lingkungan, sosial, dan tata kelola secara kredibel sesuai standar global GRI, TCFD, dan ISSB.",
     subs: [
-      { name: "Roadmap Implementasi Keberlanjutan", desc: "Program pendampingan penyusunan roadmap implementasi keberlanjutan sesuai dengan strategi dan kebutuhan organisasi." },
+      {
+        name: "Roadmap Implementasi Keberlanjutan", desc: "Program ini dirancang untuk membantu perusahaan merancang peta jalan keberlanjutan yang terstruktur, realistis, dan selaras dengan visi jangka panjang. Melalui pendekatan yang sistematis, peserta akan mampu menerjemahkan komitmen keberlanjutan menjadi rencana aksi konkret yang dapat dieksekusi secara bertahap dan terukur mulai dari pemetaan kondisi awal hingga penetapan target keberlanjutan jangka pendek, menengah, dan panjang. 
+Roadmap ini menjadi panduan praktis bagi perusahaan dalam menentukan target, program kerja, indikator keberhasilan, serta peran setiap unit kerja dalam mendukung agenda keberlanjutan.Dengan pendekatan yang sistematis, perusahaan dapat bergerak dari sekadar komitmen menuju implementasi nyata yang berdampak. 
+" },
       { name: "Strategi Keberlanjutan", desc: "Program perancangan strategi keberlanjutan yang terintegrasi dengan arah dan tujuan organisasi." },
       { name: "Inovasi Keberlanjutan", desc: "Program pengembangan dan penerapan inovasi yang mendukung pencapaian keberlanjutan organisasi." },
       { name: "Kepemimpinan Keberlanjutan", desc: "Program penguatan peran kepemimpinan dalam mendorong dan mengelola agenda keberlanjutan organisasi." },
