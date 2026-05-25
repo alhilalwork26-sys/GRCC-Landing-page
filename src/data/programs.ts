@@ -41,8 +41,16 @@ Implementasi tata kelola yang telah direncanakan perlu dievaluasi secara berkala
         name: "Pengembangan Soft Skill Tata Kelola", desc: `Program Pengembangan Soft Skill Tata Kelola dirancang untuk membangun kompetensi non-teknis yang menjadi fondasi efektivitas implementasi tata kelola di seluruh level perusahaan. Program ini meyakini bahwa tata kelola yang baik tidak hanya ditopang oleh sistem dan regulasi, tetapi juga oleh kapasitas individu mulai dari cara berkomunikasi, mengambil keputusan etis, memimpin dengan integritas, hingga membangun kolaborasi yang sehat di dalam dan antar unit kerja. 
 Keberhasilan implementasi tata kelola sangat bergantung pada kualitas sumber daya manusia yang menjalankannya.Keterampilan teknis saja tidak cukup dibutuhkan kemampuan interpersonal, kepemimpinan, dan etika yang kuat agar setiap individu mampu berkontribusi secara nyata terhadap budaya tata kelola yang sehat.Program ini hadir untuk menjembatani gap antara pemahaman teknis tata kelola dengan kemampuan menerapkannya secara efektif dalam interaksi dan dinamika perusahaan sehari- hari.
 ` },
-      { name: "The Essential of Good Corporate Governance / Governance Fundamentals", desc: "Program penguatan pemahaman dasar mengenai prinsip dan praktik good corporate governance." },
-      { name: "Risk Assessment", desc: "Program identifikasi dan analisis risiko yang dihadapi organisasi sebagai dasar pengelolaan risiko." },
+      {
+        name: "The Essential of Good Corporate Governance / Governance Fundamentals",
+        desc: `Program The Essential of Good Corporate Governance atau dikenal sebagai Governance Fundamental merupakan program literasi tata kelola yang dirancang untuk membangun pemahaman dasar yang kuat dan komprehensif tentang prinsip, kerangka, serta praktik Good Corporate Governance (GCG). Program ini menjadi titik masuk yang tepat bagi siapa saja yang ingin memahami tata kelola bukan sekadar sebagai kewajiban regulasi, melainkan sebagai nilai dan budaya yang menggerakkan perusahaan menuju kinerja yang berkelanjutan. 
+Pemahaman yang kuat tentang prinsip-prinsip dasar tata kelola merupakan prasyarat utama bagi setiap individu yang terlibat dalam pengelolaan perusahaan. Tanpa fondasi pengetahuan yang solid, implementasi tata kelola kerap berjalan tanpa arah dan rentan terhadap penyimpangan. Program Governance Fundamental hadir untuk memastikan setiap pelaku perusahaan dari jajaran komisaris hingga pelaksana operasional memiliki pemahaman yang selaras tentang apa itu tata kelola yang baik, mengapa ia penting, dan bagaimana menerapkannya secara nyata. 
+`},
+      {
+        name: "Risk Assessment",
+        desc: `Program identifikasi dan analisis risiko yang dihadapi organisasi sebagai dasar pengelolaan risiko.
+Pemahaman yang kuat tentang prinsip-prinsip dasar tata kelola merupakan prasyarat utama bagi setiap individu yang terlibat dalam pengelolaan perusahaan. Tanpa fondasi pengetahuan yang solid, implementasi tata kelola kerap berjalan tanpa arah dan rentan terhadap penyimpangan. Program Governance Fundamental hadir untuk memastikan setiap pelaku perusahaan dari jajaran komisaris hingga pelaksana operasional memiliki pemahaman yang selaras tentang apa itu tata kelola yang baik, mengapa ia penting, dan bagaimana menerapkannya secara nyata.
+` },
       { name: "Enterprise Risk Management (ERM)", desc: "Program pengembangan dan penerapan sistem manajemen risiko terintegrasi di tingkat organisasi." },
       { name: "Financial Risk Management", desc: "Program pengelolaan risiko keuangan untuk mendukung stabilitas dan keberlanjutan kinerja organisasi." },
       { name: "Risk Maturity Assessment", desc: "Program penilaian tingkat kematangan penerapan manajemen risiko dalam organisasi." },
