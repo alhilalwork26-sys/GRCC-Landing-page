@@ -13,6 +13,7 @@ const STATUSES = [
 ];
 
 interface Facilitator { name: string; role: string; org: string; img: string; main?: boolean; }
+interface Highlight   { icon: string; text: string; }
 
 export default function AdminPromo() {
   const [id,          setId]          = useState<string | null>(null);
@@ -28,6 +29,7 @@ export default function AdminPromo() {
   const [ctaLabel,    setCtaLabel]    = useState("Daftar & Info Lengkap");
   const [ctaHref,     setCtaHref]     = useState("mailto:info@grcc.org");
   const [facilitators,setFacilitators]= useState<Facilitator[]>([{ name:"", role:"", org:"", img:"" }]);
+  const [highlights,  setHighlights]  = useState<Highlight[]>([]);
   const [saving,      setSaving]      = useState(false);
   const [msg,         setMsg]         = useState("");
   const [loading,     setLoading]     = useState(true);
@@ -42,6 +44,7 @@ export default function AdminPromo() {
           setDesc(data.description ?? ""); setStatus(data.status); setCtaLabel(data.cta_label);
           setCtaHref(data.cta_href);
           if (data.facilitators?.length) setFacilitators(data.facilitators);
+          if (data.highlights?.length)   setHighlights(data.highlights);
         }
         setLoading(false);
       });
@@ -52,13 +55,18 @@ export default function AdminPromo() {
   const updateFacilitator = (i: number, field: keyof Facilitator, val: string | boolean) =>
     setFacilitators(facilitators.map((f, idx) => idx === i ? { ...f, [field]: val } : f));
 
+  const addHighlight    = () => setHighlights([...highlights, { icon: "✅", text: "" }]);
+  const removeHighlight = (i: number) => setHighlights(highlights.filter((_,idx) => idx !== i));
+  const updateHighlight = (i: number, field: keyof Highlight, val: string) =>
+    setHighlights(highlights.map((h, idx) => idx === i ? { ...h, [field]: val } : h));
+
   const save = async () => {
     setSaving(true);
     const payload = {
       active, badge, badge_color: badgeColor, tag, title, subtitle,
       accent_color: accentColor, description, status,
       cta_label: ctaLabel, cta_href: ctaHref,
-      facilitators, updated_at: new Date().toISOString(),
+      facilitators, highlights, updated_at: new Date().toISOString(),
     };
     if (id) {
       await supabase.from("promo").update(payload).eq("id", id);
@@ -159,6 +167,43 @@ export default function AdminPromo() {
             <input value={ctaLabel} onChange={e => setCtaLabel(e.target.value)} className="input" /></div>
           <div><label className="label">Link Tombol</label>
             <input value={ctaHref} onChange={e => setCtaHref(e.target.value)} className="input" placeholder="mailto: atau https://" /></div>
+        </div>
+
+        {/* Highlights */}
+        <div>
+          <div className="flex items-center justify-between mb-3">
+            <div>
+              <label className="label mb-0">Highlights Program</label>
+              <p className="text-[0.68rem] text-muted mt-0.5">Poin-poin unggulan yang ditampilkan di promo modal</p>
+            </div>
+            <button onClick={addHighlight} className="flex items-center gap-1.5 text-[0.75rem] font-bold text-dark/60 hover:text-dark">
+              <Plus size={13} /> Tambah
+            </button>
+          </div>
+          {highlights.length === 0 && (
+            <p className="text-[0.78rem] text-muted italic py-2">Belum ada highlight. Klik Tambah untuk menambahkan.</p>
+          )}
+          <div className="flex flex-col gap-2">
+            {highlights.map((h, i) => (
+              <div key={i} className="flex items-center gap-2">
+                <input
+                  value={h.icon}
+                  onChange={e => updateHighlight(i, "icon", e.target.value)}
+                  placeholder="Emoji / icon"
+                  className="input text-[0.85rem] w-16 text-center flex-shrink-0"
+                />
+                <input
+                  value={h.text}
+                  onChange={e => updateHighlight(i, "text", e.target.value)}
+                  placeholder="Deskripsi highlight…"
+                  className="input text-[0.85rem] flex-1"
+                />
+                <button onClick={() => removeHighlight(i)} className="p-1.5 hover:bg-red-50 text-red-400 rounded-lg flex-shrink-0">
+                  <Trash2 size={13} />
+                </button>
+              </div>
+            ))}
+          </div>
         </div>
 
         {/* Facilitators */}

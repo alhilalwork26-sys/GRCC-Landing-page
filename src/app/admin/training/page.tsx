@@ -155,6 +155,11 @@ export default function AdminTraining() {
                   {item.date_start && <span>{item.date_start}{item.date_end ? ` – ${item.date_end}` : ""}</span>}
                   {item.format && <span className="px-2 py-0.5 rounded-full bg-dark/[0.06]">{item.format}</span>}
                   {item.price_label && <span className="font-semibold text-dark">{item.price_label}</span>}
+                  {item.program_id && (
+                    <span className="px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 font-semibold">
+                      {PROGRAMS.find(p => p.id === item.program_id)?.label.split(" ")[0] ?? item.program_id}
+                    </span>
+                  )}
                 </div>
               </div>
               <div className="flex items-center gap-2 flex-shrink-0">
@@ -270,7 +275,7 @@ export default function AdminTraining() {
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
-                    <div><label className="label">Kategori</label>
+                    <div><label className="label">Kategori / Tag</label>
                       <input value={form.category ?? ""} onChange={e=>setForm({...form,category:e.target.value})} placeholder="GRC, ESG, Accounting…" className="input"/></div>
                     <div><label className="label">Format</label>
                       <select value={form.format} onChange={e=>setForm({...form,format:e.target.value})} className="input">
