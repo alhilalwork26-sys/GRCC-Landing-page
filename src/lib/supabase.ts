@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
 
+// env vars diinject saat build — NEXT_PUBLIC_ tersedia di client bundle
 const url  = process.env.NEXT_PUBLIC_SUPABASE_URL  ?? "";
 const key  = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? "";
 
