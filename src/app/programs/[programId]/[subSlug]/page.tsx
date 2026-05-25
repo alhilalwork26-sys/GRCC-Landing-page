@@ -478,17 +478,15 @@ export default function SubProgramPage() {
           </motion.div>
 
           {/* Title */}
-          <div className="overflow-hidden mb-5">
-            <motion.h1
-              initial={{ y: "105%" }}
-              animate={{ y: 0 }}
-              transition={{ duration: 0.85, ease: [0.76, 0, 0.24, 1] }}
-              className="text-white font-extrabold leading-[1.05] tracking-[-0.025em]"
-              style={{ fontSize: "clamp(2rem, 5vw, 4rem)" }}
-            >
-              {sub.name}
-            </motion.h1>
-          </div>
+          <motion.h1
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.85, ease: [0.76, 0, 0.24, 1] }}
+            className="text-white font-extrabold leading-[1.05] tracking-[-0.025em] mb-5"
+            style={{ fontSize: "clamp(2rem, 5vw, 4rem)" }}
+          >
+            {sub.name}
+          </motion.h1>
 
           {/* Desc */}
           <motion.p
