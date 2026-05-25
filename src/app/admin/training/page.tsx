@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase, TrainingItem, CustomField } from "@/lib/supabase";
-import { Plus, Pencil, Trash2, Eye, EyeOff, X, Check, Loader2, GripVertical, Settings2, Upload, Image as ImageIcon } from "lucide-react";
+import { Plus, Pencil, Trash2, Eye, EyeOff, X, Check, Loader2, GripVertical, Settings2, Upload, Image as ImageIcon, FileText } from "lucide-react";
 
 const COLORS   = ["#4F46E5","#10B981","#EF4444","#F59E0B","#8B5CF6","#0EA5E9","#F97316"];
 const FORMATS  = ["Online","In-Person","Hybrid","In-House"];
@@ -31,9 +31,11 @@ export default function AdminTraining() {
   const [form,    setForm]    = useState<typeof EMPTY | null>(null);
   const [editId,  setEditId]  = useState<string | null>(null);
   const [saving,  setSaving]  = useState(false);
-  const [uploadingPoster, setUploadingPoster] = useState(false);
+  const [uploadingPoster,   setUploadingPoster]   = useState(false);
+  const [uploadingBrochure, setUploadingBrochure] = useState(false);
   const [msg,     setMsg]     = useState("");
-  const posterInputRef = useRef<HTMLInputElement>(null);
+  const posterInputRef   = useRef<HTMLInputElement>(null);
+  const brochureInputRef = useRef<HTMLInputElement>(null);
 
   const load = async () => {
     setLoading(true);
@@ -118,6 +120,27 @@ export default function AdminTraining() {
 
     const { data: publicUrl } = supabase.storage.from("training-posters").getPublicUrl(data.path);
     setForm((current) => current ? { ...current, poster_url: publicUrl.publicUrl } : current);
+  };
+
+  const uploadBrochure = async (file: File) => {
+    if (!form) return;
+    if (file.type !== "application/pdf") {
+      setMsg("Brosur harus berformat PDF.");
+      return;
+    }
+    if (file.size > 20 * 1024 * 1024) {
+      setMsg("Ukuran brosur maksimal 20MB.");
+      return;
+    }
+    setUploadingBrochure(true);
+    const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.pdf`;
+    const { data, error } = await supabase.storage
+      .from("training-brochures")
+      .upload(filename, file, { contentType: "application/pdf", upsert: false });
+    setUploadingBrochure(false);
+    if (error) { setMsg(`Gagal upload brosur: ${error.message}`); return; }
+    const { data: publicUrl } = supabase.storage.from("training-brochures").getPublicUrl(data.path);
+    setForm((current) => current ? { ...current, brochure_url: publicUrl.publicUrl } : current);
   };
 
   return (
@@ -274,6 +297,57 @@ export default function AdminTraining() {
                     </div>
                   </div>
 
+                  {/* Brosur PDF */}
+                  <div>
+                    <label className="label">Brosur PDF</label>
+                    <input
+                      ref={brochureInputRef}
+                      type="file"
+                      accept="application/pdf"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) uploadBrochure(file);
+                        e.currentTarget.value = "";
+                      }}
+                    />
+                    <div className="rounded-2xl border border-dashed border-border bg-[#FAFAFA] p-3">
+                      {form.brochure_url ? (
+                        <div className="flex items-center gap-3 px-2 py-2">
+                          <div className="w-10 h-10 rounded-xl bg-red-50 border border-red-100 flex items-center justify-center flex-shrink-0">
+                            <FileText size={18} className="text-red-500" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-[0.8rem] font-bold text-dark">Brosur aktif</p>
+                            <p className="text-[0.7rem] text-muted truncate">{form.brochure_url.split("/").pop()}</p>
+                          </div>
+                          <div className="flex gap-2">
+                            <button type="button" onClick={() => brochureInputRef.current?.click()} disabled={uploadingBrochure}
+                              className="inline-flex items-center gap-1.5 rounded-lg bg-dark px-3 py-2 text-[0.72rem] font-bold text-white disabled:opacity-50">
+                              {uploadingBrochure ? <Loader2 size={13} className="animate-spin" /> : <Upload size={13} />}
+                              Ganti
+                            </button>
+                            <button type="button" onClick={() => setForm({ ...form, brochure_url: null })}
+                              className="inline-flex items-center gap-1.5 rounded-lg border border-border px-3 py-2 text-[0.72rem] font-bold text-muted hover:text-dark">
+                              <X size={13} /> Hapus
+                            </button>
+                          </div>
+                        </div>
+                      ) : (
+                        <button type="button" onClick={() => brochureInputRef.current?.click()} disabled={uploadingBrochure}
+                          className="flex w-full items-center gap-3 rounded-xl px-4 py-4 text-left transition-colors hover:bg-dark/[0.03] disabled:opacity-50">
+                          <span className="flex h-11 w-11 flex-shrink-0 items-center justify-center rounded-2xl bg-dark/[0.06]">
+                            {uploadingBrochure ? <Loader2 size={18} className="animate-spin text-muted" /> : <FileText size={18} className="text-muted" />}
+                          </span>
+                          <span className="min-w-0">
+                            <span className="block text-[0.82rem] font-bold text-dark">Upload brosur PDF</span>
+                            <span className="block text-[0.72rem] text-muted">Maksimal 20MB. Tampil sebagai tombol &ldquo;Lihat Brosur&rdquo; di halaman program.</span>
+                          </span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
                   <div className="grid grid-cols-2 gap-3">
                     <div><label className="label">Kategori / Tag</label>
                       <input value={form.category ?? ""} onChange={e=>setForm({...form,category:e.target.value})} placeholder="GRC, ESG, Accounting…" className="input"/></div>
@@ -298,8 +372,18 @@ export default function AdminTraining() {
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">
-                    <div><label className="label">Label Harga</label>
-                      <input value={form.price_label} onChange={e=>setForm({...form,price_label:e.target.value})} placeholder="Rp 3.900.000" className="input"/></div>
+                    <div>
+                      <label className="label">Harga (Angka)</label>
+                      <input type="number" value={form.price ?? ""} onChange={e=>setForm({...form,price:+e.target.value||null})} placeholder="3900000" className="input"/>
+                      <p className="text-[0.68rem] text-muted mt-1">Untuk kalkulasi diskon kode promo</p>
+                    </div>
+                    <div>
+                      <label className="label">Label Harga</label>
+                      <input value={form.price_label} onChange={e=>setForm({...form,price_label:e.target.value})} placeholder="Rp 3.900.000" className="input"/>
+                      <p className="text-[0.68rem] text-muted mt-1">Teks yang ditampilkan di website</p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
                     <div><label className="label">Maks. Peserta</label>
                       <input type="number" value={form.max_participants ?? ""} onChange={e=>setForm({...form,max_participants:+e.target.value||null})} placeholder="30" className="input"/></div>
                   </div>
