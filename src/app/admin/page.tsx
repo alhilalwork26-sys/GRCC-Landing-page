@@ -4,12 +4,13 @@ import { useEffect, useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { supabase } from "@/lib/supabase";
-import { Megaphone, Newspaper, CalendarDays, Users, ArrowUpRight, TrendingUp, ClipboardList, Tag } from "lucide-react";
+import { Megaphone, Newspaper, CalendarDays, Users, ArrowUpRight, TrendingUp, ClipboardList, Tag, Layers } from "lucide-react";
 
-interface Stats { promo: number; insights: number; training: number; team: number; registrations: number; promoCodes: number; }
+interface Stats { promo: number; insights: number; training: number; team: number; registrations: number; promoCodes: number; programs: number; }
 
 const cards = [
   { key: "promo",         label: "Promo Aktif",      icon: Megaphone,    href: "/admin/promo",          color: "#4F46E5" },
+  { key: "programs",      label: "Program",          icon: Layers,       href: "/admin/programs",       color: "#06B6D4" },
   { key: "insights",      label: "Total Insights",   icon: Newspaper,    href: "/admin/insights",       color: "#10B981" },
   { key: "training",      label: "Program Training", icon: CalendarDays, href: "/admin/training",       color: "#F59E0B" },
   { key: "registrations", label: "Registrasi",       icon: ClipboardList,href: "/admin/registrations",  color: "#8B5CF6" },
@@ -20,22 +21,23 @@ const cards = [
 const quickActions = [
   { label: "Lihat Registrasi",    href: "/admin/registrations", icon: ClipboardList, color: "#8B5CF6" },
   { label: "Tambah Insight Baru", href: "/admin/insights",      icon: Newspaper,     color: "#10B981" },
-  { label: "Update Promo Modal",  href: "/admin/promo",         icon: Megaphone,     color: "#4F46E5" },
+  { label: "Kelola Program",      href: "/admin/programs",      icon: Layers,        color: "#06B6D4" },
   { label: "Tambah Training",     href: "/admin/training",      icon: CalendarDays,  color: "#F59E0B" },
 ];
 
 export default function AdminDashboard() {
-  const [stats, setStats] = useState<Stats>({ promo: 0, insights: 0, training: 0, team: 0, registrations: 0, promoCodes: 0 });
+  const [stats, setStats] = useState<Stats>({ promo: 0, insights: 0, training: 0, team: 0, registrations: 0, promoCodes: 0, programs: 0 });
 
   useEffect(() => {
     const load = async () => {
-      const [p, i, tr, tm, rg, pc] = await Promise.all([
+      const [p, i, tr, tm, rg, pc, pr] = await Promise.all([
         supabase.from("promo").select("id", { count: "exact", head: true }).eq("active", true),
         supabase.from("insights").select("id", { count: "exact", head: true }),
         supabase.from("training").select("id", { count: "exact", head: true }),
         supabase.from("team_members").select("id", { count: "exact", head: true }),
         supabase.from("registrations").select("id", { count: "exact", head: true }),
         supabase.from("promo_codes").select("id", { count: "exact", head: true }),
+        supabase.from("programs").select("id", { count: "exact", head: true }).eq("active", true),
       ]);
       setStats({
         promo:         p.count  ?? 0,
@@ -44,6 +46,7 @@ export default function AdminDashboard() {
         team:          tm.count ?? 0,
         registrations: rg.count ?? 0,
         promoCodes:    pc.count ?? 0,
+        programs:      pr.count ?? 0,
       });
     };
     load();
@@ -58,7 +61,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Stats */}
-      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-6 gap-4 mb-8">
+      <div className="grid grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 mb-8">
         {cards.map(({ key, label, icon: Icon, href, color }, i) => (
           <motion.div
             key={key}

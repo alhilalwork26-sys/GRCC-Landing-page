@@ -121,6 +121,33 @@ export interface PromoCode {
   created_at: string;
 }
 
+export interface ProgramItem {
+  id: string;
+  title: string;
+  short: string;
+  accent: string;
+  bg: string;
+  tagline: string;
+  description: string;
+  icon_name: string;
+  order_index: number;
+  active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SubProgramItem {
+  id: string;
+  program_id: string;
+  name: string;
+  slug: string;
+  description: string;
+  order_index: number;
+  active: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 export interface TeamMember {
   id: string;
   num: string;

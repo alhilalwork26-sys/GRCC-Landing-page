@@ -5,12 +5,13 @@ import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import {
   LayoutDashboard, Megaphone, Newspaper,
-  CalendarDays, Users, LogOut, ExternalLink, Menu, X, ClipboardList, Tag
+  CalendarDays, Users, LogOut, ExternalLink, Menu, X, ClipboardList, Tag, Layers
 } from "lucide-react";
 
 const nav = [
   { href: "/admin",                 icon: LayoutDashboard, label: "Dashboard"      },
   { href: "/admin/promo",           icon: Megaphone,        label: "Promo Modal"   },
+  { href: "/admin/programs",        icon: Layers,           label: "Program"        },
   { href: "/admin/insights",        icon: Newspaper,        label: "Insights"      },
   { href: "/admin/training",        icon: CalendarDays,     label: "Training"      },
   { href: "/admin/promo-codes",     icon: Tag,              label: "Kode Promo"    },

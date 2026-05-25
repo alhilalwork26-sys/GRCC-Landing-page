@@ -12,9 +12,9 @@ import {
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import { supabase, TrainingItem, PromoCode } from "@/lib/supabase";
+import { supabase, TrainingItem, PromoCode, ProgramItem, SubProgramItem } from "@/lib/supabase";
 import { siteConfig, telHref, whatsappHref } from "@/lib/site-config";
-import { programs, toSlug } from "@/data/programs";
+import { getIcon } from "@/lib/iconMap";
 import dynamic from "next/dynamic";
 
 const FlipBookModal = dynamic(() => import("@/components/FlipBookModal"), { ssr: false });
@@ -45,7 +45,6 @@ function BookingWidget({
   const [appliedPromo, setAppliedPromo] = useState<PromoCode | null>(null);
   const [promoError, setPromoError]     = useState("");
 
-  // Gunakan price numerik; jika null, coba parse dari price_label ("Rp 4.750.000" → 4750000)
   const parsePriceLabel = (label: string | null | undefined): number => {
     if (!label) return 0;
     const digits = label.replace(/[^\d]/g, "");
@@ -55,7 +54,6 @@ function BookingWidget({
   const price    = selected?.price ?? parsePriceLabel(selected?.price_label);
   const subtotal = price * qty;
 
-  // Discount calculation
   const discountAmt = appliedPromo && subtotal > 0
     ? appliedPromo.discount_type === "percentage"
       ? Math.round(subtotal * appliedPromo.discount_value / 100)
@@ -63,14 +61,12 @@ function BookingWidget({
     : 0;
   const total = subtotal - discountAmt;
 
-  // Human-readable total label
   const totalLabel = (() => {
     if (!selected) return "—";
     if (total > 0) return formatRupiah(total);
     return "Hubungi kami";
   })();
 
-  // Validate & apply promo
   const applyPromo = async () => {
     const code = promoInput.trim().toUpperCase();
     if (!code) return;
@@ -101,7 +97,6 @@ function BookingWidget({
 
   const removePromo = () => { setAppliedPromo(null); setPromoInput(""); setPromoError(""); };
 
-  // Build daftar URL with promo + qty
   const daftarHref = selected
     ? `/daftar/${selected.id}?qty=${qty}${appliedPromo ? `&promo=${appliedPromo.code}` : ""}`
     : "#";
@@ -208,7 +203,7 @@ function BookingWidget({
           </div>
         </div>
 
-        {/* ── Promo Code ── */}
+        {/* Promo Code */}
         <div>
           <label className="block text-[0.7rem] font-bold tracking-[0.1em] uppercase text-muted mb-2">Kode Voucher / Promo</label>
 
@@ -363,28 +358,56 @@ export default function SubProgramPage() {
   const heroY = useTransform(scrollYProgress, [0, 1], ["0%", "22%"]);
   const heroOpa = useTransform(scrollYProgress, [0, 0.75], [1, 0]);
 
-  const program = programs.find((p) => p.id === programId);
-  const sub = program?.subs.find((s) => toSlug(s.name) === subSlug);
-  const subIndex = program?.subs.findIndex((s) => toSlug(s.name) === subSlug) ?? 0;
-
+  const [program, setProgram]   = useState<ProgramItem | null>(null);
+  const [sub, setSub]           = useState<SubProgramItem | null>(null);
+  const [allSubs, setAllSubs]   = useState<SubProgramItem[]>([]);
   const [trainings, setTrainings] = useState<TrainingItem[]>([]);
+  const [loading, setLoading]   = useState(true);
   const [loadingT, setLoadingT] = useState(true);
   const [flipBookUrl, setFlipBookUrl] = useState<string | null>(null);
 
+  // Fetch program + sub-program data
   useEffect(() => {
-    if (!program) return;
-    // Filter by program_id jika ada; fallback ke semua training published (program_id null = global)
+    if (!programId || !subSlug) return;
+    (async () => {
+      const [{ data: prog }, { data: subData }, { data: allSubsData }] = await Promise.all([
+        supabase.from("programs").select("*").eq("id", programId).single(),
+        supabase.from("sub_programs").select("*").eq("program_id", programId).eq("slug", subSlug).single(),
+        supabase.from("sub_programs").select("*").eq("program_id", programId).eq("active", true).order("order_index"),
+      ]);
+      setProgram(prog ?? null);
+      setSub(subData ?? null);
+      setAllSubs(allSubsData ?? []);
+      setLoading(false);
+    })();
+  }, [programId, subSlug]);
+
+  // Fetch trainings once program is loaded
+  useEffect(() => {
+    if (!programId) return;
     supabase
       .from("training")
       .select("*")
       .eq("published", true)
-      .or(`program_id.eq.${program.id},program_id.is.null`)
+      .or(`program_id.eq.${programId},program_id.is.null`)
       .order("created_at", { ascending: false })
       .then(({ data }) => {
         setTrainings(data ?? []);
         setLoadingT(false);
       });
-  }, [program]);
+  }, [programId]);
+
+  if (loading) {
+    return (
+      <>
+        <Navbar />
+        <div className="min-h-screen flex items-center justify-center">
+          <Loader2 size={32} className="animate-spin text-muted" />
+        </div>
+        <Footer />
+      </>
+    );
+  }
 
   if (!program || !sub) {
     return (
@@ -398,9 +421,10 @@ export default function SubProgramPage() {
     );
   }
 
-  const Icon = program.icon;
-  const prevSub = subIndex > 0 ? program.subs[subIndex - 1] : null;
-  const nextSub = subIndex < program.subs.length - 1 ? program.subs[subIndex + 1] : null;
+  const Icon = getIcon(program.icon_name);
+  const subIndex = allSubs.findIndex((s) => s.slug === subSlug);
+  const prevSub  = subIndex > 0 ? allSubs[subIndex - 1] : null;
+  const nextSub  = subIndex < allSubs.length - 1 ? allSubs[subIndex + 1] : null;
 
   const waMsg = `Halo, saya ingin informasi lebih lanjut mengenai program:\n\n*${sub.name}*\n(${program.title})\n\nTerima kasih.`;
 
@@ -488,7 +512,7 @@ export default function SubProgramPage() {
             {sub.name}
           </motion.h1>
 
-          {/* Brochure buttons — show for any training that has brochure_url */}
+          {/* Brochure buttons */}
           {trainings.some(t => t.brochure_url) && (
             <motion.div
               initial={{ opacity: 0, y: 14 }}
@@ -544,9 +568,9 @@ export default function SubProgramPage() {
                       <p className="text-muted text-[0.78rem] mt-0.5">{program.title}</p>
                     </div>
                   </div>
-                  <p className="text-dark/65 text-[0.9rem] leading-[1.85] whitespace-pre-line">{sub.desc}</p>
+                  <p className="text-dark/65 text-[0.9rem] leading-[1.85] whitespace-pre-line">{sub.description}</p>
                   <div className="mt-6 pt-5 border-t border-border">
-                    <p className="text-dark/65 text-[0.88rem] leading-[1.8]">{program.desc}</p>
+                    <p className="text-dark/65 text-[0.88rem] leading-[1.8]">{program.description}</p>
                   </div>
 
                   {/* Info chips */}
@@ -618,7 +642,6 @@ export default function SubProgramPage() {
                               transition={{ duration: 0.45, ease: [0.4, 0, 0.2, 1] }}
                             />
                           ) : (
-                            /* Placeholder */
                             <div className="absolute inset-0" style={{ backgroundColor: t.color + "12" }}>
                               <div className="absolute inset-0" style={{
                                 backgroundImage: `linear-gradient(${t.color}20 1px, transparent 1px), linear-gradient(90deg, ${t.color}20 1px, transparent 1px)`,
@@ -634,16 +657,13 @@ export default function SubProgramPage() {
                               </div>
                             </div>
                           )}
-                          {/* Gradient overlay */}
                           <div className="absolute inset-x-0 bottom-0 h-[60%] bg-gradient-to-t from-black/60 to-transparent" />
-                          {/* Format badge */}
                           <span
                             className="absolute top-3 left-3 text-[0.58rem] font-extrabold tracking-[0.1em] uppercase px-2 py-1 rounded-full text-white"
                             style={{ backgroundColor: t.color }}
                           >
                             {t.format}
                           </span>
-                          {/* Price on poster */}
                           {(t.price || t.price_label) && (
                             <p className="absolute bottom-3 left-3 text-white font-extrabold text-[0.95rem] leading-none drop-shadow">
                               {t.price ? `Rp ${t.price.toLocaleString("id-ID")}` : t.price_label}
@@ -684,7 +704,7 @@ export default function SubProgramPage() {
               >
                 {prevSub ? (
                   <Link
-                    href={`/programs/${program.id}/${toSlug(prevSub.name)}`}
+                    href={`/programs/${program.id}/${prevSub.slug}`}
                     className="group flex flex-col gap-1 bg-white rounded-2xl border border-border p-5 hover:border-dark/30 hover:shadow-sm transition-all"
                   >
                     <span className="text-[0.65rem] font-bold tracking-[0.1em] uppercase text-muted flex items-center gap-1.5">
@@ -695,7 +715,7 @@ export default function SubProgramPage() {
                 ) : <div />}
                 {nextSub ? (
                   <Link
-                    href={`/programs/${program.id}/${toSlug(nextSub.name)}`}
+                    href={`/programs/${program.id}/${nextSub.slug}`}
                     className="group flex flex-col gap-1 bg-white rounded-2xl border border-border p-5 hover:border-dark/30 hover:shadow-sm transition-all text-right"
                   >
                     <span className="text-[0.65rem] font-bold tracking-[0.1em] uppercase text-muted flex items-center gap-1.5 justify-end">
