@@ -8,7 +8,7 @@ import { Plus, Pencil, Trash2, Eye, EyeOff, Star, X, Check, Loader2 } from "luci
 const TYPES  = ["Kegiatan", "Publikasi", "Berita"] as const;
 const COLORS = ["#4F46E5","#10B981","#EF4444","#F59E0B","#8B5CF6","#0EA5E9","#F97316"];
 const EMPTY: Omit<InsightItem,"id"|"created_at"> = {
-  type: "Kegiatan", tag: "", title: "", excerpt: "", date: "", location: "",
+  type: "Kegiatan", tag: "", title: "", excerpt: "", content: "", date: "", location: "",
   img: "", color: "#4F46E5", featured: false, published: true,
 };
 
@@ -193,6 +193,14 @@ export default function AdminInsights() {
                   <div>
                     <label className="label">Ringkasan</label>
                     <textarea rows={3} value={form.excerpt} onChange={e => setForm({ ...form, excerpt: e.target.value })} placeholder="Deskripsi singkat…" className="input resize-none" />
+                  </div>
+
+                  <div>
+                    <label className="label">Isi Artikel</label>
+                    <p className="text-[0.7rem] text-muted mb-2">Gunakan baris kosong untuk paragraf baru. Ketik ## Judul untuk heading, - item untuk poin.</p>
+                    <textarea rows={12} value={form.content} onChange={e => setForm({ ...form, content: e.target.value })}
+                      placeholder={`## Pendahuluan\n\nTulis isi artikel di sini...\n\n## Poin Utama\n\n- Item pertama\n- Item kedua`}
+                      className="input font-mono text-[0.8rem]" style={{ resize: "vertical", minHeight: 200 }} />
                   </div>
 
                   <div className="grid grid-cols-2 gap-3">

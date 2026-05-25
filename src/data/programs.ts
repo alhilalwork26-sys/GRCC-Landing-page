@@ -245,13 +245,48 @@ Melalui program ini, peserta akan mempelajari tahapan investigasi, teknik pengum
     tagline: "Transformasikan organisasi Anda menjadi entitas yang adaptif dan berdaya saing tinggi.",
     desc: "Program daya saing organisasi GRCC fokus pada penguatan kapabilitas strategis, transformasi bisnis, dan inovasi organisasi untuk menghadapi perubahan pasar dan lingkungan yang semakin dinamis.",
     subs: [
-      { name: "Corporate Strategy", desc: "Program perumusan dan penguatan strategi korporasi untuk mendukung arah dan tujuan organisasi." },
-      { name: "Competitive Strategy", desc: "Program pengembangan strategi bersaing guna meningkatkan posisi dan keunggulan organisasi." },
-      { name: "Business Process Management and Engineering", desc: "Program perancangan dan perbaikan proses bisnis untuk meningkatkan efisiensi dan efektivitas operasional." },
-      { name: "Supply Chain Management", desc: "Program pengelolaan rantai pasok untuk mendukung kelancaran operasional dan kinerja organisasi." },
-      { name: "Organizational Performance Management", desc: "Program pengembangan sistem pengelolaan kinerja organisasi secara terintegrasi." },
-      { name: "Brand Plan & Brand Strategy", desc: "Program perencanaan dan pengembangan strategi merek untuk memperkuat identitas dan daya saing organisasi." },
-      { name: "Profit Creation: Analytics and Strategy for Competitiveness and Efficiency", desc: "Program pengembangan strategi dan analisis penciptaan laba untuk meningkatkan daya saing dan efisiensi organisasi." },
+      {
+        name: "Corporate Strategy",
+        desc: `Program Corporate Strategy membantu organisasi merumuskan arah strategis jangka panjang yang selaras dengan visi, misi, sumber daya, dan dinamika lingkungan bisnis. Program ini membahas bagaimana organisasi menentukan prioritas pertumbuhan, mengelola portofolio bisnis, membaca peluang pasar, serta mengambil keputusan strategis yang berdampak pada keberlanjutan organisasi.
+
+Melalui program ini, peserta akan memahami cara menyusun strategi korporasi yang tidak hanya bersifat konseptual, tetapi juga dapat diterjemahkan ke dalam keputusan nyata. Program ini sangat relevan bagi pimpinan, manajer, dan tim perencana strategis yang ingin memastikan organisasi bergerak dengan arah yang jelas, fokus, dan kompetitif.`
+      },
+      {
+        name: "Competitive Strategy",
+        desc: `Program Competitive Strategy dirancang untuk membantu organisasi memahami posisi persaingan dan membangun keunggulan yang sulit ditiru oleh kompetitor. Peserta akan mempelajari bagaimana menganalisis industri, memahami perilaku pesaing, menentukan proposisi nilai, serta memilih strategi bersaing yang paling sesuai dengan karakteristik organisasi.
+
+Program ini membantu organisasi menjawab pertanyaan penting: bagaimana cara memenangkan pasar, mempertahankan pelanggan, dan menciptakan nilai yang berbeda dibandingkan kompetitor. Dengan strategi bersaing yang tepat, organisasi dapat meningkatkan posisi pasar, memperkuat diferensiasi, dan menciptakan pertumbuhan yang lebih berkelanjutan.`
+      },
+      {
+        name: "Business Process Management and Engineering",
+        desc: `Program Business Process Management and Engineering membantu organisasi menata, menganalisis, dan memperbaiki proses bisnis agar lebih efektif, efisien, dan adaptif terhadap perubahan. Program ini berfokus pada bagaimana proses kerja dapat dirancang ulang untuk mengurangi pemborosan, mempercepat layanan, meningkatkan kualitas output, dan mendukung pencapaian strategi organisasi.
+
+Melalui program ini, peserta akan memahami cara memetakan proses bisnis, mengidentifikasi hambatan, merancang perbaikan proses, serta membangun sistem kerja yang lebih terintegrasi. Program ini sangat tepat bagi organisasi yang ingin meningkatkan produktivitas, memperkuat koordinasi antar unit, dan menciptakan proses kerja yang lebih ramping serta bernilai tambah.`
+      },
+      {
+        name: "Supply Chain Management",
+        desc: `Program Supply Chain Management dirancang untuk membantu organisasi mengelola rantai pasok secara lebih strategis, efisien, dan responsif. Peserta akan memahami bagaimana mengelola aliran barang, informasi, dan biaya mulai dari pemasok hingga pelanggan akhir, sehingga organisasi dapat meningkatkan kecepatan, kualitas, dan efisiensi operasional.
+
+Program ini sangat relevan bagi organisasi yang ingin memperkuat ketahanan rantai pasok, mengurangi biaya operasional, meningkatkan kepuasan pelanggan, dan menghadapi risiko gangguan pasokan. Dengan pengelolaan supply chain yang baik, organisasi dapat menciptakan keunggulan kompetitif yang nyata dalam biaya, kualitas, dan kecepatan layanan.`
+      },
+      {
+        name: "Organizational Performance Management",
+        desc: `Program Organizational Performance Management membantu organisasi membangun sistem pengelolaan kinerja yang terarah, terukur, dan selaras dengan strategi. Program ini membahas bagaimana organisasi menetapkan indikator kinerja, memantau pencapaian target, mengevaluasi hasil, serta memastikan setiap unit kerja berkontribusi terhadap tujuan utama organisasi.
+
+Melalui program ini, peserta akan memahami cara merancang sistem kinerja yang tidak hanya berfokus pada angka, tetapi juga mendorong akuntabilitas, perbaikan berkelanjutan, dan pengambilan keputusan berbasis data. Program ini cocok bagi organisasi yang ingin meningkatkan efektivitas kerja, memperkuat budaya kinerja, dan memastikan strategi benar-benar terlaksana di lapangan.`
+      },
+      {
+        name: "Brand Plan & Brand Strategy",
+        desc: `Program Brand Plan & Brand Strategy membantu organisasi membangun merek yang kuat, relevan, dan memiliki posisi yang jelas di benak pelanggan. Program ini membahas bagaimana merumuskan identitas merek, memahami target pasar, menyusun pesan utama, menentukan diferensiasi, serta mengembangkan rencana komunikasi yang konsisten.
+
+Melalui program ini, organisasi dapat memperkuat citra, meningkatkan kepercayaan pelanggan, dan membangun hubungan yang lebih kuat dengan pasar. Program ini sangat relevan bagi perusahaan, institusi, maupun unit bisnis yang ingin meningkatkan daya tarik merek, memperluas jangkauan pasar, dan menciptakan brand yang tidak hanya dikenal, tetapi juga dipercaya.`
+      },
+      {
+        name: "Profit Creation: Analytics and Strategy for Competitiveness and Efficiency",
+        desc: `Program Profit Creation: Analytics and Strategy for Competitiveness and Efficiency dirancang untuk membantu organisasi menciptakan profitabilitas melalui kombinasi analisis data, strategi bisnis, efisiensi biaya, dan peningkatan nilai pelanggan. Program ini membantu peserta memahami sumber utama profit, membaca pola kinerja bisnis, mengidentifikasi area pemborosan, serta merancang strategi peningkatan margin.
+
+Melalui pendekatan analitis dan strategis, peserta akan dibekali kemampuan untuk mengambil keputusan yang lebih tajam dalam pengelolaan biaya, harga, proses bisnis, dan peluang pertumbuhan. Program ini sangat tepat bagi organisasi yang ingin meningkatkan profit secara berkelanjutan tanpa hanya bergantung pada peningkatan penjualan, tetapi juga melalui efisiensi dan penciptaan nilai yang lebih cerdas.`
+      },
     ],
   },
   {
@@ -261,23 +296,108 @@ Melalui program ini, peserta akan mempelajari tahapan investigasi, teknik pengum
     tagline: "Optimalkan potensi sumber daya manusia sebagai aset strategis organisasi.",
     desc: "Program HCM GRCC membantu organisasi membangun sistem manajemen SDM yang terintegrasi — dari talent acquisition, pengembangan kepemimpinan, hingga human capital analytics berbasis data.",
     subs: [
-      { name: "Talent Management", desc: "Program pengelolaan talenta untuk mendukung ketersediaan dan pengembangan sumber daya manusia strategis." },
-      { name: "Directory Competency Assessment", desc: "Program penilaian kompetensi jabatan untuk mendukung pengelolaan SDM berbasis kompetensi." },
-      { name: "Remuneration System", desc: "Program perancangan sistem remunerasi yang selaras dengan kinerja dan kebijakan organisasi." },
-      { name: "Individual Performance Management", desc: "Program pengelolaan kinerja individu untuk mendukung pencapaian target organisasi." },
-      { name: "Motivation and Leadership", desc: "Program pengembangan motivasi dan kepemimpinan dalam organisasi." },
-      { name: "Human Capital Strategy", desc: "Program perumusan strategi pengelolaan sumber daya manusia yang selaras dengan strategi organisasi." },
-      { name: "Competency Based Interview", desc: "Program penguatan teknik wawancara berbasis kompetensi dalam proses seleksi dan pengembangan SDM." },
-      { name: "Performance Management System", desc: "Program pengembangan sistem manajemen kinerja organisasi." },
-      { name: "Remuneration Management", desc: "Program pengelolaan remunerasi untuk mendukung keadilan dan daya saing organisasi." },
-      { name: "Workload Analysis", desc: "Program analisis beban kerja sebagai dasar perencanaan dan pengelolaan SDM." },
-      { name: "Managing The Organization's Talent", desc: "Program penguatan pengelolaan talenta organisasi secara terintegrasi." },
-      { name: "HR Business Partner", desc: "Program penguatan peran strategis fungsi SDM sebagai mitra bisnis organisasi." },
-      { name: "Design Competency Model", desc: "Program perancangan model kompetensi sebagai dasar pengelolaan SDM." },
-      { name: "Managing Emotional Well-Being at Work", desc: "Program pengelolaan kesejahteraan emosional karyawan di lingkungan kerja." },
-      { name: "The Art of Performance Monitoring & Coaching", desc: "Program pengembangan kemampuan pemantauan kinerja dan coaching." },
-      { name: "Digital Leadership", desc: "Program pengembangan kepemimpinan dalam menghadapi transformasi digital." },
-      { name: "Continuous Improvement (Kaizen)", desc: "Program penerapan perbaikan berkelanjutan untuk meningkatkan kinerja organisasi." },
+      {
+        name: "Talent Management",
+        desc: `Program Talent Management membantu organisasi mengidentifikasi, mengembangkan, dan mempertahankan talenta terbaik agar mampu mendukung pencapaian strategi bisnis. Peserta akan memahami proses talent mapping, succession planning, pengembangan karier, serta strategi retensi talenta kunci.
+
+Program ini sangat relevan bagi organisasi yang ingin memastikan posisi strategis diisi oleh orang yang tepat, dengan kompetensi dan kesiapan yang sesuai.`
+      },
+      {
+        name: "Directory Competency Assessment",
+        desc: `Program Directory Competency Assessment membantu organisasi menyusun dan mengevaluasi direktori kompetensi sebagai dasar pengembangan SDM. Melalui asesmen yang terstruktur, organisasi dapat mengetahui kesenjangan kompetensi, kebutuhan pelatihan, dan kesiapan individu terhadap tuntutan jabatan.
+
+Program ini mendukung pengambilan keputusan SDM yang lebih objektif, mulai dari rekrutmen, promosi, rotasi, hingga pengembangan karier.`
+      },
+      {
+        name: "Remuneration System",
+        desc: `Program Remuneration System dirancang untuk membantu organisasi membangun sistem remunerasi yang adil, kompetitif, dan selaras dengan kinerja. Peserta akan memahami prinsip penyusunan struktur gaji, grading jabatan, benefit, insentif, serta keterkaitan remunerasi dengan strategi organisasi.
+
+Dengan sistem remunerasi yang tepat, organisasi dapat meningkatkan motivasi, menjaga talenta terbaik, dan memperkuat keadilan internal.`
+      },
+      {
+        name: "Individual Performance Management",
+        desc: `Program Individual Performance Management membantu organisasi mengelola kinerja individu secara lebih terarah dan terukur. Peserta akan memahami cara menetapkan target kerja, indikator kinerja, monitoring pencapaian, evaluasi performa, serta pemberian umpan balik yang konstruktif.
+
+Program ini penting untuk memastikan setiap individu memahami kontribusinya terhadap tujuan organisasi dan mampu meningkatkan kinerja secara berkelanjutan.`
+      },
+      {
+        name: "Motivation and Leadership",
+        desc: `Program Motivation and Leadership dirancang untuk memperkuat kemampuan pemimpin dalam membangun motivasi, menggerakkan tim, dan menciptakan lingkungan kerja yang produktif. Peserta akan memahami bagaimana gaya kepemimpinan, komunikasi, dan pemberdayaan karyawan dapat memengaruhi kinerja organisasi.
+
+Program ini cocok bagi supervisor, manajer, dan calon pemimpin yang ingin meningkatkan pengaruh positif dalam tim.`
+      },
+      {
+        name: "Human Capital Strategy",
+        desc: `Program Human Capital Strategy membantu organisasi merancang strategi SDM yang selaras dengan arah bisnis. Peserta akan memahami bagaimana kebutuhan tenaga kerja, kompetensi, budaya organisasi, dan sistem kinerja dapat dirancang untuk mendukung daya saing organisasi.
+
+Program ini sangat relevan bagi organisasi yang ingin menjadikan SDM sebagai aset strategis, bukan sekadar fungsi administratif.`
+      },
+      {
+        name: "Competency Based Interview",
+        desc: `Program Competency Based Interview membekali peserta dengan keterampilan wawancara berbasis kompetensi untuk mendapatkan kandidat yang paling sesuai dengan kebutuhan jabatan. Peserta akan mempelajari teknik menggali pengalaman, perilaku kerja, motivasi, dan potensi kandidat secara lebih objektif.
+
+Program ini membantu organisasi meningkatkan kualitas rekrutmen dan mengurangi risiko salah pilih kandidat.`
+      },
+      {
+        name: "Performance Management System",
+        desc: `Program Performance Management System membantu organisasi merancang sistem manajemen kinerja yang terintegrasi, mulai dari perencanaan target, pengukuran, evaluasi, hingga tindak lanjut pengembangan. Program ini menekankan pentingnya keterkaitan antara kinerja individu, unit kerja, dan strategi organisasi.
+
+Dengan sistem yang tepat, organisasi dapat membangun budaya kerja berbasis pencapaian, akuntabilitas, dan perbaikan berkelanjutan.`
+      },
+      {
+        name: "Remuneration Management",
+        desc: `Program Remuneration Management membantu organisasi mengelola kebijakan kompensasi dan benefit secara lebih strategis. Peserta akan memahami bagaimana remunerasi dapat digunakan untuk menarik, memotivasi, dan mempertahankan SDM unggul.
+
+Program ini cocok bagi organisasi yang ingin memperkuat daya saing paket kompensasi sekaligus menjaga efisiensi biaya tenaga kerja.`
+      },
+      {
+        name: "Workload Analysis",
+        desc: `Program Workload Analysis membantu organisasi menghitung dan mengevaluasi beban kerja secara lebih objektif. Peserta akan memahami cara menganalisis kebutuhan tenaga kerja, efektivitas jabatan, distribusi pekerjaan, serta potensi kelebihan atau kekurangan SDM.
+
+Program ini sangat penting untuk mendukung perencanaan SDM, efisiensi organisasi, dan peningkatan produktivitas kerja.`
+      },
+      {
+        name: "Managing The Organization's Talent",
+        desc: `Program Managing The Organization's Talent membantu pemimpin dan tim HR dalam mengelola talenta organisasi secara lebih sistematis. Program ini membahas strategi pengembangan talenta, pemetaan potensi, pengelolaan kinerja, serta penyiapan kader pemimpin masa depan.
+
+Melalui program ini, organisasi dapat membangun pipeline talenta yang kuat dan memastikan keberlanjutan kepemimpinan.`
+      },
+      {
+        name: "HR Business Partner",
+        desc: `Program HR Business Partner dirancang untuk membantu profesional HR bertransformasi dari fungsi administratif menjadi mitra strategis bisnis. Peserta akan memahami cara membaca kebutuhan bisnis, memberikan solusi SDM yang relevan, serta mendukung pencapaian target organisasi.
+
+Program ini cocok bagi tim HR yang ingin meningkatkan peran strategisnya dalam pengambilan keputusan organisasi.`
+      },
+      {
+        name: "Design Competency Model",
+        desc: `Program Design Competency Model membantu organisasi merancang model kompetensi yang sesuai dengan kebutuhan jabatan, budaya, dan strategi organisasi. Peserta akan memahami cara menyusun kompetensi inti, kompetensi manajerial, dan kompetensi teknis secara sistematis.
+
+Model kompetensi yang baik dapat menjadi dasar penting untuk rekrutmen, asesmen, pelatihan, promosi, dan manajemen kinerja.`
+      },
+      {
+        name: "Managing Emotional Well-Being at Work",
+        desc: `Program Managing Emotional Well-Being at Work dirancang untuk membantu organisasi menciptakan lingkungan kerja yang lebih sehat secara emosional. Peserta akan memahami faktor-faktor yang mempengaruhi kesejahteraan psikologis, stres kerja, keterlibatan karyawan, dan produktivitas.
+
+Program ini relevan bagi organisasi yang ingin meningkatkan kualitas kehidupan kerja, menurunkan risiko burnout, dan membangun budaya kerja yang lebih suportif.`
+      },
+      {
+        name: "The Art of Performance Monitoring & Coaching",
+        desc: `Program The Art of Performance Monitoring & Coaching membantu pemimpin meningkatkan kemampuan dalam memantau kinerja dan memberikan coaching yang efektif kepada anggota tim. Peserta akan mempelajari teknik komunikasi, pemberian feedback, penyusunan rencana perbaikan, dan pendampingan kinerja.
+
+Program ini sangat bermanfaat untuk membangun tim yang lebih mandiri, terarah, dan konsisten dalam mencapai target kerja.`
+      },
+      {
+        name: "Digital Leadership",
+        desc: `Program Digital Leadership dirancang untuk membekali pemimpin dengan kemampuan memimpin organisasi di era transformasi digital. Peserta akan memahami bagaimana teknologi, data, inovasi, dan perubahan perilaku kerja mempengaruhi gaya kepemimpinan modern.
+
+Program ini cocok bagi pemimpin yang ingin memperkuat kesiapan organisasi dalam menghadapi digitalisasi, perubahan pasar, dan tuntutan kerja yang semakin dinamis.`
+      },
+      {
+        name: "Continuous Improvement (Kaizen)",
+        desc: `Program Continuous Improvement atau Kaizen membantu organisasi membangun budaya perbaikan berkelanjutan melalui langkah-langkah kecil yang konsisten dan berdampak. Peserta akan memahami cara mengidentifikasi pemborosan, memperbaiki proses kerja, meningkatkan efisiensi, serta melibatkan karyawan dalam inovasi operasional.
+
+Program ini sangat relevan bagi organisasi yang ingin meningkatkan produktivitas, kualitas layanan, dan daya saing melalui budaya kerja yang lebih adaptif dan solutif.`
+      },
     ],
   },
   {
@@ -287,11 +407,36 @@ Melalui program ini, peserta akan mempelajari tahapan investigasi, teknik pengum
     tagline: "Manfaatkan teknologi digital untuk transformasi fungsi keuangan Anda.",
     desc: "Program ini mempersiapkan profesional keuangan untuk menghadapi era digital — mulai dari FinTech, AI dalam akuntansi, analisis data keuangan, hingga keamanan siber dalam sistem keuangan.",
     subs: [
-      { name: "AI for Digital Products", desc: "Program pemanfaatan kecerdasan buatan dalam pengembangan dan pengelolaan produk digital." },
-      { name: "AI in Finance", desc: "Program penerapan kecerdasan buatan untuk mendukung analisis, pengelolaan, dan pengambilan keputusan di bidang keuangan." },
-      { name: "AI in HRD", desc: "Program penerapan kecerdasan buatan dalam pengelolaan dan pengembangan sumber daya manusia." },
-      { name: "AI in ESG", desc: "Program pemanfaatan kecerdasan buatan untuk mendukung pengelolaan dan pelaporan aspek ESG." },
-      { name: "ChatGPT untuk Finance", desc: "Program pemanfaatan ChatGPT dalam mendukung analisis dan aktivitas keuangan organisasi." },
+      {
+        name: "AI for Digital Products",
+        desc: `Program AI for Digital Products membantu organisasi memahami bagaimana AI dapat digunakan untuk merancang, mengembangkan, dan meningkatkan produk digital. Peserta akan belajar melihat AI bukan hanya sebagai fitur tambahan, tetapi sebagai bagian dari strategi penciptaan nilai bagi pengguna.
+
+Melalui program ini, peserta akan memahami cara mengidentifikasi kebutuhan pengguna, merancang use case AI, meningkatkan pengalaman pelanggan, serta mengembangkan produk digital yang lebih personal, responsif, dan kompetitif. Program ini sangat relevan bagi perusahaan, startup, institusi, maupun unit bisnis yang ingin mempercepat inovasi produk berbasis teknologi.`
+      },
+      {
+        name: "AI in Finance",
+        desc: `Program AI in Finance dirancang untuk membantu profesional keuangan memanfaatkan AI dalam analisis, pelaporan, perencanaan, dan pengambilan keputusan finansial. Peserta akan memahami bagaimana AI dapat membantu membaca data keuangan, mengidentifikasi tren, menyusun insight, serta mendukung proses kerja finance yang lebih cepat dan akurat.
+
+Program ini sangat cocok bagi tim finance, accounting, budgeting, business analyst, maupun manajemen yang ingin meningkatkan kualitas analisis keuangan. Dengan pemanfaatan AI yang tepat, organisasi dapat mempercepat proses kerja, meningkatkan ketajaman keputusan, dan mengurangi pekerjaan manual yang berulang.`
+      },
+      {
+        name: "AI in HRD",
+        desc: `Program AI in HRD membantu organisasi memahami penerapan AI dalam pengelolaan sumber daya manusia, mulai dari rekrutmen, pemetaan kompetensi, pengembangan karyawan, manajemen kinerja, hingga employee engagement. Program ini dirancang agar fungsi HR tidak hanya administratif, tetapi semakin strategis dan berbasis data.
+
+Melalui program ini, peserta akan belajar bagaimana AI dapat digunakan untuk membaca kebutuhan talenta, menyusun program pengembangan, menganalisis kinerja, serta mendukung pengambilan keputusan SDM yang lebih objektif. Program ini relevan bagi organisasi yang ingin membangun sistem HR yang lebih modern, efisien, dan adaptif terhadap perubahan dunia kerja.`
+      },
+      {
+        name: "AI in ESG",
+        desc: `Program AI in ESG dirancang untuk membantu organisasi memanfaatkan AI dalam pengelolaan aspek Environmental, Social, and Governance. Peserta akan memahami bagaimana AI dapat mendukung pengumpulan data ESG, analisis risiko keberlanjutan, pemantauan indikator, penyusunan laporan, serta pengambilan keputusan berbasis sustainability.
+
+Program ini sangat relevan bagi organisasi yang ingin memperkuat tata kelola keberlanjutan, meningkatkan kualitas pelaporan ESG, dan mengelola risiko lingkungan maupun sosial secara lebih terukur. Dengan dukungan AI, proses ESG dapat dilakukan secara lebih efisien, berbasis data, dan selaras dengan tuntutan pemangku kepentingan.`
+      },
+      {
+        name: "ChatGPT untuk Finance",
+        desc: `Program Chat GPT untuk Finance dirancang untuk membantu peserta menggunakan Chat GPT secara praktis dalam pekerjaan keuangan sehari-hari. Peserta akan mempelajari cara menyusun prompt yang tepat untuk membaca laporan keuangan, merangkum dokumen, membantu analisis rasio, menyusun insight manajerial, mendukung budgeting, hingga membuat draft laporan keuangan yang lebih rapi dan komunikatif.
+
+Program ini cocok bagi profesional finance, accounting, audit, analis bisnis, manajer, maupun staf administrasi keuangan yang ingin bekerja lebih efisien tanpa kehilangan ketelitian. Dalam konteks penggunaan profesional, ChatGPT dapat membantu proses analisis laporan keuangan, KPI, arus kas, financial modeling, riset, sintesis dokumen, dan dukungan workflow Excel, BI, maupun ERP.`
+      },
     ],
   },
   {
@@ -301,11 +446,36 @@ Melalui program ini, peserta akan mempelajari tahapan investigasi, teknik pengum
     tagline: "Perkuat kapasitas riset untuk menghasilkan temuan yang berdampak.",
     desc: "Program penelitian GRCC dirancang untuk meningkatkan kompetensi metodologi riset, analisis data, dan penulisan ilmiah bagi akademisi, praktisi, dan mahasiswa pascasarjana.",
     subs: [
-      { name: "Pelatihan Riset Kuantitatif dengan Data Sekunder menggunakan SPSS", desc: "Program pelatihan metode riset kuantitatif berbasis data sekunder menggunakan perangkat lunak SPSS." },
-      { name: "Pelatihan Riset Kuantitatif dengan Data Sekunder menggunakan Stata", desc: "Program pelatihan metode riset kuantitatif berbasis data sekunder menggunakan perangkat lunak Stata." },
-      { name: "Pelatihan Riset Kuantitatif dengan Smart PLS", desc: "Program pelatihan analisis data kuantitatif menggunakan aplikasi Smart PLS." },
-      { name: "Pelatihan Riset Kualitatif dengan NVivo", desc: "Program pelatihan metode riset kualitatif menggunakan perangkat lunak NVivo." },
-      { name: "Pelatihan Publikasi Artikel Scopus Q1 dan Top Tier", desc: "Program pelatihan penulisan dan publikasi artikel ilmiah pada jurnal Scopus Q1 dan jurnal bereputasi tinggi." },
+      {
+        name: "Pelatihan Riset Kuantitatif dengan Data Sekunder menggunakan SPSS",
+        desc: `Program ini membantu peserta memahami proses penelitian kuantitatif berbasis data sekunder dengan menggunakan SPSS sebagai alat analisis. Peserta akan dibimbing mulai dari penyusunan kerangka penelitian, pengolahan data, uji asumsi, analisis statistik, hingga interpretasi hasil secara akademik.
+
+Pelatihan ini sangat cocok bagi mahasiswa, dosen, maupun peneliti yang ingin mengolah data sekunder seperti laporan keuangan, data statistik pemerintah, indeks ekonomi, data perusahaan, atau dataset publik lainnya. Dengan pendekatan yang aplikatif, peserta dapat menghasilkan analisis yang lebih rapi, terukur, dan siap digunakan dalam karya ilmiah.`
+      },
+      {
+        name: "Pelatihan Riset Kuantitatif dengan Data Sekunder menggunakan Stata",
+        desc: `Program ini dirancang untuk peserta yang ingin menguasai analisis data sekunder menggunakan Stata, khususnya untuk kebutuhan penelitian kuantitatif yang lebih kompleks. Peserta akan mempelajari cara mengelola dataset, melakukan analisis deskriptif, regresi, data panel, serta interpretasi output penelitian secara sistematis.
+
+Pelatihan ini relevan bagi peneliti yang menggunakan data ekonomi, keuangan, kebijakan publik, perusahaan, maupun sosial. Dengan Stata, peserta dapat mengolah data dalam jumlah besar secara lebih efisien dan menghasilkan analisis yang kuat untuk kebutuhan tesis, disertasi, publikasi ilmiah, maupun laporan riset profesional.`
+      },
+      {
+        name: "Pelatihan Riset Kuantitatif dengan Smart PLS",
+        desc: `Program ini membantu peserta memahami penelitian kuantitatif berbasis Structural Equation Modeling atau SEM dengan pendekatan Partial Least Squares menggunakan SmartPLS. Peserta akan dibimbing mulai dari penyusunan model penelitian, pengujian validitas dan reliabilitas, analisis inner model dan outer model, hingga interpretasi hasil hipotesis.
+
+Program ini sangat cocok bagi mahasiswa, dosen, dan peneliti yang menggunakan variabel laten seperti kepemimpinan, kinerja, kepuasan, strategi, inovasi, sustainability, maupun human capital. Melalui pelatihan ini, peserta dapat menyusun analisis SmartPLS secara lebih tepat, akademik, dan sesuai standar publikasi ilmiah.`
+      },
+      {
+        name: "Pelatihan Riset Kualitatif dengan NVivo",
+        desc: `Program ini dirancang untuk membantu peserta mengelola dan menganalisis data kualitatif secara lebih sistematis menggunakan NVivo. Peserta akan mempelajari cara mengorganisasi data wawancara, observasi, dokumen, artikel, maupun transkrip, kemudian melakukan coding, kategorisasi tema, visualisasi temuan, dan penarikan kesimpulan.
+
+Pelatihan ini cocok bagi peneliti yang menggunakan pendekatan studi kasus, fenomenologi, etnografi, grounded theory, maupun penelitian kualitatif lainnya. Dengan dukungan NVivo, proses analisis kualitatif menjadi lebih tertata, transparan, dan mudah dipertanggungjawabkan secara akademik.`
+      },
+      {
+        name: "Pelatihan Publikasi Artikel Scopus Q1 dan Top Tier",
+        desc: `Program ini membantu peserta memahami strategi menulis dan mempersiapkan artikel ilmiah agar lebih siap diajukan ke jurnal bereputasi, termasuk Scopus Q1 dan jurnal top tier. Peserta akan dibimbing dalam menyusun struktur artikel, memperkuat novelty, membangun argumentasi teoritis, memilih jurnal target, memahami gaya penulisan akademik internasional, serta menyiapkan respons terhadap reviewer.
+
+Program ini sangat relevan bagi dosen, mahasiswa doktoral, peneliti, dan profesional akademik yang ingin meningkatkan kualitas publikasi. Melalui pelatihan ini, peserta tidak hanya belajar menulis artikel, tetapi juga memahami logika publikasi bereputasi, mulai dari pemilihan topik, penguatan kontribusi, penyusunan metodologi, hingga strategi meningkatkan peluang diterima di jurnal tujuan.`
+      },
     ],
   },
 ];

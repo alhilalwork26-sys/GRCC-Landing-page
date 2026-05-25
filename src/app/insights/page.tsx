@@ -6,6 +6,7 @@ import {
   AnimatePresence, useMotionValue, useSpring,
 } from "framer-motion";
 import { ArrowUpRight, Calendar, MapPin } from "lucide-react";
+import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { supabase, InsightItem } from "@/lib/supabase";
@@ -36,6 +37,7 @@ function MagneticCard({
   const onMouseLeave = () => { x.set(0); y.set(0); };
 
   return (
+    <Link href={`/insights/${item.id}`} className="block">
     <motion.div
       ref={ref}
       onMouseMove={onMouseMove}
@@ -126,6 +128,7 @@ function MagneticCard({
         style={{ boxShadow: `inset 0 0 0 1.5px ${item.color}60` }}
       />
     </motion.div>
+    </Link>
   );
 }
 

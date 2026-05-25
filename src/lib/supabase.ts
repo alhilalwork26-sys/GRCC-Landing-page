@@ -34,6 +34,7 @@ export interface InsightItem {
   tag: string;
   title: string;
   excerpt: string;
+  content: string;
   date: string;
   location: string;
   img: string;
