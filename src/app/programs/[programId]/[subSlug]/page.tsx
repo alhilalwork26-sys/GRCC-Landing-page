@@ -488,16 +488,6 @@ export default function SubProgramPage() {
             {sub.name}
           </motion.h1>
 
-          {/* Desc */}
-          <motion.p
-            initial={{ opacity: 0, y: 18 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.65, delay: 0.28 }}
-            className="text-white/45 text-[0.95rem] leading-[1.85] max-w-[600px] mb-8 whitespace-pre-line"
-          >
-            {sub.desc}
-          </motion.p>
-
           {/* Brochure buttons — show for any training that has brochure_url */}
           {trainings.some(t => t.brochure_url) && (
             <motion.div
