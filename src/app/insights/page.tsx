@@ -5,7 +5,7 @@ import {
   motion, useScroll, useTransform,
   AnimatePresence, useMotionValue, useSpring,
 } from "framer-motion";
-import { ArrowUpRight, Calendar, MapPin } from "lucide-react";
+import { ArrowUpRight, Calendar, MapPin, Search, Eye, Clock } from "lucide-react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -98,15 +98,31 @@ function MagneticCard({
           </div>
 
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3 text-[0.7rem] text-white/50">
-              <span className="flex items-center gap-1.5">
-                <Calendar size={11} />
-                {item.date}
-              </span>
-              <span className="hidden sm:flex items-center gap-1.5">
-                <MapPin size={11} />
-                {item.location}
-              </span>
+            <div className="flex items-center gap-3 text-[0.7rem] text-white/50 flex-wrap">
+              {item.date && (
+                <span className="flex items-center gap-1.5">
+                  <Calendar size={11} />
+                  {item.date}
+                </span>
+              )}
+              {item.location && (
+                <span className="hidden sm:flex items-center gap-1.5">
+                  <MapPin size={11} />
+                  {item.location}
+                </span>
+              )}
+              {item.content && item.content.length > 0 && (
+                <span className="flex items-center gap-1.5">
+                  <Clock size={11} />
+                  {Math.max(1, Math.ceil(item.content.split(/\s+/).length / 200))} min
+                </span>
+              )}
+              {(item.view_count ?? 0) > 0 && (
+                <span className="flex items-center gap-1.5">
+                  <Eye size={11} />
+                  {item.view_count.toLocaleString()}
+                </span>
+              )}
             </div>
 
             {/* Arrow button */}
@@ -187,6 +203,7 @@ export default function InsightsPage() {
   const [activeTab, setActiveTab] = useState<Category>("Semua");
   const [allItems, setAllItems] = useState<InsightItem[]>([]);
   const [loadingItems, setLoadingItems] = useState(true);
+  const [searchQuery, setSearchQuery] = useState("");
 
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
@@ -205,15 +222,25 @@ export default function InsightsPage() {
       });
   }, []);
 
-  const featured = allItems.find((i) => i.featured) ?? allItems[0];
-  const rest = featured ? allItems.filter((i) => i.id !== featured.id) : allItems;
+  const q = searchQuery.trim().toLowerCase();
+  const searchedItems = q
+    ? allItems.filter((i) =>
+        i.title.toLowerCase().includes(q) ||
+        i.excerpt.toLowerCase().includes(q) ||
+        i.tag.toLowerCase().includes(q) ||
+        i.location.toLowerCase().includes(q)
+      )
+    : allItems;
+
+  const featured = !q ? (searchedItems.find((i) => i.featured) ?? searchedItems[0]) : null;
+  const rest = featured ? searchedItems.filter((i) => i.id !== featured.id) : searchedItems;
   const filtered = activeTab === "Semua" ? rest : rest.filter((i) => i.type === activeTab);
 
   const counts: Record<Category, number> = {
-    Semua: rest.length,
-    Kegiatan: rest.filter((i) => i.type === "Kegiatan").length,
+    Semua:     rest.length,
+    Kegiatan:  rest.filter((i) => i.type === "Kegiatan").length,
     Publikasi: rest.filter((i) => i.type === "Publikasi").length,
-    Berita: rest.filter((i) => i.type === "Berita").length,
+    Berita:    rest.filter((i) => i.type === "Berita").length,
   };
 
   // Build rows: alternating [1.6fr,1fr,1fr] and [1fr,1fr,1.6fr]
@@ -359,6 +386,37 @@ export default function InsightsPage() {
       <section className="pb-[clamp(80px,10vw,130px)] bg-[#F7F7F5]">
         <div className="max-w-[1280px] mx-auto px-6 lg:px-16">
 
+          {/* Search bar */}
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.5 }}
+            className="mb-8"
+          >
+            <div className="relative max-w-[480px]">
+              <Search size={15} className="absolute left-4 top-1/2 -translate-y-1/2 text-dark/30 pointer-events-none" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Cari artikel, kegiatan, publikasi…"
+                className="w-full bg-white border border-dark/[0.1] rounded-full pl-11 pr-5 py-3 text-[0.85rem] placeholder:text-dark/28 focus:outline-none focus:border-dark/25 focus:shadow-sm transition-all"
+              />
+              {searchQuery && (
+                <button onClick={() => setSearchQuery("")}
+                  className="absolute right-4 top-1/2 -translate-y-1/2 text-dark/30 hover:text-dark transition-colors text-[0.75rem] font-bold">
+                  ✕
+                </button>
+              )}
+            </div>
+            {q && (
+              <p className="text-[0.75rem] text-muted mt-2 pl-1">
+                {rest.length} hasil untuk <span className="font-bold text-dark">&ldquo;{searchQuery}&rdquo;</span>
+              </p>
+            )}
+          </motion.div>
+
           {/* Filter + label row */}
           <div className="flex items-center justify-between gap-4 flex-wrap mb-10 pb-8 border-b border-dark/[0.08]">
             <motion.div
@@ -368,7 +426,7 @@ export default function InsightsPage() {
               transition={{ duration: 0.5 }}
             >
               <p className="text-[0.68rem] font-bold tracking-[0.18em] uppercase text-dark/35 mb-1">
-                Semua Konten
+                {q ? "Hasil Pencarian" : "Semua Konten"}
               </p>
               <h2 className="text-[1.4rem] font-extrabold tracking-tight">
                 {counts[activeTab]} artikel ditemukan

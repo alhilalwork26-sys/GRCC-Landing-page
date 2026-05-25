@@ -1,15 +1,34 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase, InsightItem } from "@/lib/supabase";
-import { Plus, Pencil, Trash2, Eye, EyeOff, Star, X, Check, Loader2 } from "lucide-react";
+import { Plus, Pencil, Trash2, Eye, EyeOff, Star, X, Check, Loader2, Upload, Image as ImageIcon, Layout } from "lucide-react";
+
+// ── Inline preview helpers (mirrors detail page) ──────────────────────────────
+function slugifyP(t: string) { return t.toLowerCase().replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, "-"); }
+
+function renderPreview(raw: string) {
+  if (!raw) return <p className="text-muted text-[0.88rem] py-6 text-center">Belum ada isi artikel.</p>;
+  return raw.split(/\n{2,}/).map((block, i) => {
+    const lines = block.trim().split("\n");
+    if (lines.length === 1 && lines[0].startsWith("## ")) return <h2 key={i} className="text-[1.3rem] font-extrabold text-dark mt-8 mb-3 leading-[1.2]">{lines[0].slice(3)}</h2>;
+    if (lines.length === 1 && lines[0].startsWith("### ")) return <h3 key={i} className="text-[1.05rem] font-bold text-dark mt-6 mb-2">{lines[0].slice(4)}</h3>;
+    if (lines.every(l => l.startsWith("- "))) return (
+      <ul key={i} className="my-4 space-y-2">
+        {lines.map((l, j) => <li key={j} className="flex items-start gap-2.5 text-[0.88rem] text-dark/70 leading-[1.8]"><span className="mt-[0.65em] w-1.5 h-1.5 rounded-full bg-dark/35 flex-shrink-0" />{l.slice(2)}</li>)}
+      </ul>
+    );
+    if (lines.every(l => l.startsWith("> "))) return <blockquote key={i} className="my-5 pl-4 border-l-[3px] border-dark/20 text-[0.9rem] text-dark/55 italic">{lines.map(l => l.slice(2)).join(" ")}</blockquote>;
+    return <p key={i} className="text-[0.9rem] text-dark/68 leading-[1.85] my-4">{lines.join(" ")}</p>;
+  });
+}
 
 const TYPES  = ["Kegiatan", "Publikasi", "Berita"] as const;
 const COLORS = ["#4F46E5","#10B981","#EF4444","#F59E0B","#8B5CF6","#0EA5E9","#F97316"];
 const EMPTY: Omit<InsightItem,"id"|"created_at"> = {
   type: "Kegiatan", tag: "", title: "", excerpt: "", content: "", date: "", location: "",
-  img: "", color: "#4F46E5", featured: false, published: true,
+  img: "", color: "#4F46E5", featured: false, published: true, view_count: 0,
 };
 
 export default function AdminInsights() {
@@ -18,7 +37,10 @@ export default function AdminInsights() {
   const [form,    setForm]    = useState<typeof EMPTY | null>(null);
   const [editId,  setEditId]  = useState<string | null>(null);
   const [saving,  setSaving]  = useState(false);
+  const [uploadingImage, setUploadingImage] = useState(false);
+  const [preview, setPreview] = useState(false);
   const [msg,     setMsg]     = useState("");
+  const imageInputRef = useRef<HTMLInputElement>(null);
 
   const load = async () => {
     setLoading(true);
@@ -29,12 +51,12 @@ export default function AdminInsights() {
 
   useEffect(() => { load(); }, []);
 
-  const openNew  = () => { setForm({ ...EMPTY }); setEditId(null); };
+  const openNew  = () => { setForm({ ...EMPTY }); setEditId(null); setPreview(false); };
   const openEdit = (item: InsightItem) => {
     const { id, created_at, ...rest } = item;
-    setForm(rest); setEditId(id);
+    setForm(rest); setEditId(id); setPreview(false);
   };
-  const closeForm = () => { setForm(null); setEditId(null); };
+  const closeForm = () => { setForm(null); setEditId(null); setPreview(false); };
 
   const save = async () => {
     if (!form) return;
@@ -60,6 +82,39 @@ export default function AdminInsights() {
   const toggle = async (id: string, field: "published"|"featured", val: boolean) => {
     await supabase.from("insights").update({ [field]: !val }).eq("id", id);
     load();
+  };
+
+  const uploadImage = async (file: File) => {
+    if (!form) return;
+    const allowed = ["image/jpeg", "image/png", "image/webp"];
+    if (!allowed.includes(file.type)) {
+      setMsg("Format foto harus JPG, PNG, atau WebP.");
+      return;
+    }
+    if (file.size > 15 * 1024 * 1024) {
+      setMsg("Ukuran foto maksimal 15MB.");
+      return;
+    }
+
+    setUploadingImage(true);
+    const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+    const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const { data, error } = await supabase.storage
+      .from("insight-images")
+      .upload(filename, file, {
+        contentType: file.type,
+        cacheControl: "31536000",
+        upsert: false,
+      });
+    setUploadingImage(false);
+
+    if (error) {
+      setMsg(`Gagal upload foto: ${error.message}`);
+      return;
+    }
+
+    const { data: publicUrl } = supabase.storage.from("insight-images").getPublicUrl(data.path);
+    setForm((current) => current ? { ...current, img: publicUrl.publicUrl } : current);
   };
 
   return (
@@ -165,12 +220,61 @@ export default function AdminInsights() {
               exit={{ opacity:0, scale:0.96 }} transition={{ type:"spring", stiffness:300, damping:26 }}
               className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
               <div className="bg-white rounded-3xl shadow-2xl w-full max-w-[580px] max-h-[90vh] overflow-y-auto pointer-events-auto">
-                <div className="flex items-center justify-between px-7 py-5 border-b border-border">
+                <div className="flex items-center justify-between px-7 py-4 border-b border-border">
                   <h2 className="font-extrabold text-[1.05rem]">{editId ? "Edit Insight" : "Tambah Insight"}</h2>
-                  <button onClick={closeForm}><X size={18} className="text-muted hover:text-dark" /></button>
+                  <div className="flex items-center gap-2">
+                    {/* Preview / Edit toggle */}
+                    <div className="flex items-center bg-dark/[0.06] rounded-xl p-1 gap-0.5">
+                      {[
+                        { label: "Edit", icon: <Pencil size={11} />, val: false },
+                        { label: "Preview", icon: <Layout size={11} />, val: true },
+                      ].map(({ label, icon, val }) => (
+                        <button key={label} onClick={() => setPreview(val)}
+                          className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-[0.72rem] font-bold transition-all ${preview === val ? "bg-white shadow text-dark" : "text-muted hover:text-dark"}`}>
+                          {icon} {label}
+                        </button>
+                      ))}
+                    </div>
+                    <button onClick={closeForm}><X size={18} className="text-muted hover:text-dark" /></button>
+                  </div>
                 </div>
 
-                <div className="px-7 py-6 flex flex-col gap-4">
+                {/* ── Preview panel ── */}
+                {preview && (
+                  <div className="px-7 py-6">
+                    {/* Mini hero */}
+                    {form.img && (
+                      <div className="relative h-[200px] rounded-2xl overflow-hidden mb-6">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={form.img} alt="" className="absolute inset-0 w-full h-full object-cover" />
+                        <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
+                        <div className="absolute bottom-0 left-0 p-5">
+                          <div className="flex items-center gap-2 mb-2">
+                            <span className="text-[0.58rem] font-extrabold tracking-[0.14em] uppercase px-2.5 py-1 rounded-full text-white" style={{ backgroundColor: form.color }}>{form.tag || "Tag"}</span>
+                            <span className="text-[0.6rem] font-semibold text-white/55 bg-white/15 px-2 py-1 rounded-full">{form.type}</span>
+                          </div>
+                          <p className="text-white font-extrabold text-[1.1rem] leading-[1.2]">{form.title || "Judul artikel"}</p>
+                        </div>
+                      </div>
+                    )}
+                    {!form.img && (
+                      <div className="rounded-2xl border-2 border-dashed border-dark/15 bg-dark/[0.03] h-[120px] flex items-center justify-center mb-6">
+                        <p className="text-muted text-[0.82rem]">Belum ada foto hero</p>
+                      </div>
+                    )}
+                    {/* Meta */}
+                    <div className="flex items-center gap-3 flex-wrap mb-5 pb-5 border-b border-border">
+                      {form.date     && <span className="text-[0.72rem] text-muted">📅 {form.date}</span>}
+                      {form.location && <span className="text-[0.72rem] text-muted">📍 {form.location}</span>}
+                    </div>
+                    {/* Excerpt */}
+                    {form.excerpt && <p className="text-[0.9rem] text-dark/55 italic leading-[1.85] mb-5 pb-5 border-b border-border">{form.excerpt}</p>}
+                    {/* Content */}
+                    <div>{renderPreview(form.content)}</div>
+                  </div>
+                )}
+
+                <div className={`px-7 py-6 flex flex-col gap-4 ${preview ? "hidden" : ""}`}>
                   {/* Type & tag row */}
                   <div className="grid grid-cols-2 gap-3">
                     <div>
@@ -215,8 +319,59 @@ export default function AdminInsights() {
                   </div>
 
                   <div>
-                    <label className="label">URL Foto</label>
-                    <input value={form.img} onChange={e => setForm({ ...form, img: e.target.value })} placeholder="https://..." className="input" />
+                    <label className="label">Foto Artikel</label>
+                    <div className="rounded-2xl border border-border bg-[#F7F7F5] overflow-hidden">
+                      {form.img ? (
+                        <div className="relative aspect-[16/9] bg-white">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={form.img} alt="Preview foto artikel" className="w-full h-full object-cover" />
+                          <button
+                            type="button"
+                            onClick={() => setForm({ ...form, img: "" })}
+                            className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/75 transition-colors"
+                            title="Hapus foto"
+                          >
+                            <X size={14} />
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="aspect-[16/9] flex flex-col items-center justify-center text-center px-6">
+                          <div className="w-12 h-12 rounded-2xl bg-white border border-border flex items-center justify-center mb-3">
+                            <ImageIcon size={20} className="text-muted" />
+                          </div>
+                          <p className="text-[0.82rem] font-bold">Belum ada foto</p>
+                          <p className="text-[0.72rem] text-muted mt-1">Upload JPG, PNG, atau WebP berkualitas tinggi hingga 15MB.</p>
+                        </div>
+                      )}
+
+                      <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 border-t border-border bg-white">
+                        <div className="min-w-0">
+                          <p className="text-[0.72rem] font-semibold text-muted truncate">
+                            {form.img ? "Foto tersimpan dan siap ditampilkan." : "Pilih file dari perangkat."}
+                          </p>
+                        </div>
+                        <input
+                          ref={imageInputRef}
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp"
+                          className="hidden"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) uploadImage(file);
+                            e.currentTarget.value = "";
+                          }}
+                        />
+                        <button
+                          type="button"
+                          onClick={() => imageInputRef.current?.click()}
+                          disabled={uploadingImage}
+                          className="flex items-center gap-2 bg-dark text-white text-[0.78rem] font-bold px-4 py-2.5 rounded-xl disabled:opacity-50"
+                        >
+                          {uploadingImage ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
+                          {form.img ? "Ganti Foto" : "Upload Foto"}
+                        </button>
+                      </div>
+                    </div>
                   </div>
 
                   {/* Color */}

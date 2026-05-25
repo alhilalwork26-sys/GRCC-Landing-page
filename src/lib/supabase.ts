@@ -41,6 +41,7 @@ export interface InsightItem {
   color: string;
   featured: boolean;
   published: boolean;
+  view_count: number;
   created_at: string;
 }
 

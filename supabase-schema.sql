@@ -214,6 +214,40 @@ create policy "Admin delete training posters"
 on storage.objects for delete
 using (bucket_id = 'training-posters' and auth.role() = 'authenticated');
 
+insert into storage.buckets (id, name, public, file_size_limit, allowed_mime_types)
+values (
+  'insight-images',
+  'insight-images',
+  true,
+  15728640,
+  array['image/jpeg','image/png','image/webp']
+)
+on conflict (id) do update set
+  public = true,
+  file_size_limit = 15728640,
+  allowed_mime_types = array['image/jpeg','image/png','image/webp'];
+
+drop policy if exists "Public read insight images" on storage.objects;
+drop policy if exists "Admin upload insight images" on storage.objects;
+drop policy if exists "Admin update insight images" on storage.objects;
+drop policy if exists "Admin delete insight images" on storage.objects;
+
+create policy "Public read insight images"
+on storage.objects for select
+using (bucket_id = 'insight-images');
+
+create policy "Admin upload insight images"
+on storage.objects for insert
+with check (bucket_id = 'insight-images' and auth.role() = 'authenticated');
+
+create policy "Admin update insight images"
+on storage.objects for update
+using (bucket_id = 'insight-images' and auth.role() = 'authenticated');
+
+create policy "Admin delete insight images"
+on storage.objects for delete
+using (bucket_id = 'insight-images' and auth.role() = 'authenticated');
+
 -- ── Seed: promo data awal ────────────────────────────────────────────────────
 insert into promo (title, subtitle, description, status, highlights, facilitators, cta_href) values (
   'Internal Control over Financial Reporting',
