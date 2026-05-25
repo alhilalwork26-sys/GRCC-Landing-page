@@ -25,7 +25,12 @@ export const programs: Program[] = [
     tagline: "Bangun fondasi tata kelola yang kokoh dan sistem kepatuhan yang terukur.",
     desc: "Program GRC GRCC dirancang untuk memperkuat kapasitas organisasi dalam menerapkan prinsip-prinsip tata kelola yang baik, mengelola risiko secara strategis, dan memastikan kepatuhan terhadap regulasi serta standar internasional.",
     subs: [
-      { name: "Penyusunan Roadmap Implementasi Tata Kelola", desc: "Program pendampingan penyusunan roadmap implementasi tata kelola organisasi sesuai kebutuhan dan konteks institusi." },
+      {
+        name: "Penyusunan Roadmap Implementasi Tata Kelola",
+        desc: `Program ini merupakan upaya sistematis untuk merancang peta jalan implementasi tata kelola perusahaan secara menyeluruh dan terstruktur. Melalui serangkaian proses yang melibatkan berbagai pemangku kepentingan, kegiatan ini menghasilkan dokumen roadmap yang menjadi acuan strategis bagi perusahaan dalam mewujudkan tata kelola yang baik, akuntabel, dan berkelanjutan.
+
+Penerapan tata kelola yang baik (good governance) merupakan pondasi utama bagi keberlangsungan dan kepercayaan publik terhadap suatu perusahaan. Namun, implementasi tata kelola seringkali terkendala oleh tidak adanya perencanaan yang jelas, terukur, dan realistis. Kegiatan Penyusunan Roadmap Implementasi Tata Kelola hadir untuk menjawab kebutuhan tersebut membantu perusahaan mengidentifikasi kondisi eksisting, menetapkan target capaian, serta merancang langkah-langkah konkret yang dapat dilaksanakan secara bertahap.`
+      },
       { name: "Audit dan Evaluasi Sistem Tata Kelola", desc: "Program evaluasi dan penilaian terhadap sistem tata kelola organisasi untuk mengidentifikasi kesesuaian dan area perbaikan." },
       { name: "Pengembangan Soft Skill Tata Kelola", desc: "Program pengembangan kompetensi soft skill yang mendukung penerapan tata kelola organisasi secara efektif." },
       { name: "The Essential of Good Corporate Governance / Governance Fundamentals", desc: "Program penguatan pemahaman dasar mengenai prinsip dan praktik good corporate governance." },

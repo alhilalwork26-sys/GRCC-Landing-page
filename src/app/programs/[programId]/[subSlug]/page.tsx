@@ -495,7 +495,7 @@ export default function SubProgramPage() {
             initial={{ opacity: 0, y: 18 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.65, delay: 0.28 }}
-            className="text-white/45 text-[0.95rem] leading-[1.85] max-w-[600px] mb-8"
+            className="text-white/45 text-[0.95rem] leading-[1.85] max-w-[600px] mb-8 whitespace-pre-line"
           >
             {sub.desc}
           </motion.p>
@@ -556,7 +556,7 @@ export default function SubProgramPage() {
                       <p className="text-muted text-[0.78rem] mt-0.5">{program.title}</p>
                     </div>
                   </div>
-                  <p className="text-dark/65 text-[0.9rem] leading-[1.85]">{sub.desc}</p>
+                  <p className="text-dark/65 text-[0.9rem] leading-[1.85] whitespace-pre-line">{sub.desc}</p>
                   <div className="mt-6 pt-5 border-t border-border">
                     <p className="text-dark/65 text-[0.88rem] leading-[1.8]">{program.desc}</p>
                   </div>

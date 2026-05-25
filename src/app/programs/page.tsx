@@ -47,7 +47,7 @@ function SubCard({
             <h4 className="text-dark text-[0.9rem] font-bold leading-snug mb-1 group-hover:text-dark transition-colors">
               {sub.name}
             </h4>
-            <p className="text-muted text-[0.78rem] leading-[1.65]">{sub.desc}</p>
+            <p className="text-muted text-[0.78rem] leading-[1.65] line-clamp-2">{sub.desc}</p>
           </div>
           <ChevronRight
             size={14}
