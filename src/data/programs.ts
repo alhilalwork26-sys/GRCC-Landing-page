@@ -31,7 +31,12 @@ export const programs: Program[] = [
 
 Penerapan tata kelola yang baik (good governance) merupakan pondasi utama bagi keberlangsungan dan kepercayaan publik terhadap suatu perusahaan. Namun, implementasi tata kelola seringkali terkendala oleh tidak adanya perencanaan yang jelas, terukur, dan realistis. Kegiatan Penyusunan Roadmap Implementasi Tata Kelola hadir untuk menjawab kebutuhan tersebut membantu perusahaan mengidentifikasi kondisi eksisting, menetapkan target capaian, serta merancang langkah-langkah konkret yang dapat dilaksanakan secara bertahap.`
       },
-      { name: "Audit dan Evaluasi Sistem Tata Kelola", desc: "Program evaluasi dan penilaian terhadap sistem tata kelola organisasi untuk mengidentifikasi kesesuaian dan area perbaikan." },
+      {
+        name: "Audit dan Evaluasi Sistem Tata Kelola",
+        desc: `Kegiatan Audit dan Evaluasi Sistem Tata Kelola merupakan proses penilaian independen dan menyeluruh terhadap efektivitas, kepatuhan, serta kualitas implementasi tata kelola perusahaan. Melalui pendekatan yang sistematis dan berbasis bukti, kegiatan ini memberikan gambaran objektif tentang sejauh mana sistem tata kelola telah berjalan sesuai dengan kebijakan, standar, dan regulasi yang berlaku sekaligus mengidentifikasi area perbaikan untuk peningkatan berkelanjutan.
+
+Implementasi tata kelola yang telah direncanakan perlu dievaluasi secara berkala untuk memastikan bahwa setiap program dan kebijakan yang dijalankan benar-benar memberikan dampak yang diharapkan. Tanpa mekanisme audit dan evaluasi yang terstruktur, perusahaan berisiko menghadapi penyimpangan, inefisiensi, dan ketidakpatuhan yang tidak terdeteksi. Kegiatan ini hadir sebagai instrumen kontrol kualitas sekaligus alat pembelajaran perusahaan — memastikan tata kelola tidak hanya ada di atas kertas, tetapi benar-benar hidup dalam praktik sehari-hari.`
+      },
       { name: "Pengembangan Soft Skill Tata Kelola", desc: "Program pengembangan kompetensi soft skill yang mendukung penerapan tata kelola organisasi secara efektif." },
       { name: "The Essential of Good Corporate Governance / Governance Fundamentals", desc: "Program penguatan pemahaman dasar mengenai prinsip dan praktik good corporate governance." },
       { name: "Risk Assessment", desc: "Program identifikasi dan analisis risiko yang dihadapi organisasi sebagai dasar pengelolaan risiko." },
