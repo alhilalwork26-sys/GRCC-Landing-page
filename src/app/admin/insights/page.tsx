@@ -38,6 +38,8 @@ export default function AdminInsights() {
   const [editId,  setEditId]  = useState<string | null>(null);
   const [saving,  setSaving]  = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadError, setUploadError] = useState("");
+  const [dragOver, setDragOver] = useState(false);
   const [preview, setPreview] = useState(false);
   const [msg,     setMsg]     = useState("");
   const imageInputRef = useRef<HTMLInputElement>(null);
@@ -86,13 +88,14 @@ export default function AdminInsights() {
 
   const uploadImage = async (file: File) => {
     if (!form) return;
+    setUploadError("");
     const allowed = ["image/jpeg", "image/png", "image/webp"];
     if (!allowed.includes(file.type)) {
-      setMsg("Format foto harus JPG, PNG, atau WebP.");
+      setUploadError("Format foto harus JPG, PNG, atau WebP.");
       return;
     }
     if (file.size > 15 * 1024 * 1024) {
-      setMsg("Ukuran foto maksimal 15MB.");
+      setUploadError("Ukuran foto maksimal 15MB.");
       return;
     }
 
@@ -109,12 +112,19 @@ export default function AdminInsights() {
     setUploadingImage(false);
 
     if (error) {
-      setMsg(`Gagal upload foto: ${error.message}`);
+      setUploadError(`Gagal upload: ${error.message}`);
       return;
     }
 
     const { data: publicUrl } = supabase.storage.from("insight-images").getPublicUrl(data.path);
     setForm((current) => current ? { ...current, img: publicUrl.publicUrl } : current);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setDragOver(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) uploadImage(file);
   };
 
   return (
@@ -320,58 +330,98 @@ export default function AdminInsights() {
 
                   <div>
                     <label className="label">Foto Artikel</label>
-                    <div className="rounded-2xl border border-border bg-[#F7F7F5] overflow-hidden">
-                      {form.img ? (
-                        <div className="relative aspect-[16/9] bg-white">
+                    <input
+                      ref={imageInputRef}
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      className="hidden"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) uploadImage(file);
+                        e.currentTarget.value = "";
+                      }}
+                    />
+
+                    {form.img ? (
+                      /* ── Has image ── */
+                      <div className="rounded-2xl border border-border overflow-hidden">
+                        <div className="relative aspect-[16/9] bg-white group">
                           {/* eslint-disable-next-line @next/next/no-img-element */}
                           <img src={form.img} alt="Preview foto artikel" className="w-full h-full object-cover" />
+                          {/* Hover overlay */}
+                          <div
+                            onClick={() => imageInputRef.current?.click()}
+                            className="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-all flex items-center justify-center cursor-pointer"
+                          >
+                            <span className="opacity-0 group-hover:opacity-100 transition-opacity bg-white text-dark text-[0.75rem] font-bold px-3 py-1.5 rounded-lg flex items-center gap-1.5">
+                              <Upload size={13} /> Ganti Foto
+                            </span>
+                          </div>
                           <button
                             type="button"
-                            onClick={() => setForm({ ...form, img: "" })}
-                            className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/75 transition-colors"
+                            onClick={(e) => { e.stopPropagation(); setForm({ ...form, img: "" }); setUploadError(""); }}
+                            className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80 transition-colors z-10"
                             title="Hapus foto"
                           >
                             <X size={14} />
                           </button>
                         </div>
-                      ) : (
-                        <div className="aspect-[16/9] flex flex-col items-center justify-center text-center px-6">
-                          <div className="w-12 h-12 rounded-2xl bg-white border border-border flex items-center justify-center mb-3">
-                            <ImageIcon size={20} className="text-muted" />
-                          </div>
-                          <p className="text-[0.82rem] font-bold">Belum ada foto</p>
-                          <p className="text-[0.72rem] text-muted mt-1">Upload JPG, PNG, atau WebP berkualitas tinggi hingga 15MB.</p>
+                        <div className="flex items-center gap-2 px-4 py-2.5 bg-emerald-50 border-t border-emerald-100">
+                          <Check size={13} className="text-emerald-600 flex-shrink-0" />
+                          <p className="text-[0.72rem] font-semibold text-emerald-700 truncate flex-1">Foto berhasil diupload</p>
+                          <button
+                            type="button"
+                            onClick={() => imageInputRef.current?.click()}
+                            disabled={uploadingImage}
+                            className="flex items-center gap-1.5 text-[0.72rem] font-bold text-emerald-700 hover:text-emerald-900 transition-colors disabled:opacity-50"
+                          >
+                            {uploadingImage ? <Loader2 size={12} className="animate-spin" /> : <Upload size={12} />}
+                            Ganti
+                          </button>
                         </div>
-                      )}
-
-                      <div className="flex flex-wrap items-center justify-between gap-3 px-4 py-3 border-t border-border bg-white">
-                        <div className="min-w-0">
-                          <p className="text-[0.72rem] font-semibold text-muted truncate">
-                            {form.img ? "Foto tersimpan dan siap ditampilkan." : "Pilih file dari perangkat."}
-                          </p>
-                        </div>
-                        <input
-                          ref={imageInputRef}
-                          type="file"
-                          accept="image/jpeg,image/png,image/webp"
-                          className="hidden"
-                          onChange={(e) => {
-                            const file = e.target.files?.[0];
-                            if (file) uploadImage(file);
-                            e.currentTarget.value = "";
-                          }}
-                        />
-                        <button
-                          type="button"
-                          onClick={() => imageInputRef.current?.click()}
-                          disabled={uploadingImage}
-                          className="flex items-center gap-2 bg-dark text-white text-[0.78rem] font-bold px-4 py-2.5 rounded-xl disabled:opacity-50"
-                        >
-                          {uploadingImage ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
-                          {form.img ? "Ganti Foto" : "Upload Foto"}
-                        </button>
                       </div>
-                    </div>
+                    ) : (
+                      /* ── No image — full clickable + droppable area ── */
+                      <div
+                        onClick={() => !uploadingImage && imageInputRef.current?.click()}
+                        onDragOver={(e) => { e.preventDefault(); setDragOver(true); }}
+                        onDragLeave={() => setDragOver(false)}
+                        onDrop={handleDrop}
+                        className={`rounded-2xl border-2 border-dashed transition-all cursor-pointer select-none ${
+                          dragOver
+                            ? "border-dark bg-dark/[0.04] scale-[1.01]"
+                            : "border-border bg-[#F7F7F5] hover:border-dark/40 hover:bg-dark/[0.02]"
+                        }`}
+                      >
+                        <div className="flex flex-col items-center justify-center text-center px-6 py-10">
+                          {uploadingImage ? (
+                            <>
+                              <Loader2 size={32} className="text-dark/40 animate-spin mb-3" />
+                              <p className="text-[0.82rem] font-bold">Mengupload foto…</p>
+                            </>
+                          ) : (
+                            <>
+                              <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-4 transition-colors ${dragOver ? "bg-dark text-white" : "bg-white border border-border text-muted"}`}>
+                                {dragOver ? <Upload size={22} /> : <ImageIcon size={22} />}
+                              </div>
+                              <p className="text-[0.85rem] font-bold mb-1">
+                                {dragOver ? "Lepaskan untuk upload" : "Klik atau seret foto ke sini"}
+                              </p>
+                              <p className="text-[0.72rem] text-muted">JPG, PNG, atau WebP · Maks. 15MB</p>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Upload error */}
+                    {uploadError && (
+                      <div className="flex items-center gap-2 mt-2 text-[0.75rem] font-semibold text-red-600 bg-red-50 border border-red-200 rounded-xl px-3 py-2">
+                        <X size={13} className="flex-shrink-0" />
+                        {uploadError}
+                        <button onClick={() => setUploadError("")} className="ml-auto text-red-400 hover:text-red-600"><X size={12} /></button>
+                      </div>
+                    )}
                   </div>
 
                   {/* Color */}
