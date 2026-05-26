@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import { TransitionProvider } from "@/components/TransitionProvider";
+import ChatWidget from "@/components/ChatWidget";
 
 export const metadata: Metadata = {
   title: "GRCC | Center for Governance, Risk, Compliance & Competitiveness",
@@ -18,6 +19,7 @@ export default function RootLayout({
     <html lang="en">
       <body className="font-sans">
         <TransitionProvider>{children}</TransitionProvider>
+        <ChatWidget />
       </body>
     </html>
   );
