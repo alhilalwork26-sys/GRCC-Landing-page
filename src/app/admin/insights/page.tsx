@@ -3,11 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase, InsightItem } from "@/lib/supabase";
-import { Plus, Pencil, Trash2, Eye, EyeOff, Star, X, Check, Loader2, Upload, Image as ImageIcon, Layout } from "lucide-react";
+import { Plus, Pencil, Trash2, Eye, EyeOff, Star, X, Check, Loader2, Upload, Image as ImageIcon, Layout, Hash } from "lucide-react";
 
 // ── Inline preview helpers (mirrors detail page) ──────────────────────────────
-function slugifyP(t: string) { return t.toLowerCase().replace(/[^a-z0-9\s]/g, "").replace(/\s+/g, "-"); }
-
 function renderPreview(raw: string) {
   if (!raw) return <p className="text-muted text-[0.88rem] py-6 text-center">Belum ada isi artikel.</p>;
   return raw.split(/\n{2,}/).map((block, i) => {
@@ -53,17 +51,34 @@ export default function AdminInsights() {
 
   useEffect(() => { load(); }, []);
 
-  const openNew  = () => { setForm({ ...EMPTY }); setEditId(null); setPreview(false); };
+  const [dirty, setDirty] = useState(false);
+
+  const openNew  = () => { setForm({ ...EMPTY }); setEditId(null); setPreview(false); setUploadError(""); setDragOver(false); setDirty(false); };
   const openEdit = (item: InsightItem) => {
     const { id, created_at, ...rest } = item;
-    setForm(rest); setEditId(id); setPreview(false);
+    setForm(rest); setEditId(id); setPreview(false); setUploadError(""); setDragOver(false); setDirty(false);
   };
-  const closeForm = () => { setForm(null); setEditId(null); setPreview(false); };
+  const closeForm = (force = false) => {
+    if (!force && dirty && !confirm("Ada perubahan yang belum disimpan. Tutup?")) return;
+    setForm(null); setEditId(null); setPreview(false); setUploadError(""); setDragOver(false); setDirty(false);
+  };
+
+  // Delete image file from Storage (best-effort, ignore errors)
+  const deleteStorageImage = async (url: string) => {
+    if (!url || !url.includes("insight-images")) return;
+    try {
+      const path = url.split("/insight-images/")[1]?.split("?")[0];
+      if (path) await supabase.storage.from("insight-images").remove([path]);
+    } catch { /* ignore */ }
+  };
 
   const save = async () => {
     if (!form) return;
     setSaving(true);
     if (editId) {
+      // If image was removed, delete old file from storage
+      const old = items.find(i => i.id === editId);
+      if (old?.img && old.img !== form.img) await deleteStorageImage(old.img);
       await supabase.from("insights").update(form).eq("id", editId);
     } else {
       await supabase.from("insights").insert(form);
@@ -71,12 +86,14 @@ export default function AdminInsights() {
     setSaving(false);
     setMsg(editId ? "Insight diperbarui!" : "Insight ditambahkan!");
     setTimeout(() => setMsg(""), 2500);
-    closeForm();
+    closeForm(true);
     load();
   };
 
   const del = async (id: string) => {
     if (!confirm("Hapus insight ini?")) return;
+    const item = items.find(i => i.id === id);
+    if (item?.img) await deleteStorageImage(item.img);
     await supabase.from("insights").delete().eq("id", id);
     load();
   };
@@ -162,7 +179,7 @@ export default function AdminInsights() {
           <table className="w-full text-[0.82rem]">
             <thead>
               <tr className="border-b border-border bg-[#F7F7F5]">
-                {["Judul","Tipe","Tanggal","Status","Aksi"].map(h => (
+                {["Judul","Tipe","Tanggal","Views","Status","Aksi"].map(h => (
                   <th key={h} className="text-left px-5 py-3 text-[0.72rem] font-bold tracking-wider uppercase text-muted">{h}</th>
                 ))}
               </tr>
@@ -189,6 +206,11 @@ export default function AdminInsights() {
                   </td>
                   <td className="px-5 py-3.5 text-muted">{item.date || "—"}</td>
                   <td className="px-5 py-3.5">
+                    <span className="flex items-center gap-1 text-muted text-[0.78rem]">
+                      <Hash size={10} />{item.view_count ?? 0}
+                    </span>
+                  </td>
+                  <td className="px-5 py-3.5">
                     <div className="flex items-center gap-2">
                       <button onClick={() => toggle(item.id, "published", item.published)} title={item.published ? "Sembunyikan" : "Tampilkan"}>
                         {item.published
@@ -213,7 +235,7 @@ export default function AdminInsights() {
                 </tr>
               ))}
               {items.length === 0 && (
-                <tr><td colSpan={5} className="text-center py-12 text-muted">Belum ada konten.</td></tr>
+                <tr><td colSpan={6} className="text-center py-12 text-muted">Belum ada konten.</td></tr>
               )}
             </tbody>
           </table>
@@ -225,7 +247,7 @@ export default function AdminInsights() {
         {form && (
           <>
             <motion.div initial={{ opacity:0 }} animate={{ opacity:1 }} exit={{ opacity:0 }}
-              className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm" onClick={closeForm} />
+              className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm" onClick={() => closeForm()} />
             <motion.div initial={{ opacity:0, scale:0.95, y:20 }} animate={{ opacity:1, scale:1, y:0 }}
               exit={{ opacity:0, scale:0.96 }} transition={{ type:"spring", stiffness:300, damping:26 }}
               className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
@@ -245,7 +267,7 @@ export default function AdminInsights() {
                         </button>
                       ))}
                     </div>
-                    <button onClick={closeForm}><X size={18} className="text-muted hover:text-dark" /></button>
+                    <button onClick={() => closeForm()}><X size={18} className="text-muted hover:text-dark" /></button>
                   </div>
                 </div>
 
@@ -289,30 +311,30 @@ export default function AdminInsights() {
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="label">Tipe</label>
-                      <select value={form.type} onChange={e => setForm({ ...form, type: e.target.value as typeof form.type })} className="input">
+                      <select value={form.type} onChange={e => { setForm({ ...form, type: e.target.value as typeof form.type }); setDirty(true); }} className="input">
                         {TYPES.map(t => <option key={t}>{t}</option>)}
                       </select>
                     </div>
                     <div>
                       <label className="label">Tag</label>
-                      <input value={form.tag} onChange={e => setForm({ ...form, tag: e.target.value })} placeholder="Workshop, Seminar…" className="input" />
+                      <input value={form.tag} onChange={e => { setForm({ ...form, tag: e.target.value }); setDirty(true); }} placeholder="Workshop, Seminar…" className="input" />
                     </div>
                   </div>
 
                   <div>
                     <label className="label">Judul *</label>
-                    <input value={form.title} onChange={e => setForm({ ...form, title: e.target.value })} placeholder="Judul konten" className="input" />
+                    <input value={form.title} onChange={e => { setForm({ ...form, title: e.target.value }); setDirty(true); }} placeholder="Judul konten" className="input" />
                   </div>
 
                   <div>
                     <label className="label">Ringkasan</label>
-                    <textarea rows={3} value={form.excerpt} onChange={e => setForm({ ...form, excerpt: e.target.value })} placeholder="Deskripsi singkat…" className="input resize-none" />
+                    <textarea rows={3} value={form.excerpt} onChange={e => { setForm({ ...form, excerpt: e.target.value }); setDirty(true); }} placeholder="Deskripsi singkat…" className="input resize-none" />
                   </div>
 
                   <div>
                     <label className="label">Isi Artikel</label>
                     <p className="text-[0.7rem] text-muted mb-2">Gunakan baris kosong untuk paragraf baru. Ketik ## Judul untuk heading, - item untuk poin.</p>
-                    <textarea rows={12} value={form.content} onChange={e => setForm({ ...form, content: e.target.value })}
+                    <textarea rows={12} value={form.content} onChange={e => { setForm({ ...form, content: e.target.value }); setDirty(true); }}
                       placeholder={`## Pendahuluan\n\nTulis isi artikel di sini...\n\n## Poin Utama\n\n- Item pertama\n- Item kedua`}
                       className="input font-mono text-[0.8rem]" style={{ resize: "vertical", minHeight: 200 }} />
                   </div>
@@ -320,11 +342,11 @@ export default function AdminInsights() {
                   <div className="grid grid-cols-2 gap-3">
                     <div>
                       <label className="label">Tanggal</label>
-                      <input value={form.date} onChange={e => setForm({ ...form, date: e.target.value })} placeholder="14 Maret 2025" className="input" />
+                      <input value={form.date} onChange={e => { setForm({ ...form, date: e.target.value }); setDirty(true); }} placeholder="14 Maret 2025" className="input" />
                     </div>
                     <div>
                       <label className="label">Lokasi</label>
-                      <input value={form.location} onChange={e => setForm({ ...form, location: e.target.value })} placeholder="Surabaya / Online" className="input" />
+                      <input value={form.location} onChange={e => { setForm({ ...form, location: e.target.value }); setDirty(true); }} placeholder="Surabaya / Online" className="input" />
                     </div>
                   </div>
 
@@ -359,7 +381,7 @@ export default function AdminInsights() {
                           </div>
                           <button
                             type="button"
-                            onClick={(e) => { e.stopPropagation(); setForm({ ...form, img: "" }); setUploadError(""); }}
+                            onClick={(e) => { e.stopPropagation(); setForm({ ...form, img: "" }); setUploadError(""); setDirty(true); }}
                             className="absolute top-3 right-3 w-8 h-8 rounded-full bg-black/60 text-white flex items-center justify-center hover:bg-black/80 transition-colors z-10"
                             title="Hapus foto"
                           >
@@ -429,7 +451,7 @@ export default function AdminInsights() {
                     <label className="label">Warna Aksen</label>
                     <div className="flex gap-2 flex-wrap">
                       {COLORS.map(c => (
-                        <button key={c} onClick={() => setForm({ ...form, color: c })}
+                        <button key={c} onClick={() => { setForm({ ...form, color: c }); setDirty(true); }}
                           className={`w-7 h-7 rounded-lg border-2 transition-all ${form.color===c?"border-dark scale-110":"border-transparent"}`}
                           style={{ backgroundColor: c }} />
                       ))}
@@ -443,7 +465,7 @@ export default function AdminInsights() {
                       { label:"Featured", key:"featured" as const },
                     ].map(({ label, key }) => (
                       <label key={key} className="flex items-center gap-2 cursor-pointer select-none">
-                        <div onClick={() => setForm({ ...form, [key]: !form[key] })}
+                        <div onClick={() => { setForm({ ...form, [key]: !form[key] }); setDirty(true); }}
                           className={`w-10 h-5 rounded-full transition-colors relative ${form[key]?"bg-dark":"bg-dark/20"}`}>
                           <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${form[key]?"left-5":"left-0.5"}`} />
                         </div>
@@ -454,7 +476,7 @@ export default function AdminInsights() {
                 </div>
 
                 <div className="flex justify-end gap-3 px-7 py-5 border-t border-border">
-                  <button onClick={closeForm} className="text-[0.82rem] font-semibold px-4 py-2.5 rounded-xl hover:bg-dark/[0.06] transition-colors">Batal</button>
+                  <button onClick={() => closeForm()} className="text-[0.82rem] font-semibold px-4 py-2.5 rounded-xl hover:bg-dark/[0.06] transition-colors">Batal</button>
                   <motion.button whileHover={{ scale:1.01 }} whileTap={{ scale:0.98 }}
                     onClick={save} disabled={saving || !form.title}
                     className="flex items-center gap-2 bg-dark text-white text-[0.82rem] font-bold px-5 py-2.5 rounded-xl disabled:opacity-50">
