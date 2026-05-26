@@ -12,7 +12,8 @@ import {
 const ICON_OPTIONS = [
   "Shield","Leaf","BookOpen","Search","TrendingUp","Users","Cpu","FlaskConical",
   "Star","Zap","Globe","Target","Award","BarChart2","Brain","Layers",
-  "Settings","Database","Code","Heart",
+  "Settings","Database","Code","Heart","Building2","Briefcase","GraduationCap",
+  "FileText","Scale","Microscope","TreePine","Landmark","ChartBar",
 ];
 
 const ACCENT_COLORS = [

@@ -35,8 +35,9 @@ export default function AdminPromo() {
   const [loading,     setLoading]     = useState(true);
 
   useEffect(() => {
-    supabase.from("promo").select("*").order("created_at",{ascending:false}).limit(1).single()
-      .then(({ data }) => {
+    (async () => {
+      try {
+        const { data } = await supabase.from("promo").select("*").order("created_at",{ascending:false}).limit(1).single();
         if (data) {
           setId(data.id); setActive(data.active); setBadge(data.badge);
           setBadgeColor(data.badge_color); setTag(data.tag); setTitle(data.title);
@@ -46,8 +47,10 @@ export default function AdminPromo() {
           if (data.facilitators?.length) setFacilitators(data.facilitators);
           if (data.highlights?.length)   setHighlights(data.highlights);
         }
+      } finally {
         setLoading(false);
-      });
+      }
+    })();
   }, []);
 
   const addFacilitator = () => setFacilitators([...facilitators, { name:"", role:"", org:"", img:"", main: false }]);

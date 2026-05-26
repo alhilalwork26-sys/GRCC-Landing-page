@@ -41,6 +41,7 @@ export default function AdminInsights() {
   const [dragOver, setDragOver] = useState(false);
   const [preview, setPreview] = useState(false);
   const [msg,     setMsg]     = useState("");
+  const [galleryPendingDelete, setGalleryPendingDelete] = useState<string[]>([]);
   const imageInputRef   = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
 
@@ -55,14 +56,14 @@ export default function AdminInsights() {
 
   const [dirty, setDirty] = useState(false);
 
-  const openNew  = () => { setForm({ ...EMPTY }); setEditId(null); setPreview(false); setUploadError(""); setDragOver(false); setDirty(false); };
+  const openNew  = () => { setForm({ ...EMPTY }); setEditId(null); setPreview(false); setUploadError(""); setDragOver(false); setDirty(false); setGalleryPendingDelete([]); };
   const openEdit = (item: InsightItem) => {
     const { id, created_at, ...rest } = item;
-    setForm({ ...rest, gallery: rest.gallery ?? [] }); setEditId(id); setPreview(false); setUploadError(""); setDragOver(false); setDirty(false);
+    setForm({ ...rest, gallery: rest.gallery ?? [] }); setEditId(id); setPreview(false); setUploadError(""); setDragOver(false); setDirty(false); setGalleryPendingDelete([]);
   };
   const closeForm = (force = false) => {
     if (!force && dirty && !confirm("Ada perubahan yang belum disimpan. Tutup?")) return;
-    setForm(null); setEditId(null); setPreview(false); setUploadError(""); setDragOver(false); setDirty(false);
+    setForm(null); setEditId(null); setPreview(false); setUploadError(""); setDragOver(false); setDirty(false); setGalleryPendingDelete([]);
   };
 
   // Delete image file from Storage (best-effort, ignore errors)
@@ -78,12 +79,17 @@ export default function AdminInsights() {
     if (!form) return;
     setSaving(true);
     if (editId) {
-      // If image was removed, delete old file from storage
+      // If hero image was changed, delete old file from storage
       const old = items.find(i => i.id === editId);
       if (old?.img && old.img !== form.img) await deleteStorageImage(old.img);
       await supabase.from("insights").update(form).eq("id", editId);
     } else {
       await supabase.from("insights").insert(form);
+    }
+    // Flush gallery images that were removed during editing
+    if (galleryPendingDelete.length > 0) {
+      await Promise.all(galleryPendingDelete.map(url => deleteStorageImage(url)));
+      setGalleryPendingDelete([]);
     }
     setSaving(false);
     setMsg(editId ? "Insight diperbarui!" : "Insight ditambahkan!");
@@ -95,7 +101,9 @@ export default function AdminInsights() {
   const del = async (id: string) => {
     if (!confirm("Hapus insight ini?")) return;
     const item = items.find(i => i.id === id);
+    // Delete hero image + all gallery images from storage
     if (item?.img) await deleteStorageImage(item.img);
+    if (item?.gallery?.length) await Promise.all(item.gallery.map(url => deleteStorageImage(url)));
     await supabase.from("insights").delete().eq("id", id);
     load();
   };
@@ -173,9 +181,10 @@ export default function AdminInsights() {
     setDirty(true);
   };
 
-  const removeGalleryImage = async (url: string) => {
+  const removeGalleryImage = (url: string) => {
     if (!form) return;
-    await deleteStorageImage(url);
+    // Queue for storage deletion — only actually deleted on save()
+    setGalleryPendingDelete(prev => [...prev, url]);
     setForm(cur => cur ? { ...cur, gallery: (cur.gallery ?? []).filter(u => u !== url) } : cur);
     setDirty(true);
   };
