@@ -99,7 +99,13 @@ export default function AdminInsights() {
   };
 
   const toggle = async (id: string, field: "published"|"featured", val: boolean) => {
-    await supabase.from("insights").update({ [field]: !val }).eq("id", id);
+    if (field === "featured" && !val) {
+      // Hanya satu Sorotan Utama — unfeature semua dulu, lalu set yang dipilih
+      await supabase.from("insights").update({ featured: false }).neq("id", "00000000-0000-0000-0000-000000000000");
+      await supabase.from("insights").update({ featured: true }).eq("id", id);
+    } else {
+      await supabase.from("insights").update({ [field]: !val }).eq("id", id);
+    }
     load();
   };
 
@@ -179,14 +185,14 @@ export default function AdminInsights() {
           <table className="w-full text-[0.82rem]">
             <thead>
               <tr className="border-b border-border bg-[#F7F7F5]">
-                {["Judul","Tipe","Tanggal","Views","Status","Aksi"].map(h => (
+                {["Judul","Tipe","Tanggal","Views","Tampil / Sorotan","Aksi"].map(h => (
                   <th key={h} className="text-left px-5 py-3 text-[0.72rem] font-bold tracking-wider uppercase text-muted">{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {items.map((item) => (
-                <tr key={item.id} className="border-b border-border last:border-0 hover:bg-[#F7F7F5]/60 transition-colors">
+                <tr key={item.id} className={`border-b border-border last:border-0 hover:bg-[#F7F7F5]/60 transition-colors ${item.featured ? "bg-amber-50/40" : ""}`}>
                   <td className="px-5 py-3.5">
                     <div className="flex items-center gap-2.5">
                       {item.img && (
@@ -194,7 +200,14 @@ export default function AdminInsights() {
                         <img src={item.img} alt="" className="w-10 h-10 rounded-lg object-cover flex-shrink-0" />
                       )}
                       <div>
-                        <p className="font-semibold line-clamp-1 max-w-[260px]">{item.title}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="font-semibold line-clamp-1 max-w-[220px]">{item.title}</p>
+                          {item.featured && (
+                            <span className="flex-shrink-0 text-[0.58rem] font-extrabold tracking-wide uppercase px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-600 border border-amber-200">
+                              Sorotan Utama
+                            </span>
+                          )}
+                        </div>
                         <p className="text-muted text-[0.72rem]">{item.tag}</p>
                       </div>
                     </div>
@@ -217,7 +230,11 @@ export default function AdminInsights() {
                           ? <Eye size={15} className="text-emerald-500" />
                           : <EyeOff size={15} className="text-muted" />}
                       </button>
-                      <button onClick={() => toggle(item.id, "featured", item.featured)} title={item.featured ? "Unfeature" : "Jadikan featured"}>
+                      <button
+                        onClick={() => toggle(item.id, "featured", item.featured)}
+                        title={item.featured ? "Hapus dari Sorotan Utama" : "Jadikan Sorotan Utama di halaman Insights"}
+                        className={`p-1 rounded-lg transition-colors ${item.featured ? "hover:bg-amber-100" : "hover:bg-dark/[0.06]"}`}
+                      >
                         <Star size={15} className={item.featured ? "text-amber-400 fill-amber-400" : "text-muted"} />
                       </button>
                     </div>
