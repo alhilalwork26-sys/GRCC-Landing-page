@@ -100,8 +100,11 @@ export default function AdminInsights() {
 
   const toggle = async (id: string, field: "published"|"featured", val: boolean) => {
     if (field === "featured" && !val) {
-      // Hanya satu Sorotan Utama — unfeature semua dulu, lalu set yang dipilih
-      await supabase.from("insights").update({ featured: false }).neq("id", "00000000-0000-0000-0000-000000000000");
+      // Hanya satu Sorotan Utama — unfeature tiap item yang saat ini featured (by ID), lalu set yang dipilih
+      const currentlyFeatured = items.filter(i => i.featured && i.id !== id);
+      await Promise.all(
+        currentlyFeatured.map(i => supabase.from("insights").update({ featured: false }).eq("id", i.id))
+      );
       await supabase.from("insights").update({ featured: true }).eq("id", id);
     } else {
       await supabase.from("insights").update({ [field]: !val }).eq("id", id);
