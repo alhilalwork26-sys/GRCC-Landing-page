@@ -209,6 +209,7 @@ export default function ChatWidget() {
                 whileHover={{ scale: 1.08 }}
                 whileTap={{ scale: 0.93 }}
                 onClick={openChat}
+                data-chat-trigger
                 className="relative w-14 h-14 rounded-full text-white shadow-2xl flex items-center justify-center"
                 style={{ background: "linear-gradient(135deg, #4F46E5, #7C3AED)" }}
                 title="Chat dengan GRCC Assistant"

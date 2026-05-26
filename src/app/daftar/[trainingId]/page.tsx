@@ -443,6 +443,23 @@ export default function DaftarPage() {
       }
       if (insertErr) throw insertErr;
 
+      // 4. Kirim notifikasi email (fire-and-forget, tidak block UI)
+      fetch("/api/notify-registration", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "individu",
+          trainingTitle: training?.title ?? trainingId,
+          nama: form.nama_lengkap.trim(),
+          email: form.email.trim().toLowerCase(),
+          instansi: form.instansi.trim(),
+          jabatan: form.jabatan.trim(),
+          telepon: form.telepon.trim(),
+          promoCode: appliedPromo?.code ?? undefined,
+          finalPrice: basePrice ? finalPrice : undefined,
+        }),
+      }).catch(() => {/* silent */});
+
       setSubmitted(true);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err) {

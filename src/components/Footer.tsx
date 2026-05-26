@@ -1,22 +1,45 @@
 import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
 
-const footerNav = [
+type FooterLink = { label: string; href: string };
+type FooterCol = { heading: string; links: FooterLink[] };
+
+const footerNav: FooterCol[] = [
   {
     heading: "Services",
-    links: ["Governance Advisory", "Risk Management", "Compliance Solutions", "ESG Frameworks", "Training Programs"],
+    links: [
+      { label: "Governance Advisory",   href: "/programs" },
+      { label: "Risk Management",       href: "/programs" },
+      { label: "Compliance Solutions",  href: "/programs" },
+      { label: "ESG Frameworks",        href: "/programs" },
+      { label: "Training Programs",     href: "/programs" },
+    ],
   },
   {
     heading: "Programs",
-    links: ["Corporate Governance", "Public Sector Reform", "Anti-Corruption", "Data Privacy", "ESG Reporting"],
+    links: [
+      { label: "Corporate Governance",  href: "/programs" },
+      { label: "Public Sector Reform",  href: "/programs" },
+      { label: "Anti-Corruption",       href: "/programs" },
+      { label: "Data Privacy",          href: "/programs" },
+      { label: "ESG Reporting",         href: "/programs" },
+    ],
   },
   {
     heading: "Company",
-    links: ["About GRCC", "Our Team", "Careers", "News & Events", "Contact"],
+    links: [
+      { label: "About GRCC",   href: "/about" },
+      { label: "Insights",     href: "/insights" },
+      { label: "Kontak",       href: "/contact" },
+    ],
   },
   {
-    heading: "Contact",
-    links: ["info@grcc.org", "Jakarta, Indonesia", "+62 21 000 0000"],
+    heading: "Hubungi Kami",
+    links: [
+      { label: "grcc.ailg@gmail.com",  href: "mailto:grcc.ailg@gmail.com" },
+      { label: "Jakarta, Indonesia",   href: "https://maps.google.com/?q=Jakarta,Indonesia" },
+      { label: "Hubungi via WhatsApp", href: "https://wa.me/62" },
+    ],
   },
 ];
 
@@ -66,9 +89,9 @@ export default function Footer() {
                 </h4>
                 <ul className="flex flex-col gap-2.5">
                   {col.links.map((link) => (
-                    <li key={link}>
-                      <a href="#" className="text-[0.84rem] text-white/35 hover:text-white transition-colors duration-200">
-                        {link}
+                    <li key={link.label}>
+                      <a href={link.href} className="text-[0.84rem] text-white/35 hover:text-white transition-colors duration-200">
+                        {link.label}
                       </a>
                     </li>
                   ))}

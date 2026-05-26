@@ -11,7 +11,7 @@ const links = [
   { label: "Programs",  href: "/programs",  page: true  },
   { label: "About",     href: "/about",     page: true  },
   { label: "Insights",  href: "/insights",  page: true  },
-  { label: "Careers",   href: "#careers",   page: false },
+  { label: "Kontak",    href: "/contact",   page: true  },
 ];
 
 export default function Navbar() {

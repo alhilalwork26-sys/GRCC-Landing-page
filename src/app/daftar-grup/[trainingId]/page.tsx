@@ -332,6 +332,24 @@ export default function DaftarGrupPage() {
         await supabase.rpc("increment_promo_used_count", { promo_id: appliedPromo.id });
       }
 
+      // Kirim notifikasi email (fire-and-forget)
+      fetch("/api/notify-registration", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          type: "grup",
+          trainingTitle: training?.title ?? trainingId,
+          nama: pic.nama_lengkap.trim(),
+          email: pic.email.trim().toLowerCase(),
+          instansi: pic.instansi.trim(),
+          jabatan: pic.jabatan.trim(),
+          telepon: pic.telepon.trim(),
+          participantCount: participants.length,
+          promoCode: appliedPromo?.code ?? undefined,
+          finalPrice: subtotal ? finalTotal : undefined,
+        }),
+      }).catch(() => {/* silent */});
+
       setSubmitted(true);
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err) {
