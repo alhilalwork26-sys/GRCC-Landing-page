@@ -8,7 +8,7 @@ import {
 } from "framer-motion";
 import {
   ArrowLeft, Calendar, MapPin, Tag, ChevronRight,
-  ArrowUpRight, Eye, List, X,
+  ArrowUpRight, Eye, List, X, ZoomIn, ChevronLeft, ChevronRight as ChevronRightIcon,
 } from "lucide-react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
@@ -206,6 +206,7 @@ export default function InsightDetailPage() {
   const [loading, setLoading] = useState(true);
   const [activeHeading, setActiveHeading] = useState("");
   const [sel, setSel] = useState({ text: "", x: 0, y: 0, show: false });
+  const [lightbox, setLightbox] = useState<{ open: boolean; idx: number }>({ open: false, idx: 0 });
   const articleRef = useRef<HTMLDivElement>(null);
 
   // Reading progress bar
@@ -427,6 +428,160 @@ export default function InsightDetailPage() {
                   <p className="text-[0.9rem] text-muted">Isi artikel belum tersedia.</p>
                 </div>
               )}
+
+              {/* ── Photo Gallery ── */}
+              {(item.gallery ?? []).length > 0 && (() => {
+                const photos = item.gallery!;
+                const openLightbox = (idx: number) => setLightbox({ open: true, idx });
+                return (
+                  <motion.div
+                    initial={{ opacity: 0, y: 32 }}
+                    whileInView={{ opacity: 1, y: 0 }}
+                    viewport={{ once: true, margin: "-60px" }}
+                    transition={{ duration: 0.7, ease: [0.4, 0, 0.2, 1] }}
+                    className="mt-14 pt-10 border-t border-dark/[0.07]"
+                  >
+                    <div className="flex items-center gap-3 mb-6">
+                      <div className="w-1 h-6 rounded-full" style={{ backgroundColor: item.color }} />
+                      <h2 className="text-[1.1rem] font-extrabold tracking-tight">Foto Dokumentasi</h2>
+                      <span className="text-[0.7rem] font-bold text-muted bg-dark/[0.05] px-2.5 py-1 rounded-full">{photos.length} foto</span>
+                    </div>
+
+                    {/* Grid */}
+                    <motion.div
+                      className={`grid gap-3 ${
+                        photos.length === 1 ? "grid-cols-1" :
+                        photos.length === 2 ? "grid-cols-2" :
+                        photos.length === 4 ? "grid-cols-2" :
+                        "grid-cols-2 md:grid-cols-3"
+                      }`}
+                      initial="hidden"
+                      whileInView="visible"
+                      viewport={{ once: true, margin: "-40px" }}
+                      variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.07 } } }}
+                    >
+                      {photos.map((url, idx) => (
+                        <motion.div
+                          key={idx}
+                          variants={{
+                            hidden: { opacity: 0, scale: 0.92, y: 16 },
+                            visible: { opacity: 1, scale: 1, y: 0, transition: { duration: 0.55, ease: [0.4, 0, 0.2, 1] } }
+                          }}
+                          onClick={() => openLightbox(idx)}
+                          className={`group relative overflow-hidden rounded-2xl cursor-pointer bg-dark/[0.04] ${
+                            photos.length >= 3 && idx === 0 ? "col-span-2 md:col-span-1" : ""
+                          }`}
+                          style={{ aspectRatio: photos.length === 1 ? "16/9" : photos.length === 2 ? "4/3" : "1/1" }}
+                        >
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img
+                            src={url}
+                            alt={`Dokumentasi ${idx + 1}`}
+                            className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
+                          />
+                          {/* Hover overlay */}
+                          <div
+                            className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all duration-300"
+                            style={{ background: `${item.color}30` }}
+                          >
+                            <motion.div
+                              initial={{ scale: 0.7, opacity: 0 }}
+                              whileHover={{ scale: 1 }}
+                              className="w-11 h-11 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-lg"
+                            >
+                              <ZoomIn size={18} className="text-dark" />
+                            </motion.div>
+                          </div>
+                          {/* Index badge */}
+                          <div className="absolute bottom-2.5 right-2.5 w-6 h-6 rounded-full bg-black/50 text-white text-[0.6rem] font-bold flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                            {idx + 1}
+                          </div>
+                        </motion.div>
+                      ))}
+                    </motion.div>
+                  </motion.div>
+                );
+              })()}
+
+              {/* ── Lightbox ── */}
+              <AnimatePresence>
+                {lightbox.open && (item.gallery ?? []).length > 0 && (
+                  <motion.div
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    className="fixed inset-0 z-[300] bg-black/95 flex items-center justify-center"
+                    onClick={() => setLightbox(l => ({ ...l, open: false }))}
+                  >
+                    {/* Close */}
+                    <button
+                      className="absolute top-5 right-5 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors z-10"
+                      onClick={() => setLightbox(l => ({ ...l, open: false }))}
+                    >
+                      <X size={18} />
+                    </button>
+
+                    {/* Counter */}
+                    <div className="absolute top-5 left-1/2 -translate-x-1/2 text-white/50 text-[0.75rem] font-semibold">
+                      {lightbox.idx + 1} / {item.gallery!.length}
+                    </div>
+
+                    {/* Prev */}
+                    {item.gallery!.length > 1 && (
+                      <button
+                        className="absolute left-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors z-10"
+                        onClick={e => { e.stopPropagation(); setLightbox(l => ({ open: true, idx: (l.idx - 1 + item.gallery!.length) % item.gallery!.length })); }}
+                      >
+                        <ChevronLeft size={20} />
+                      </button>
+                    )}
+
+                    {/* Image */}
+                    <motion.div
+                      key={lightbox.idx}
+                      initial={{ opacity: 0, scale: 0.93 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      exit={{ opacity: 0, scale: 0.93 }}
+                      transition={{ duration: 0.25 }}
+                      className="max-w-[90vw] max-h-[85vh]"
+                      onClick={e => e.stopPropagation()}
+                    >
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={item.gallery![lightbox.idx]}
+                        alt={`Dokumentasi ${lightbox.idx + 1}`}
+                        className="max-w-[90vw] max-h-[85vh] object-contain rounded-2xl shadow-2xl"
+                      />
+                    </motion.div>
+
+                    {/* Next */}
+                    {item.gallery!.length > 1 && (
+                      <button
+                        className="absolute right-4 top-1/2 -translate-y-1/2 w-11 h-11 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center transition-colors z-10"
+                        onClick={e => { e.stopPropagation(); setLightbox(l => ({ open: true, idx: (l.idx + 1) % item.gallery!.length })); }}
+                      >
+                        <ChevronRightIcon size={20} />
+                      </button>
+                    )}
+
+                    {/* Thumbnails strip */}
+                    {item.gallery!.length > 1 && (
+                      <div className="absolute bottom-5 left-1/2 -translate-x-1/2 flex gap-2">
+                        {item.gallery!.map((url, i) => (
+                          <button
+                            key={i}
+                            onClick={e => { e.stopPropagation(); setLightbox({ open: true, idx: i }); }}
+                            className={`w-12 h-12 rounded-xl overflow-hidden border-2 transition-all ${i === lightbox.idx ? "border-white scale-110" : "border-white/20 opacity-50 hover:opacity-80"}`}
+                          >
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={url} alt="" className="w-full h-full object-cover" />
+                          </button>
+                        ))}
+                      </div>
+                    )}
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
               {/* Share row */}
               <div className="mt-14 pt-8 border-t border-dark/[0.07] flex items-center justify-between flex-wrap gap-4">

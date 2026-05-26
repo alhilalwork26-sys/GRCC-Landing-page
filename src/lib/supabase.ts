@@ -43,6 +43,7 @@ export interface InsightItem {
   featured: boolean;
   published: boolean;
   view_count: number;
+  gallery?: string[];
   created_at: string;
 }
 

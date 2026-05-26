@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase, InsightItem } from "@/lib/supabase";
-import { Plus, Pencil, Trash2, Eye, EyeOff, Star, X, Check, Loader2, Upload, Image as ImageIcon, Layout, Hash } from "lucide-react";
+import { Plus, Pencil, Trash2, Eye, EyeOff, Star, X, Check, Loader2, Upload, Image as ImageIcon, Layout, Hash, Images } from "lucide-react";
 
 // ── Inline preview helpers (mirrors detail page) ──────────────────────────────
 function renderPreview(raw: string) {
@@ -26,7 +26,7 @@ const TYPES  = ["Kegiatan", "Publikasi", "Berita"] as const;
 const COLORS = ["#4F46E5","#10B981","#EF4444","#F59E0B","#8B5CF6","#0EA5E9","#F97316"];
 const EMPTY: Omit<InsightItem,"id"|"created_at"> = {
   type: "Kegiatan", tag: "", title: "", excerpt: "", content: "", date: "", location: "",
-  img: "", color: "#4F46E5", featured: false, published: true, view_count: 0,
+  img: "", color: "#4F46E5", featured: false, published: true, view_count: 0, gallery: [],
 };
 
 export default function AdminInsights() {
@@ -36,11 +36,13 @@ export default function AdminInsights() {
   const [editId,  setEditId]  = useState<string | null>(null);
   const [saving,  setSaving]  = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [uploadingGallery, setUploadingGallery] = useState(false);
   const [uploadError, setUploadError] = useState("");
   const [dragOver, setDragOver] = useState(false);
   const [preview, setPreview] = useState(false);
   const [msg,     setMsg]     = useState("");
-  const imageInputRef = useRef<HTMLInputElement>(null);
+  const imageInputRef   = useRef<HTMLInputElement>(null);
+  const galleryInputRef = useRef<HTMLInputElement>(null);
 
   const load = async () => {
     setLoading(true);
@@ -56,7 +58,7 @@ export default function AdminInsights() {
   const openNew  = () => { setForm({ ...EMPTY }); setEditId(null); setPreview(false); setUploadError(""); setDragOver(false); setDirty(false); };
   const openEdit = (item: InsightItem) => {
     const { id, created_at, ...rest } = item;
-    setForm(rest); setEditId(id); setPreview(false); setUploadError(""); setDragOver(false); setDirty(false);
+    setForm({ ...rest, gallery: rest.gallery ?? [] }); setEditId(id); setPreview(false); setUploadError(""); setDragOver(false); setDirty(false);
   };
   const closeForm = (force = false) => {
     if (!force && dirty && !confirm("Ada perubahan yang belum disimpan. Tutup?")) return;
@@ -151,6 +153,31 @@ export default function AdminInsights() {
     setDragOver(false);
     const file = e.dataTransfer.files?.[0];
     if (file) uploadImage(file);
+  };
+
+  const uploadGalleryImage = async (file: File) => {
+    if (!form) return;
+    const allowed = ["image/jpeg", "image/png", "image/webp"];
+    if (!allowed.includes(file.type)) { setUploadError("Format foto harus JPG, PNG, atau WebP."); return; }
+    if (file.size > 15 * 1024 * 1024) { setUploadError("Ukuran foto maksimal 15MB."); return; }
+    setUploadingGallery(true);
+    const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+    const filename = `gallery-${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const { data, error } = await supabase.storage.from("insight-images").upload(filename, file, {
+      contentType: file.type, cacheControl: "31536000", upsert: false,
+    });
+    setUploadingGallery(false);
+    if (error) { setUploadError(`Gagal upload: ${error.message}`); return; }
+    const { data: pub } = supabase.storage.from("insight-images").getPublicUrl(data.path);
+    setForm(cur => cur ? { ...cur, gallery: [...(cur.gallery ?? []), pub.publicUrl] } : cur);
+    setDirty(true);
+  };
+
+  const removeGalleryImage = async (url: string) => {
+    if (!form) return;
+    await deleteStorageImage(url);
+    setForm(cur => cur ? { ...cur, gallery: (cur.gallery ?? []).filter(u => u !== url) } : cur);
+    setDirty(true);
   };
 
   return (
@@ -464,6 +491,54 @@ export default function AdminInsights() {
                         <button onClick={() => setUploadError("")} className="ml-auto text-red-400 hover:text-red-600"><X size={12} /></button>
                       </div>
                     )}
+                  </div>
+
+                  {/* Gallery */}
+                  <div>
+                    <label className="label">Foto Dokumentasi Tambahan</label>
+                    <input
+                      ref={galleryInputRef}
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      multiple
+                      className="hidden"
+                      onChange={async (e) => {
+                        const files = Array.from(e.target.files ?? []);
+                        for (const f of files) await uploadGalleryImage(f);
+                        e.currentTarget.value = "";
+                      }}
+                    />
+                    {/* Gallery grid */}
+                    {(form.gallery ?? []).length > 0 && (
+                      <div className="grid grid-cols-3 gap-2 mb-3">
+                        {(form.gallery ?? []).map((url, idx) => (
+                          <div key={idx} className="relative group aspect-square rounded-xl overflow-hidden border border-border">
+                            {/* eslint-disable-next-line @next/next/no-img-element */}
+                            <img src={url} alt={`Galeri ${idx+1}`} className="w-full h-full object-cover" />
+                            <button
+                              type="button"
+                              onClick={() => removeGalleryImage(url)}
+                              className="absolute top-1.5 right-1.5 w-6 h-6 rounded-full bg-black/60 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500"
+                            >
+                              <X size={11} />
+                            </button>
+                            <div className="absolute bottom-1 left-1.5 text-white/70 text-[0.58rem] font-bold bg-black/40 rounded px-1">{idx+1}</div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => !uploadingGallery && galleryInputRef.current?.click()}
+                      disabled={uploadingGallery}
+                      className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed border-border hover:border-dark/40 bg-[#F7F7F5] hover:bg-dark/[0.02] transition-all text-[0.78rem] font-semibold text-muted hover:text-dark disabled:opacity-50"
+                    >
+                      {uploadingGallery
+                        ? <><Loader2 size={14} className="animate-spin" /> Mengupload…</>
+                        : <><Images size={14} /> Tambah Foto Dokumentasi</>
+                      }
+                    </button>
+                    <p className="text-[0.68rem] text-muted mt-1.5">Bisa pilih beberapa foto sekaligus · JPG, PNG, WebP · Maks. 15MB/foto</p>
                   </div>
 
                   {/* Color */}
