@@ -106,12 +106,15 @@ export default function Footer() {
           <p className="text-[0.76rem] text-white/22">
             &copy; 2025 GRCC — Center for Governance, Risk, Compliance &amp; Competitiveness. All rights reserved.
           </p>
-          <div className="flex gap-6 flex-wrap">
+          <div className="flex gap-6 flex-wrap items-center">
             {["Privacy Policy", "Terms of Use", "Responsible Governance"].map((l) => (
               <a key={l} href="#" className="text-[0.76rem] text-white/22 hover:text-white/55 transition-colors">
                 {l}
               </a>
             ))}
+            <a href="/admin" className="text-[0.72rem] text-white/15 hover:text-white/40 transition-colors">
+              Admin
+            </a>
           </div>
         </div>
       </div>
