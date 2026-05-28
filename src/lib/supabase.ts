@@ -66,6 +66,9 @@ export interface TrainingItem {
   brochure_url: string | null;
   custom_fields: CustomField[] | null;
   program_id: string | null;
+  va_bank: string | null;
+  va_number: string | null;
+  va_set_at: string | null;
   created_at: string;
 }
 

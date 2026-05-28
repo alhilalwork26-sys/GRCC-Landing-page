@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase, TrainingItem, CustomField } from "@/lib/supabase";
-import { Plus, Pencil, Trash2, Eye, EyeOff, X, Check, Loader2, GripVertical, Settings2, Upload, Image as ImageIcon, FileText } from "lucide-react";
+import { Plus, Pencil, Trash2, Eye, EyeOff, X, Check, Loader2, GripVertical, Settings2, Upload, Image as ImageIcon, FileText, CreditCard, Send, AlertCircle } from "lucide-react";
 
 const COLORS   = ["#4F46E5","#10B981","#EF4444","#F59E0B","#8B5CF6","#0EA5E9","#F97316"];
 const FORMATS  = ["Online","In-Person","Hybrid","In-House"];
@@ -18,11 +18,13 @@ const PROGRAMS = [
   { id: "07", label: "Digital and Technology in Finance (DTF)" },
   { id: "08", label: "Penelitian (RES)" },
 ];
+const VA_BANKS = ["BNI","BRI","Mandiri","BTN","BCA","BSI","CIMB Niaga"];
 const EMPTY: Omit<TrainingItem,"id"|"created_at"> = {
   title:"", category:"", date_start:"", date_end:"", time:"Sabtu 08.00–17.00 WIB",
   format:"Online", location:"Zoom Meeting", price: null, price_label:"",
   max_participants: null, color:"#4F46E5", description:"", published: true,
   poster_url: null, brochure_url: null, custom_fields: [], program_id: null,
+  va_bank: null, va_number: null, va_set_at: null,
 };
 
 export default function AdminTraining() {
@@ -33,6 +35,7 @@ export default function AdminTraining() {
   const [saving,  setSaving]  = useState(false);
   const [uploadingPoster,   setUploadingPoster]   = useState(false);
   const [uploadingBrochure, setUploadingBrochure] = useState(false);
+  const [broadcasting, setBroadcasting] = useState<string | null>(null);
   const [msg,     setMsg]     = useState("");
   const posterInputRef   = useRef<HTMLInputElement>(null);
   const brochureInputRef = useRef<HTMLInputElement>(null);
@@ -61,9 +64,18 @@ export default function AdminTraining() {
   const save = async () => {
     if (!form) return;
     setSaving(true);
+    // Set va_set_at when VA number is newly provided
+    const payload = { ...form };
+    if (payload.va_number && !payload.va_set_at) {
+      payload.va_set_at = new Date().toISOString();
+    }
+    if (!payload.va_number) {
+      payload.va_set_at = null;
+      payload.va_bank = null;
+    }
     const { error } = editId
-      ? await supabase.from("training").update(form).eq("id", editId)
-      : await supabase.from("training").insert(form);
+      ? await supabase.from("training").update(payload).eq("id", editId)
+      : await supabase.from("training").insert(payload);
     setSaving(false);
     if (error) {
       setMsg(`Gagal menyimpan training: ${error.message}`);
@@ -72,6 +84,29 @@ export default function AdminTraining() {
     setMsg(editId ? "Training diperbarui!" : "Training ditambahkan!");
     setTimeout(() => setMsg(""),2500);
     closeForm(); load();
+  };
+
+  const broadcastVA = async (trainingId: string, title: string, total: number) => {
+    if (!confirm(`Kirim instruksi pembayaran VA ke semua peserta "${title}"?\n\nEstimasi: ${total > 0 ? total + " email" : "peserta terdaftar"}`)) return;
+    setBroadcasting(trainingId);
+    try {
+      const res = await fetch("/api/broadcast-va", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ trainingId }),
+      });
+      const data = await res.json();
+      if (data.sent !== undefined) {
+        setMsg(`✅ Broadcast selesai — ${data.sent}/${data.total} email terkirim`);
+      } else {
+        setMsg(data.message || data.error || "Broadcast selesai");
+      }
+      setTimeout(() => setMsg(""), 4000);
+    } catch {
+      setMsg("Gagal broadcast. Coba lagi.");
+    } finally {
+      setBroadcasting(null);
+    }
   };
 
   const del = async (id: string) => {
@@ -170,27 +205,59 @@ export default function AdminTraining() {
       ) : (
         <div className="flex flex-col gap-3">
           {items.map((item) => (
-            <div key={item.id} className="bg-white rounded-2xl border border-border p-5 flex items-center gap-4 hover:shadow-sm transition-all">
-              <div className="w-2 h-12 rounded-full flex-shrink-0" style={{ backgroundColor: item.color }} />
-              <div className="flex-1 min-w-0">
-                <p className="font-bold text-[0.92rem] truncate">{item.title}</p>
-                <div className="flex items-center gap-3 mt-0.5 text-[0.75rem] text-muted flex-wrap">
-                  {item.date_start && <span>{item.date_start}{item.date_end ? ` – ${item.date_end}` : ""}</span>}
-                  {item.format && <span className="px-2 py-0.5 rounded-full bg-dark/[0.06]">{item.format}</span>}
-                  {item.price_label && <span className="font-semibold text-dark">{item.price_label}</span>}
-                  {item.program_id && (
-                    <span className="px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 font-semibold">
-                      {PROGRAMS.find(p => p.id === item.program_id)?.label.split(" ")[0] ?? item.program_id}
-                    </span>
-                  )}
+            <div key={item.id} className="bg-white rounded-2xl border border-border p-5 hover:shadow-sm transition-all">
+              <div className="flex items-center gap-4">
+                <div className="w-2 h-12 rounded-full flex-shrink-0" style={{ backgroundColor: item.color }} />
+                <div className="flex-1 min-w-0">
+                  <p className="font-bold text-[0.92rem] truncate">{item.title}</p>
+                  <div className="flex items-center gap-3 mt-0.5 text-[0.75rem] text-muted flex-wrap">
+                    {item.date_start && <span>{item.date_start}{item.date_end ? ` – ${item.date_end}` : ""}</span>}
+                    {item.format && <span className="px-2 py-0.5 rounded-full bg-dark/[0.06]">{item.format}</span>}
+                    {item.price_label && <span className="font-semibold text-dark">{item.price_label}</span>}
+                    {item.program_id && (
+                      <span className="px-2 py-0.5 rounded-full bg-indigo-50 text-indigo-600 font-semibold">
+                        {PROGRAMS.find(p => p.id === item.program_id)?.label.split(" ")[0] ?? item.program_id}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="flex items-center gap-2 flex-shrink-0">
+                  <button onClick={() => togglePublish(item.id, item.published)} title={item.published?"Sembunyikan":"Tampilkan"}>
+                    {item.published ? <Eye size={15} className="text-emerald-500"/> : <EyeOff size={15} className="text-muted"/>}
+                  </button>
+                  <button onClick={() => openEdit(item)} className="p-1.5 hover:bg-dark/[0.07] rounded-lg"><Pencil size={14}/></button>
+                  <button onClick={() => del(item.id)} className="p-1.5 hover:bg-red-50 text-red-400 rounded-lg"><Trash2 size={14}/></button>
                 </div>
               </div>
-              <div className="flex items-center gap-2 flex-shrink-0">
-                <button onClick={() => togglePublish(item.id, item.published)} title={item.published?"Sembunyikan":"Tampilkan"}>
-                  {item.published ? <Eye size={15} className="text-emerald-500"/> : <EyeOff size={15} className="text-muted"/>}
-                </button>
-                <button onClick={() => openEdit(item)} className="p-1.5 hover:bg-dark/[0.07] rounded-lg"><Pencil size={14}/></button>
-                <button onClick={() => del(item.id)} className="p-1.5 hover:bg-red-50 text-red-400 rounded-lg"><Trash2 size={14}/></button>
+              {/* VA Status bar */}
+              <div className="mt-3 pt-3 border-t border-border flex items-center justify-between gap-3">
+                {item.va_number ? (
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-emerald-500 flex-shrink-0" />
+                    <span className="text-[0.75rem] font-semibold text-emerald-700">
+                      VA {item.va_bank}: <span className="font-mono">{item.va_number}</span>
+                    </span>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <AlertCircle size={13} className="text-amber-500 flex-shrink-0" />
+                    <span className="text-[0.75rem] font-semibold text-amber-600">
+                      VA belum diisi — peserta belum bisa bayar
+                    </span>
+                  </div>
+                )}
+                {item.va_number && (
+                  <button
+                    onClick={() => broadcastVA(item.id, item.title, 0)}
+                    disabled={broadcasting === item.id}
+                    className="flex items-center gap-1.5 text-[0.72rem] font-bold px-3 py-1.5 rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-colors disabled:opacity-50"
+                  >
+                    {broadcasting === item.id
+                      ? <Loader2 size={11} className="animate-spin" />
+                      : <Send size={11} />}
+                    Kirim VA ke Peserta
+                  </button>
+                )}
               </div>
             </div>
           ))}
@@ -386,6 +453,45 @@ export default function AdminTraining() {
                   <div className="grid grid-cols-2 gap-3">
                     <div><label className="label">Maks. Peserta</label>
                       <input type="number" value={form.max_participants ?? ""} onChange={e=>setForm({...form,max_participants:+e.target.value||null})} placeholder="30" className="input"/></div>
+                  </div>
+
+                  {/* ── Virtual Account ── */}
+                  <div className="border border-dashed border-amber-200 bg-amber-50/50 rounded-2xl p-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <CreditCard size={15} className="text-amber-600" />
+                      <span className="text-[0.82rem] font-bold text-amber-800">Virtual Account Pembayaran</span>
+                    </div>
+                    <p className="text-[0.72rem] text-amber-700 mb-3 leading-relaxed">
+                      Isi setelah mendapat VA dari Universitas Airlangga. Setiap training memiliki VA berbeda.
+                      Setelah disimpan, klik <strong>"Kirim VA ke Peserta"</strong> untuk broadcast email.
+                    </p>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <label className="label">Bank VA</label>
+                        <select
+                          value={form.va_bank ?? ""}
+                          onChange={e => setForm({...form, va_bank: e.target.value || null})}
+                          className="input"
+                        >
+                          <option value="">— Pilih bank —</option>
+                          {VA_BANKS.map(b => <option key={b} value={b}>{b}</option>)}
+                        </select>
+                      </div>
+                      <div>
+                        <label className="label">Nomor VA</label>
+                        <input
+                          value={form.va_number ?? ""}
+                          onChange={e => setForm({...form, va_number: e.target.value || null})}
+                          placeholder="8277XXXXXXXXX"
+                          className="input font-mono"
+                        />
+                      </div>
+                    </div>
+                    {form.va_number && (
+                      <p className="text-[0.7rem] text-emerald-700 mt-2 font-semibold">
+                        ✅ VA aktif — peserta akan melihat instruksi pembayaran saat mendaftar
+                      </p>
+                    )}
                   </div>
 
                   <div><label className="label">Deskripsi Singkat</label>

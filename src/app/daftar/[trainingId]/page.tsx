@@ -775,13 +775,21 @@ export default function DaftarPage() {
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.3 }}
-                    className="mt-4 flex items-start gap-3 p-4 rounded-xl bg-amber-50 border border-amber-200"
+                    className={`mt-4 flex items-start gap-3 p-4 rounded-xl ${training?.va_number ? "bg-indigo-50 border border-indigo-200" : "bg-amber-50 border border-amber-200"}`}
                   >
-                    <AlertCircle size={15} className="text-amber-500 flex-shrink-0 mt-0.5" />
-                    <p className="text-[0.75rem] text-amber-700 leading-[1.7]">
-                      <strong>{paymentInstruction()}</strong>
-                      Pastikan nominal sesuai dengan biaya program yang tertera.
-                    </p>
+                    <AlertCircle size={15} className={`flex-shrink-0 mt-0.5 ${training?.va_number ? "text-indigo-500" : "text-amber-500"}`} />
+                    {training?.va_number ? (
+                      <div className="text-[0.75rem] text-indigo-800 leading-[1.7]">
+                        <p className="font-bold mb-1">💳 Transfer ke Virtual Account {training.va_bank}:</p>
+                        <p className="font-mono text-[1rem] font-extrabold tracking-widest text-indigo-900 my-1">{training.va_number}</p>
+                        <p className="text-indigo-600">a.n. Universitas Airlangga · Nominal: <strong>{training.price_label || "sesuai program"}</strong></p>
+                        <p className="mt-1 text-indigo-500">Setelah transfer, upload bukti di bawah ini.</p>
+                      </div>
+                    ) : (
+                      <p className="text-[0.75rem] text-amber-700 leading-[1.7]">
+                        <strong>Instruksi pembayaran akan dikirim via email & WhatsApp</strong> setelah pendaftaran dikonfirmasi oleh tim GRCC (1–2 hari kerja). Silakan upload bukti transfer setelah menerima instruksi.
+                      </p>
+                    )}
                   </motion.div>
                 </div>
 
