@@ -585,7 +585,7 @@ export default function DaftarGrupPage() {
                     <AlertCircle size={15} className={`flex-shrink-0 mt-0.5 ${training?.va_number ? "text-indigo-500" : "text-amber-500"}`} />
                     {training?.va_number ? (
                       <div className="text-[0.75rem] text-indigo-800 leading-[1.7]">
-                        <p className="font-bold mb-1">💳 Transfer ke Virtual Account {training.va_bank}:</p>
+                        <p className="font-bold mb-1">💳 Transfer ke Virtual Account {training.va_bank ?? ""}:</p>
                         <p className="font-mono text-[1rem] font-extrabold tracking-widest text-indigo-900 my-1">{training.va_number}</p>
                         <p className="text-indigo-600">a.n. Universitas Airlangga · Upload <strong>1 bukti transfer</strong> untuk seluruh peserta grup.</p>
                       </div>
