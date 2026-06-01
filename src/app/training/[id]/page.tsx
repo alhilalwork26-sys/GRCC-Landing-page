@@ -8,6 +8,8 @@ import {
   ArrowLeft, Calendar, MapPin, Clock, Users, ArrowUpRight,
   Target, CheckCircle2, UserCheck, CreditCard, BookOpen,
   Wifi, MonitorPlay, Building2, MessageCircle, FileText,
+  Sparkles, Briefcase, GraduationCap, Landmark, LineChart,
+  UserCircle2, Award, ShieldCheck,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -28,10 +30,6 @@ function FormatIcon({ format }: { format: string }) {
   return <Building2 size={14} />;
 }
 
-const stagger = {
-  hidden: {},
-  visible: { transition: { staggerChildren: 0.07 } },
-};
 const fadeUp = {
   hidden: { opacity: 0, y: 20 },
   visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.4, 0, 0.2, 1] } },
@@ -187,47 +185,161 @@ export default function TrainingDetailPage() {
           <div className="grid grid-cols-1 lg:grid-cols-[1fr_380px] gap-10 items-start">
 
             {/* ── LEFT: Content ── */}
-            <motion.div
-              variants={stagger} initial="hidden" animate="visible"
-              className="flex flex-col gap-8"
-            >
-              {/* Description */}
+            <div className="flex flex-col gap-8">
+
+              {/* ── Tentang Program ── */}
               {training.description && (
-                <ContentSection icon={<BookOpen size={15} />} label="Tentang Program" color={c}>
-                  <p className="text-[0.9rem] leading-[1.9] text-dark/65 whitespace-pre-line">
-                    {training.description}
-                  </p>
-                </ContentSection>
+                <motion.div
+                  initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }} transition={{ duration: 0.6 }}
+                  className="bg-white rounded-2xl border border-border overflow-hidden"
+                >
+                  {/* Section header */}
+                  <div className="flex items-center gap-3 px-7 py-5 border-b border-border">
+                    <motion.div
+                      animate={{ rotate: [0, -8, 8, -4, 4, 0] }}
+                      transition={{ duration: 1.8, delay: 0.5, repeat: Infinity, repeatDelay: 4 }}
+                      className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                      style={{ backgroundColor: c + "18" }}
+                    >
+                      <BookOpen size={16} style={{ color: c }} />
+                    </motion.div>
+                    <div>
+                      <p className="font-extrabold text-[0.92rem] text-dark">Tentang Program</p>
+                      <p className="text-[0.68rem] text-muted mt-0.5">Gambaran umum pelatihan ini</p>
+                    </div>
+                    <motion.div
+                      animate={{ scale: [1, 1.2, 1], opacity: [0.4, 0.9, 0.4] }}
+                      transition={{ duration: 2.5, repeat: Infinity, delay: 1 }}
+                      className="ml-auto"
+                    >
+                      <Sparkles size={14} style={{ color: c }} />
+                    </motion.div>
+                  </div>
+                  <div className="px-7 py-6">
+                    <p className="text-[0.9rem] leading-[1.95] text-dark/65 whitespace-pre-line">
+                      {training.description}
+                    </p>
+                  </div>
+                </motion.div>
               )}
 
-              {/* Objectives */}
+              {/* ── Tujuan Program ── */}
               {objectives.length > 0 && (
-                <ContentSection icon={<Target size={15} />} label="Tujuan Pelatihan" color={c}>
-                  <motion.ul variants={stagger} initial="hidden" animate="visible" className="flex flex-col gap-3">
-                    {objectives.map((obj, i) => (
-                      <motion.li key={i} variants={fadeUp}
-                        className="flex items-start gap-3 text-[0.88rem] text-dark/70 leading-[1.75]">
-                        <CheckCircle2 size={16} className="flex-shrink-0 mt-[3px]" style={{ color: c }} />
-                        {obj}
-                      </motion.li>
-                    ))}
-                  </motion.ul>
-                </ContentSection>
-              )}
+                <motion.div
+                  initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }} transition={{ duration: 0.6, delay: 0.05 }}
+                  className="bg-white rounded-2xl border border-border overflow-hidden"
+                >
+                  {/* Section header */}
+                  <div className="flex items-center gap-3 px-7 py-5 border-b border-border">
+                    <motion.div
+                      animate={{ y: [0, -3, 0] }}
+                      transition={{ duration: 1.6, repeat: Infinity, repeatDelay: 3 }}
+                      className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                      style={{ backgroundColor: c + "18" }}
+                    >
+                      <Target size={16} style={{ color: c }} />
+                    </motion.div>
+                    <div>
+                      <p className="font-extrabold text-[0.92rem] text-dark">Tujuan Program</p>
+                      <p className="text-[0.68rem] text-muted mt-0.5">Yang akan Anda capai setelah pelatihan</p>
+                    </div>
+                    <span className="ml-auto text-[0.68rem] font-bold px-2.5 py-1 rounded-full"
+                      style={{ backgroundColor: c + "15", color: c }}>
+                      {objectives.length} tujuan
+                    </span>
+                  </div>
 
-              {/* Target Audience */}
-              {audience.length > 0 && (
-                <ContentSection icon={<UserCheck size={15} />} label="Untuk Siapa?" color={c}>
-                  <div className="flex flex-wrap gap-2.5">
-                    {audience.map((aud, i) => (
-                      <motion.span key={i} variants={fadeUp}
-                        className="text-[0.82rem] font-semibold px-4 py-2 rounded-full border"
-                        style={{ borderColor: c + "40", backgroundColor: c + "0D", color: c }}>
-                        {aud}
-                      </motion.span>
+                  <div className="px-7 py-6 flex flex-col gap-4">
+                    {objectives.map((obj, i) => (
+                      <motion.div
+                        key={i}
+                        initial={{ opacity: 0, x: -16 }}
+                        whileInView={{ opacity: 1, x: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.45, delay: i * 0.08 }}
+                        className="flex items-start gap-4 group"
+                      >
+                        {/* Animated number badge */}
+                        <motion.div
+                          whileHover={{ scale: 1.12, rotate: 5 }}
+                          transition={{ type: "spring", stiffness: 400, damping: 15 }}
+                          className="w-8 h-8 rounded-xl flex items-center justify-center flex-shrink-0 font-black text-[0.75rem] text-white shadow-sm"
+                          style={{ backgroundColor: c }}
+                        >
+                          {String(i + 1).padStart(2, "0")}
+                        </motion.div>
+                        <div className="flex-1 pt-0.5">
+                          <p className="text-[0.88rem] leading-[1.75] text-dark/70">{obj}</p>
+                        </div>
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          whileInView={{ scale: 1 }}
+                          viewport={{ once: true }}
+                          transition={{ delay: i * 0.08 + 0.3, type: "spring", stiffness: 300 }}
+                          className="flex-shrink-0 mt-0.5"
+                        >
+                          <CheckCircle2 size={15} style={{ color: c + "80" }} />
+                        </motion.div>
+                      </motion.div>
                     ))}
                   </div>
-                </ContentSection>
+                </motion.div>
+              )}
+
+              {/* ── Untuk Siapa ── */}
+              {audience.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }} transition={{ duration: 0.6, delay: 0.1 }}
+                  className="bg-white rounded-2xl border border-border overflow-hidden"
+                >
+                  {/* Section header */}
+                  <div className="flex items-center gap-3 px-7 py-5 border-b border-border">
+                    <motion.div
+                      animate={{ scale: [1, 1.08, 1] }}
+                      transition={{ duration: 2, repeat: Infinity, repeatDelay: 2 }}
+                      className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                      style={{ backgroundColor: c + "18" }}
+                    >
+                      <UserCheck size={16} style={{ color: c }} />
+                    </motion.div>
+                    <div>
+                      <p className="font-extrabold text-[0.92rem] text-dark">Untuk Siapa Program Ini?</p>
+                      <p className="text-[0.68rem] text-muted mt-0.5">Program ini dirancang untuk</p>
+                    </div>
+                  </div>
+
+                  <div className="px-7 py-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {audience.map((aud, i) => {
+                      const icons = [Briefcase, GraduationCap, Landmark, LineChart, UserCircle2, Award, ShieldCheck, Users];
+                      const Icon = icons[i % icons.length];
+                      return (
+                        <motion.div
+                          key={i}
+                          initial={{ opacity: 0, scale: 0.92 }}
+                          whileInView={{ opacity: 1, scale: 1 }}
+                          viewport={{ once: true }}
+                          transition={{ duration: 0.4, delay: i * 0.07 }}
+                          whileHover={{ y: -2, boxShadow: `0 6px 20px ${c}18` }}
+                          className="flex items-center gap-3.5 p-4 rounded-xl border transition-all duration-200"
+                          style={{ borderColor: c + "20", backgroundColor: c + "06" }}
+                        >
+                          <motion.div
+                            whileHover={{ rotate: 10, scale: 1.1 }}
+                            transition={{ type: "spring", stiffness: 400, damping: 12 }}
+                            className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                            style={{ backgroundColor: c + "18" }}
+                          >
+                            <Icon size={17} style={{ color: c }} />
+                          </motion.div>
+                          <p className="text-[0.84rem] font-semibold text-dark/80 leading-snug">{aud}</p>
+                        </motion.div>
+                      );
+                    })}
+                  </div>
+                </motion.div>
               )}
 
               {/* VA Payment */}
@@ -249,7 +361,7 @@ export default function TrainingDetailPage() {
                   </div>
                 </ContentSection>
               )}
-            </motion.div>
+            </div>
 
             {/* ── RIGHT: Sidebar ── */}
             <motion.div
@@ -341,7 +453,11 @@ function ContentSection({ icon, label, color, children }: {
   icon: React.ReactNode; label: string; color: string; children: React.ReactNode;
 }) {
   return (
-    <motion.div variants={fadeUp} className="bg-white rounded-2xl border border-border p-7">
+    <motion.div
+      initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }} transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
+      className="bg-white rounded-2xl border border-border p-7"
+    >
       <div className="flex items-center gap-2.5 mb-5">
         <span style={{ color }}>{icon}</span>
         <span className="text-[0.68rem] font-extrabold tracking-[0.14em] uppercase text-muted">{label}</span>
