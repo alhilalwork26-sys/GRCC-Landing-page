@@ -2,8 +2,11 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import dynamic from "next/dynamic";
 import { supabase, TrainingItem } from "@/lib/supabase";
 import { ArrowUpRight, Calendar, MapPin, Users, Wifi, MonitorPlay, Building2 } from "lucide-react";
+
+const TrainingDetailModal = dynamic(() => import("@/components/TrainingDetailModal"), { ssr: false });
 
 // ── format icon ───────────────────────────────────────────────────────────────
 function FormatIcon({ format }: { format: string }) {
@@ -70,7 +73,7 @@ function SkeletonCard() {
 }
 
 // ── Training Card ─────────────────────────────────────────────────────────────
-function TrainingCard({ t, index }: { t: TrainingItem; index: number }) {
+function TrainingCard({ t, index, onOpen }: { t: TrainingItem; index: number; onOpen: (t: TrainingItem) => void }) {
   const c = t.color || "#4F46E5";
   const [imgError, setImgError] = useState(false);
   const hasPoster = !!t.poster_url && !imgError;
@@ -82,6 +85,7 @@ function TrainingCard({ t, index }: { t: TrainingItem; index: number }) {
       viewport={{ once: true, margin: "-40px" }}
       transition={{ duration: 0.55, delay: index * 0.1, ease: [0.4, 0, 0.2, 1] }}
       whileHover="hover"
+      onClick={() => onOpen(t)}
       className="flex flex-col rounded-[20px] overflow-hidden bg-white border border-black/[0.07] cursor-pointer group"
       style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.05)" }}
     >
@@ -199,6 +203,7 @@ function TrainingCard({ t, index }: { t: TrainingItem; index: number }) {
 export default function Insights() {
   const [trainings, setTrainings] = useState<TrainingItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [selected, setSelected] = useState<TrainingItem | null>(null);
 
   useEffect(() => {
     supabase
@@ -214,6 +219,8 @@ export default function Insights() {
   }, []);
 
   return (
+    <>
+    <TrainingDetailModal training={selected} onClose={() => setSelected(null)} />
     <section id="training" className="py-[clamp(80px,10vw,140px)] bg-bg">
       <div className="max-w-[1280px] mx-auto px-6 lg:px-16">
 
@@ -262,7 +269,7 @@ export default function Insights() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {trainings.map((t, i) => (
-              <TrainingCard key={t.id} t={t} index={i} />
+              <TrainingCard key={t.id} t={t} index={i} onOpen={setSelected} />
             ))}
           </div>
         )}
@@ -282,5 +289,6 @@ export default function Insights() {
         </motion.p>
       </div>
     </section>
+    </>
   );
 }
