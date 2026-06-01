@@ -31,6 +31,7 @@ const EMPTY: Omit<TrainingItem,"id"|"created_at"> = {
   max_participants: null, color:"#4F46E5", description:"", published: true,
   poster_url: null, brochure_url: null, custom_fields: [], program_id: null,
   va_bank: null, va_number: null, va_set_at: null,
+  objectives: null, target_audience: null,
 };
 
 // ── small helpers ─────────────────────────────────────────────────────────────
@@ -446,6 +447,18 @@ export default function AdminTraining() {
                     <Field label="Deskripsi Singkat">
                       <textarea rows={3} value={form.description}
                         onChange={e=>setForm({...form,description:e.target.value})} className="input resize-none"/>
+                    </Field>
+                    <Field label="Tujuan Pelatihan" note="satu tujuan per baris">
+                      <textarea rows={4} value={form.objectives ?? ""}
+                        onChange={e=>setForm({...form,objectives:e.target.value||null})}
+                        placeholder={"Peserta mampu memahami kerangka GRC\nPeserta dapat menerapkan manajemen risiko\nPeserta mendapatkan sertifikat kelulusan"}
+                        className="input resize-none text-[0.82rem]"/>
+                    </Field>
+                    <Field label="Untuk Siapa?" note="satu target per baris">
+                      <textarea rows={3} value={form.target_audience ?? ""}
+                        onChange={e=>setForm({...form,target_audience:e.target.value||null})}
+                        placeholder={"Risk Manager & Compliance Officer\nDirektur & Manajer Senior\nAkuntan & Internal Auditor"}
+                        className="input resize-none text-[0.82rem]"/>
                     </Field>
                   </Section>
 

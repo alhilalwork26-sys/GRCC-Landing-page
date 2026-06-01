@@ -17,7 +17,8 @@ import { siteConfig, telHref, whatsappHref } from "@/lib/site-config";
 import { getIcon } from "@/lib/iconMap";
 import dynamic from "next/dynamic";
 
-const FlipBookModal = dynamic(() => import("@/components/FlipBookModal"), { ssr: false });
+const FlipBookModal      = dynamic(() => import("@/components/FlipBookModal"),      { ssr: false });
+const TrainingDetailModal = dynamic(() => import("@/components/TrainingDetailModal"), { ssr: false });
 
 function formatRupiah(n: number) {
   return "Rp " + n.toLocaleString("id-ID");
@@ -365,6 +366,7 @@ export default function SubProgramPage() {
   const [loading, setLoading]   = useState(true);
   const [loadingT, setLoadingT] = useState(true);
   const [flipBookUrl, setFlipBookUrl] = useState<string | null>(null);
+  const [selectedTraining, setSelectedTraining] = useState<TrainingItem | null>(null);
 
   // Fetch program + sub-program data
   useEffect(() => {
@@ -441,6 +443,13 @@ export default function SubProgramPage() {
           onClose={() => setFlipBookUrl(null)}
         />
       )}
+
+      {/* Training Detail Modal */}
+      <TrainingDetailModal
+        training={selectedTraining}
+        accent={program.accent}
+        onClose={() => setSelectedTraining(null)}
+      />
 
       {/* ── HERO ──────────────────────────────────────────── */}
       <section
@@ -628,6 +637,7 @@ export default function SubProgramPage() {
                         viewport={{ once: true }}
                         transition={{ duration: 0.5, delay: i * 0.09 }}
                         whileHover={{ y: -3, boxShadow: `0 8px 28px ${t.color}22` }}
+                        onClick={() => setSelectedTraining(t)}
                         className="rounded-2xl overflow-hidden border border-black/[0.07] bg-white cursor-pointer group"
                         style={{ boxShadow: "0 2px 10px rgba(0,0,0,0.04)" }}
                       >
@@ -674,7 +684,7 @@ export default function SubProgramPage() {
                         {/* Body */}
                         <div className="p-4">
                           <p className="font-bold text-[0.85rem] leading-snug line-clamp-2 mb-2.5">{t.title}</p>
-                          <div className="flex flex-col gap-1.5">
+                          <div className="flex flex-col gap-1.5 mb-3">
                             {t.date_start && (
                               <div className="flex items-center gap-2 text-[0.7rem] text-muted">
                                 <Calendar size={10} className="flex-shrink-0" />
@@ -687,6 +697,12 @@ export default function SubProgramPage() {
                                 <span className="truncate">{t.location}</span>
                               </div>
                             )}
+                          </div>
+                          <div
+                            className="flex items-center gap-1 text-[0.68rem] font-bold opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                            style={{ color: t.color }}
+                          >
+                            Lihat Detail <ArrowUpRight size={10} />
                           </div>
                         </div>
                       </motion.div>

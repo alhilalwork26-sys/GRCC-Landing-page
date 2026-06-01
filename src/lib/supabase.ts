@@ -69,6 +69,8 @@ export interface TrainingItem {
   va_bank: string | null;
   va_number: string | null;
   va_set_at: string | null;
+  objectives: string | null;
+  target_audience: string | null;
   created_at: string;
 }
 
