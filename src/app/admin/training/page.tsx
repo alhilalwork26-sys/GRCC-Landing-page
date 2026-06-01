@@ -341,6 +341,24 @@ export default function AdminTraining() {
                               Program {item.program_id}
                             </span>
                           )}
+                          {item.objectives ? (
+                            <span className="flex items-center gap-1 text-[0.62rem] font-semibold px-2 py-0.5 rounded-full bg-violet-50 text-violet-600 border border-violet-100">
+                              <CheckCircle2 size={9}/> Tujuan
+                            </span>
+                          ) : (
+                            <span className="flex items-center gap-1 text-[0.62rem] font-semibold px-2 py-0.5 rounded-full bg-gray-50 text-gray-400 border border-gray-100">
+                              Tujuan kosong
+                            </span>
+                          )}
+                          {item.target_audience ? (
+                            <span className="flex items-center gap-1 text-[0.62rem] font-semibold px-2 py-0.5 rounded-full bg-teal-50 text-teal-600 border border-teal-100">
+                              <CheckCircle2 size={9}/> Untuk Siapa
+                            </span>
+                          ) : (
+                            <span className="flex items-center gap-1 text-[0.62rem] font-semibold px-2 py-0.5 rounded-full bg-gray-50 text-gray-400 border border-gray-100">
+                              Peserta kosong
+                            </span>
+                          )}
                         </div>
                       </div>
 

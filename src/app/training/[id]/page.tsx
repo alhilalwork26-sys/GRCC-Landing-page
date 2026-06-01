@@ -30,11 +30,6 @@ function FormatIcon({ format }: { format: string }) {
   return <Building2 size={14} />;
 }
 
-const fadeUp = {
-  hidden: { opacity: 0, y: 20 },
-  visible: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.4, 0, 0.2, 1] } },
-};
-
 export default function TrainingDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [training, setTraining] = useState<TrainingItem | null>(null);

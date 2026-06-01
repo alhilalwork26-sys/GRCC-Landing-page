@@ -17,8 +17,7 @@ import { siteConfig, telHref, whatsappHref } from "@/lib/site-config";
 import { getIcon } from "@/lib/iconMap";
 import dynamic from "next/dynamic";
 
-const FlipBookModal      = dynamic(() => import("@/components/FlipBookModal"),      { ssr: false });
-const TrainingDetailModal = dynamic(() => import("@/components/TrainingDetailModal"), { ssr: false });
+const FlipBookModal = dynamic(() => import("@/components/FlipBookModal"), { ssr: false });
 
 function formatRupiah(n: number) {
   return "Rp " + n.toLocaleString("id-ID");
@@ -366,7 +365,6 @@ export default function SubProgramPage() {
   const [loading, setLoading]   = useState(true);
   const [loadingT, setLoadingT] = useState(true);
   const [flipBookUrl, setFlipBookUrl] = useState<string | null>(null);
-  const [selectedTraining, setSelectedTraining] = useState<TrainingItem | null>(null);
 
   // Fetch program + sub-program data
   useEffect(() => {
@@ -443,13 +441,6 @@ export default function SubProgramPage() {
           onClose={() => setFlipBookUrl(null)}
         />
       )}
-
-      {/* Training Detail Modal */}
-      <TrainingDetailModal
-        training={selectedTraining}
-        accent={program.accent}
-        onClose={() => setSelectedTraining(null)}
-      />
 
       {/* ── HERO ──────────────────────────────────────────── */}
       <section
