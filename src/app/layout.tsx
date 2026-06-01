@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { TransitionProvider } from "@/components/TransitionProvider";
 import ChatWidget from "@/components/ChatWidget";
+import { GoogleAnalytics } from "@next/third-parties/google";
 
 const BASE_URL = "https://grcc-landing-page.vercel.app";
 
@@ -70,6 +71,9 @@ export default function RootLayout({
         <TransitionProvider>{children}</TransitionProvider>
         <ChatWidget />
       </body>
+      {process.env.NEXT_PUBLIC_GA_ID && (
+        <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
+      )}
     </html>
   );
 }
