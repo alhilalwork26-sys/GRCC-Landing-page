@@ -637,7 +637,7 @@ export default function SubProgramPage() {
                         viewport={{ once: true }}
                         transition={{ duration: 0.5, delay: i * 0.09 }}
                         whileHover={{ y: -3, boxShadow: `0 8px 28px ${t.color}22` }}
-                        onClick={() => setSelectedTraining(t)}
+                        onClick={() => (window.location.href = `/training/${t.id}`)}
                         className="rounded-2xl overflow-hidden border border-black/[0.07] bg-white cursor-pointer group"
                         style={{ boxShadow: "0 2px 10px rgba(0,0,0,0.04)" }}
                       >

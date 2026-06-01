@@ -2,11 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import dynamic from "next/dynamic";
+import Link from "next/link";
 import { supabase, TrainingItem } from "@/lib/supabase";
 import { ArrowUpRight, Calendar, MapPin, Users, Wifi, MonitorPlay, Building2 } from "lucide-react";
-
-const TrainingDetailModal = dynamic(() => import("@/components/TrainingDetailModal"), { ssr: false });
 
 // ── format icon ───────────────────────────────────────────────────────────────
 function FormatIcon({ format }: { format: string }) {
@@ -73,20 +71,20 @@ function SkeletonCard() {
 }
 
 // ── Training Card ─────────────────────────────────────────────────────────────
-function TrainingCard({ t, index, onOpen }: { t: TrainingItem; index: number; onOpen: (t: TrainingItem) => void }) {
+function TrainingCard({ t, index }: { t: TrainingItem; index: number }) {
   const c = t.color || "#4F46E5";
   const [imgError, setImgError] = useState(false);
   const hasPoster = !!t.poster_url && !imgError;
 
   return (
+    <Link href={`/training/${t.id}`} className="block">
     <motion.article
       initial={{ opacity: 0, y: 32 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-40px" }}
       transition={{ duration: 0.55, delay: index * 0.1, ease: [0.4, 0, 0.2, 1] }}
       whileHover="hover"
-      onClick={() => onOpen(t)}
-      className="flex flex-col rounded-[20px] overflow-hidden bg-white border border-black/[0.07] cursor-pointer group"
+      className="flex flex-col rounded-[20px] overflow-hidden bg-white border border-black/[0.07] cursor-pointer group h-full"
       style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.05)" }}
     >
       {/* ── Poster area ── */}
@@ -180,22 +178,17 @@ function TrainingCard({ t, index, onOpen }: { t: TrainingItem; index: number; on
         </div>
 
         {/* CTA */}
-        <motion.a
-          href={`/daftar/${t.id}`}
-          onClick={(e) => e.stopPropagation()}
-          whileHover={{ scale: 1.015 }}
-          whileTap={{ scale: 0.97 }}
-          className="mt-1 flex items-center justify-center gap-2 text-white text-[0.8rem] font-bold py-2.5 rounded-xl transition-all group/btn"
+        <div
+          onClick={(e) => { e.preventDefault(); e.stopPropagation(); window.location.href = `/daftar/${t.id}`; }}
+          className="mt-1 flex items-center justify-center gap-2 text-white text-[0.8rem] font-bold py-2.5 rounded-xl transition-all group/btn hover:opacity-90 cursor-pointer"
           style={{ backgroundColor: c }}
         >
           Daftar Sekarang
-          <ArrowUpRight
-            size={13}
-            className="transition-transform group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5"
-          />
-        </motion.a>
+          <ArrowUpRight size={13} className="transition-transform group-hover/btn:translate-x-0.5 group-hover/btn:-translate-y-0.5" />
+        </div>
       </div>
     </motion.article>
+    </Link>
   );
 }
 
@@ -203,7 +196,6 @@ function TrainingCard({ t, index, onOpen }: { t: TrainingItem; index: number; on
 export default function Insights() {
   const [trainings, setTrainings] = useState<TrainingItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [selected, setSelected] = useState<TrainingItem | null>(null);
 
   useEffect(() => {
     supabase
@@ -219,8 +211,6 @@ export default function Insights() {
   }, []);
 
   return (
-    <>
-    <TrainingDetailModal training={selected} onClose={() => setSelected(null)} />
     <section id="training" className="py-[clamp(80px,10vw,140px)] bg-bg">
       <div className="max-w-[1280px] mx-auto px-6 lg:px-16">
 
@@ -269,7 +259,7 @@ export default function Insights() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {trainings.map((t, i) => (
-              <TrainingCard key={t.id} t={t} index={i} onOpen={setSelected} />
+              <TrainingCard key={t.id} t={t} index={i} />
             ))}
           </div>
         )}
@@ -289,6 +279,5 @@ export default function Insights() {
         </motion.p>
       </div>
     </section>
-    </>
   );
 }
