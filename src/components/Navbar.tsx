@@ -9,6 +9,7 @@ import { usePageTransition } from "./TransitionProvider";
 const links = [
   { label: "Services",  href: "#services",  page: false },
   { label: "Programs",  href: "/programs",  page: true  },
+  { label: "Jadwal",    href: "/jadwal",    page: true  },
   { label: "About",     href: "/about",     page: true  },
   { label: "Insights",  href: "/insights",  page: true  },
   { label: "Kontak",    href: "/contact",   page: true  },
