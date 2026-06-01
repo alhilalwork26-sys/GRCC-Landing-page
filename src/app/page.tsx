@@ -13,6 +13,7 @@ import Stats from "@/components/Stats";
 import Process from "@/components/Process";
 import VideoProfile from "@/components/VideoProfile";
 import Insights from "@/components/Insights";
+import Testimonials from "@/components/Testimonials";
 import CTABand from "@/components/CTABand";
 import Footer from "@/components/Footer";
 import PromoModal from "@/components/PromoModal";
@@ -41,6 +42,7 @@ export default function Home() {
             <VideoProfile />
             <Process />
             <Insights />
+            <Testimonials />
             <CTABand />
             <Footer />
             <PromoModal />

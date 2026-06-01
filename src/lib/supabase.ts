@@ -164,3 +164,18 @@ export interface TeamMember {
   order_index: number;
   active: boolean;
 }
+
+export interface TestimonialItem {
+  id: string;
+  name: string;
+  position: string | null;
+  company: string | null;
+  content: string;
+  rating: number;
+  avatar_url: string | null;
+  training_id: string | null;
+  training_name: string | null;
+  published: boolean;
+  featured: boolean;
+  created_at: string;
+}
