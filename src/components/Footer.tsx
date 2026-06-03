@@ -1,5 +1,6 @@
 import { ArrowUpRight } from "lucide-react";
 import Link from "next/link";
+import { siteConfig } from "@/lib/site-config";
 
 type FooterLink = { label: string; href: string };
 type FooterCol = { heading: string; links: FooterLink[] };
@@ -29,8 +30,10 @@ const footerNav: FooterCol[] = [
     heading: "Company",
     links: [
       { label: "About GRCC",   href: "/about" },
+      { label: "Jadwal",       href: "/jadwal" },
       { label: "Insights",     href: "/insights" },
       { label: "Kontak",       href: "/contact" },
+      { label: "Cek Status",   href: "/cek-status" },
     ],
   },
   {
@@ -65,16 +68,35 @@ export default function Footer() {
               Competitiveness
             </p>
             <div className="flex gap-2.5">
-              {/* LinkedIn */}
-              <a href="#" aria-label="LinkedIn" className="w-9 h-9 flex items-center justify-center rounded-md bg-white/[0.08] hover:bg-white/[0.16] transition-colors">
+              {/* Instagram */}
+              <a href={siteConfig.social.instagram || "#"} target={siteConfig.social.instagram ? "_blank" : undefined} rel="noopener noreferrer" aria-label="Instagram"
+                className="w-9 h-9 flex items-center justify-center rounded-md bg-white/[0.08] hover:bg-white/[0.16] transition-colors">
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-                  <path d="M3 6h2v7H3V6zm1-3.5a1.25 1.25 0 110 2.5 1.25 1.25 0 010-2.5zM7 6h2v1h.03C9.42 6.4 10.28 6 11.25 6 13.3 6 14 7.2 14 9.4V13h-2V9.8c0-.9-.02-2.05-1.25-2.05S9.25 8.8 9.25 9.7V13H7V6z" fill="white" opacity=".7" />
+                  <rect x="2" y="2" width="12" height="12" rx="3.5" stroke="white" strokeWidth="1.4" opacity=".7"/>
+                  <circle cx="8" cy="8" r="3" stroke="white" strokeWidth="1.4" opacity=".7"/>
+                  <circle cx="11.5" cy="4.5" r="0.75" fill="white" opacity=".7"/>
+                </svg>
+              </a>
+              {/* LinkedIn */}
+              <a href={siteConfig.social.linkedin || "#"} target={siteConfig.social.linkedin ? "_blank" : undefined} rel="noopener noreferrer" aria-label="LinkedIn"
+                className="w-9 h-9 flex items-center justify-center rounded-md bg-white/[0.08] hover:bg-white/[0.16] transition-colors">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <path d="M3 6h2v7H3V6zm1-3.5a1.25 1.25 0 110 2.5 1.25 1.25 0 010-2.5zM7 6h2v1h.03C9.42 6.4 10.28 6 11.25 6 13.3 6 14 7.2 14 9.4V13h-2V9.8c0-.9-.02-2.05-1.25-2.05S9.25 8.8 9.25 9.7V13H7V6z" fill="white" opacity=".7"/>
+                </svg>
+              </a>
+              {/* YouTube */}
+              <a href={siteConfig.social.youtube || "#"} target={siteConfig.social.youtube ? "_blank" : undefined} rel="noopener noreferrer" aria-label="YouTube"
+                className="w-9 h-9 flex items-center justify-center rounded-md bg-white/[0.08] hover:bg-white/[0.16] transition-colors">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
+                  <rect x="1.5" y="4" width="13" height="8" rx="2.5" stroke="white" strokeWidth="1.4" opacity=".7"/>
+                  <path d="M6.5 6l4 2-4 2V6z" fill="white" opacity=".7"/>
                 </svg>
               </a>
               {/* X / Twitter */}
-              <a href="#" aria-label="X" className="w-9 h-9 flex items-center justify-center rounded-md bg-white/[0.08] hover:bg-white/[0.16] transition-colors">
+              <a href={siteConfig.social.twitter || "#"} target={siteConfig.social.twitter ? "_blank" : undefined} rel="noopener noreferrer" aria-label="X / Twitter"
+                className="w-9 h-9 flex items-center justify-center rounded-md bg-white/[0.08] hover:bg-white/[0.16] transition-colors">
                 <svg width="14" height="14" viewBox="0 0 14 14" fill="none">
-                  <path d="M1.5 1.5l11 11M12.5 1.5l-5 5M1.5 12.5l5-5" stroke="white" strokeWidth="1.5" strokeLinecap="round" opacity=".7" />
+                  <path d="M1.5 1.5l11 11M12.5 1.5l-5 5M1.5 12.5l5-5" stroke="white" strokeWidth="1.5" strokeLinecap="round" opacity=".7"/>
                 </svg>
               </a>
             </div>

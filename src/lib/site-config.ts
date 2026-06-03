@@ -1,13 +1,19 @@
 const cleanPhone = (value?: string) => value?.replace(/[^\d]/g, "") ?? "";
 
 export const siteConfig = {
-  contactEmail: process.env.NEXT_PUBLIC_CONTACT_EMAIL || "info@grcc.or.id",
+  contactEmail:   process.env.NEXT_PUBLIC_CONTACT_EMAIL || "info@grcc.or.id",
   whatsappNumber: cleanPhone(process.env.NEXT_PUBLIC_WHATSAPP_NUMBER),
-  phoneNumber: cleanPhone(process.env.NEXT_PUBLIC_PHONE_NUMBER),
+  phoneNumber:    cleanPhone(process.env.NEXT_PUBLIC_PHONE_NUMBER),
   payment: {
-    bankName: process.env.NEXT_PUBLIC_PAYMENT_BANK_NAME || "",
+    bankName:      process.env.NEXT_PUBLIC_PAYMENT_BANK_NAME   || "",
     accountNumber: process.env.NEXT_PUBLIC_PAYMENT_ACCOUNT_NUMBER || "",
-    accountName: process.env.NEXT_PUBLIC_PAYMENT_ACCOUNT_NAME || "",
+    accountName:   process.env.NEXT_PUBLIC_PAYMENT_ACCOUNT_NAME   || "",
+  },
+  social: {
+    instagram: process.env.NEXT_PUBLIC_INSTAGRAM_URL || "",
+    linkedin:  process.env.NEXT_PUBLIC_LINKEDIN_URL  || "",
+    youtube:   process.env.NEXT_PUBLIC_YOUTUBE_URL   || "",
+    twitter:   process.env.NEXT_PUBLIC_TWITTER_URL   || "",
   },
 };
 

@@ -76,7 +76,17 @@ function DetailModal({
       .from("registrations")
       .update({ status })
       .eq("id", reg.id);
-    if (!error) onStatusChange(reg.id, status);
+    if (!error) {
+      onStatusChange(reg.id, status);
+      // Kirim email notifikasi ke peserta saat confirmed/rejected
+      if (status === "confirmed" || status === "rejected") {
+        fetch("/api/status-update-email", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ registrationId: reg.id, newStatus: status }),
+        }).catch(() => {/* silent */});
+      }
+    }
     setUpdating(false);
   };
 
