@@ -23,7 +23,20 @@ export default function ShareTrainingButton({
   const [copied, setCopied] = useState(false);
 
   const copyLink = async (url: string) => {
-    await navigator.clipboard.writeText(url);
+    if (navigator.clipboard?.writeText) {
+      await navigator.clipboard.writeText(url);
+    } else {
+      const textarea = document.createElement("textarea");
+      textarea.value = url;
+      textarea.setAttribute("readonly", "");
+      textarea.style.position = "fixed";
+      textarea.style.top = "-9999px";
+      document.body.appendChild(textarea);
+      textarea.select();
+      document.execCommand("copy");
+      document.body.removeChild(textarea);
+    }
+
     setCopied(true);
     window.setTimeout(() => setCopied(false), 1800);
   };
@@ -38,7 +51,7 @@ export default function ShareTrainingButton({
       text: `Saya ingin membagikan pelatihan GRCC: ${title}`,
       url,
     };
-    const isMobile = window.matchMedia("(pointer: coarse)").matches || navigator.maxTouchPoints > 1;
+    const isMobile = /Android|iPhone|iPad|iPod/i.test(navigator.userAgent);
 
     try {
       if (isMobile && navigator.share) {
