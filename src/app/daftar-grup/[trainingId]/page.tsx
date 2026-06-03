@@ -347,6 +347,16 @@ export default function DaftarGrupPage() {
           participantCount: participants.length,
           promoCode: appliedPromo?.code ?? undefined,
           finalPrice: subtotal ? finalTotal : undefined,
+          // Training details for confirmation email
+          trainingDate: training?.date_start
+            ? `${training.date_start}${training.date_end ? ` – ${training.date_end}` : ""}`
+            : undefined,
+          trainingTime:     training?.time     ?? undefined,
+          trainingLocation: training?.location ?? undefined,
+          trainingFormat:   training?.format   ?? undefined,
+          trainingColor:    training?.color    ?? undefined,
+          vaBank:    training?.va_bank   ?? undefined,
+          vaNumber:  training?.va_number ?? undefined,
         }),
       }).catch(() => {/* silent */});
 
