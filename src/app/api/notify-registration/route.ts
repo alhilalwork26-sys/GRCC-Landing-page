@@ -249,12 +249,24 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: true, skipped: true });
     }
 
-    const send = (to: string[], subject: string, html: string) =>
-      fetch("https://api.resend.com/emails", {
+    const fromAddress = process.env.RESEND_FROM_EMAIL
+      ? `GRCC <${process.env.RESEND_FROM_EMAIL}>`
+      : "GRCC <onboarding@resend.dev>";
+
+    const send = async (to: string[], subject: string, html: string) => {
+      const res = await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: { "Content-Type": "application/json", Authorization: `Bearer ${apiKey}` },
-        body: JSON.stringify({ from: "GRCC <onboarding@resend.dev>", to, subject, html }),
+        body: JSON.stringify({ from: fromAddress, to, subject, html }),
       });
+      const json = await res.json();
+      if (!res.ok) {
+        console.error(`[Resend] GAGAL kirim ke ${to.join(",")}:`, JSON.stringify(json));
+      } else {
+        console.log(`[Resend] Berhasil kirim ke ${to.join(",")} — id: ${json.id}`);
+      }
+      return json;
+    };
 
     // 1. Notify admin
     await send(
@@ -264,15 +276,17 @@ export async function POST(req: NextRequest) {
     );
 
     // 2. Confirmation to participant
+    let participantSent = false;
     if (body.email) {
-      await send(
+      const result = await send(
         [body.email],
         `✅ Konfirmasi Pendaftaran — ${body.trainingTitle}`,
         buildConfirmationEmail(body)
       );
+      participantSent = !!result?.id;
     }
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, participantEmailSent: participantSent });
   } catch (err) {
     console.error("notify-registration error:", err);
     return NextResponse.json({ success: true, error: String(err) });
