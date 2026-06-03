@@ -3,8 +3,10 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { supabase, TrainingItem } from "@/lib/supabase";
 import { ArrowUpRight, Calendar, MapPin, Users, Wifi, MonitorPlay, Building2 } from "lucide-react";
+import ShareTrainingButton from "@/components/ShareTrainingButton";
 
 // ── format icon ───────────────────────────────────────────────────────────────
 function FormatIcon({ format }: { format: string }) {
@@ -73,12 +75,13 @@ function SkeletonCard() {
 // ── Training Card ─────────────────────────────────────────────────────────────
 function TrainingCard({ t, index }: { t: TrainingItem; index: number }) {
   const c = t.color || "#4F46E5";
+  const router = useRouter();
   const [imgError, setImgError] = useState(false);
   const hasPoster = !!t.poster_url && !imgError;
 
   return (
-    <Link href={`/training/${t.id}`} className="block">
     <motion.article
+      onClick={() => router.push(`/training/${t.id}`)}
       initial={{ opacity: 0, y: 32 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-40px" }}
@@ -124,6 +127,14 @@ function TrainingCard({ t, index }: { t: TrainingItem; index: number }) {
             </span>
           )}
         </div>
+
+        <ShareTrainingButton
+          trainingId={t.id}
+          title={t.title}
+          accent={c}
+          variant="icon"
+          className="absolute right-3.5 top-3.5 z-10"
+        />
 
         {/* Bottom: price + seats — always show */}
         <div className="absolute bottom-3.5 left-3.5 right-3.5 flex items-end justify-between">
@@ -192,7 +203,6 @@ function TrainingCard({ t, index }: { t: TrainingItem; index: number }) {
         </div>
       </div>
     </motion.article>
-    </Link>
   );
 }
 

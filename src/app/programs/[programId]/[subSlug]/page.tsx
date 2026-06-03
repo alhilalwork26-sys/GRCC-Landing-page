@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import ShareTrainingButton from "@/components/ShareTrainingButton";
 import { supabase, TrainingItem, PromoCode, ProgramItem, SubProgramItem } from "@/lib/supabase";
 import { siteConfig, telHref, whatsappHref } from "@/lib/site-config";
 import { renderIcon } from "@/lib/iconMap";
@@ -664,6 +665,13 @@ export default function SubProgramPage() {
                           >
                             {t.format}
                           </span>
+                          <ShareTrainingButton
+                            trainingId={t.id}
+                            title={t.title}
+                            accent={t.color}
+                            variant="icon"
+                            className="absolute right-3 top-3 z-10 h-8 w-8"
+                          />
                           {(t.price || t.price_label) && (
                             <p className="absolute bottom-3 left-3 text-white font-extrabold text-[0.95rem] leading-none drop-shadow">
                               {t.price ? `Rp ${t.price.toLocaleString("id-ID")}` : t.price_label}

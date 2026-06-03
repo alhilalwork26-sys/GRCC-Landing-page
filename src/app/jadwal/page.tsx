@@ -3,12 +3,14 @@
 import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import {
   ChevronLeft, ChevronRight, Calendar, MapPin, Clock,
   Users, ArrowUpRight, Wifi, MonitorPlay, Building2, Search, X,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import ShareTrainingButton from "@/components/ShareTrainingButton";
 import { supabase, TrainingItem } from "@/lib/supabase";
 
 // ── Constants ─────────────────────────────────────────────────────────────────
@@ -504,6 +506,7 @@ export default function JadwalPage() {
 // ── Training Row Card ─────────────────────────────────────────────────────────
 function TrainingRow({ t, index, today }: { t: TrainingItem; index: number; today: Date }) {
   const c     = t.color || "#4F46E5";
+  const router = useRouter();
   const start = parseDateID(t.date_start);
   const end   = parseDateID(t.date_end);
   const isPast = end ? end < today : (start ? start < today : false);
@@ -515,11 +518,11 @@ function TrainingRow({ t, index, today }: { t: TrainingItem; index: number; toda
       viewport={{ once: true, margin: "-20px" }}
       transition={{ duration: 0.4, delay: index * 0.05, ease: [0.4, 0, 0.2, 1] }}
     >
-      <Link href={`/training/${t.id}`} className="block group">
         <motion.div
+          onClick={() => router.push(`/training/${t.id}`)}
           whileHover={{ y: -2, boxShadow: "0 8px 28px rgba(0,0,0,0.09)" }}
           transition={{ duration: 0.2 }}
-          className={`bg-white rounded-2xl border border-black/[0.06] overflow-hidden flex transition-all ${isPast ? "opacity-50 saturate-50" : ""}`}
+          className={`group bg-white rounded-2xl border border-black/[0.06] overflow-hidden flex cursor-pointer transition-all ${isPast ? "opacity-50 saturate-50" : ""}`}
           style={{ boxShadow: "0 1px 6px rgba(0,0,0,0.04)" }}
         >
           {/* Left color bar */}
@@ -605,20 +608,22 @@ function TrainingRow({ t, index, today }: { t: TrainingItem; index: number; toda
                   </p>
                 )}
                 {!isPast && (
-                  <motion.div
-                    whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
-                    onClick={(e) => { e.preventDefault(); window.location.href = `/daftar/${t.id}`; }}
-                    className="flex items-center gap-1.5 text-white text-[0.71rem] font-extrabold px-3 py-1.5 rounded-xl cursor-pointer"
-                    style={{ backgroundColor: c }}
-                  >
-                    Daftar <ArrowUpRight size={11} />
-                  </motion.div>
+                  <div className="flex items-center gap-1.5">
+                    <ShareTrainingButton trainingId={t.id} title={t.title} accent={c} variant="icon" className="h-8 w-8 border border-black/[0.06]" />
+                    <motion.div
+                      whileHover={{ scale: 1.04 }} whileTap={{ scale: 0.96 }}
+                      onClick={(e) => { e.preventDefault(); e.stopPropagation(); window.location.href = `/daftar/${t.id}`; }}
+                      className="flex items-center gap-1.5 text-white text-[0.71rem] font-extrabold px-3 py-1.5 rounded-xl cursor-pointer"
+                      style={{ backgroundColor: c }}
+                    >
+                      Daftar <ArrowUpRight size={11} />
+                    </motion.div>
+                  </div>
                 )}
               </div>
             </div>
           </div>
         </motion.div>
-      </Link>
     </motion.div>
   );
 }

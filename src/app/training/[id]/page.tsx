@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
+import ShareTrainingButton from "@/components/ShareTrainingButton";
 import { supabase, TrainingItem } from "@/lib/supabase";
 import { whatsappHref } from "@/lib/site-config";
 import dynamic from "next/dynamic";
@@ -409,6 +410,12 @@ export default function TrainingDetailPage() {
                     style={{ borderColor: c + "60", color: c }}>
                     <Users size={14} /> Daftar sebagai Grup
                   </Link>
+                  <ShareTrainingButton
+                    trainingId={training.id}
+                    title={training.title}
+                    accent={c}
+                    className="py-3 text-[0.85rem]"
+                  />
 
                   {/* Brochure */}
                   {training.brochure_url && (

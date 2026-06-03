@@ -8,6 +8,7 @@ import {
   Target, CheckCircle2, UserCheck, CreditCard, BookOpen,
 } from "lucide-react";
 import { TrainingItem } from "@/lib/supabase";
+import ShareTrainingButton from "@/components/ShareTrainingButton";
 
 interface Props {
   training: TrainingItem | null;
@@ -257,6 +258,13 @@ export default function TrainingDetailModal({ training, accent = "#4F46E5", onCl
                   >
                     <Users size={14} /> Grup
                   </Link>
+                  <ShareTrainingButton
+                    trainingId={training.id}
+                    title={training.title}
+                    accent={training.color}
+                    variant="icon"
+                    className="h-[50px] w-12 rounded-xl border border-border bg-white"
+                  />
                 </div>
               </div>
             </div>
