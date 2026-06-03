@@ -87,26 +87,30 @@ function TrainingCard({ t, index }: { t: TrainingItem; index: number }) {
       className="flex flex-col rounded-[20px] overflow-hidden bg-white border border-black/[0.07] cursor-pointer group h-full"
       style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.05)" }}
     >
-      {/* ── Poster area ── */}
-      <div className={`relative overflow-hidden ${hasPoster ? "aspect-[4/5] bg-[#F7F7F5]" : "h-[220px]"}`}>
+      {/* ── Poster area — fixed height for all cards ── */}
+      <div className="relative overflow-hidden h-[220px]">
         {hasPoster ? (
-          <motion.img
-            src={t.poster_url!}
-            alt={t.title}
-            onError={() => setImgError(true)}
-            className="absolute inset-0 w-full h-full object-cover"
-            variants={{ hover: { scale: 1.05 } }}
-            transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
-          />
+          <>
+            <motion.img
+              src={t.poster_url!}
+              alt={t.title}
+              onError={() => setImgError(true)}
+              className="absolute inset-0 w-full h-full object-cover"
+              variants={{ hover: { scale: 1.05 } }}
+              transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
+            />
+            {/* Subtle gradient so badges stay readable */}
+            <div className="absolute inset-x-0 bottom-0 h-[50%] bg-gradient-to-t from-black/50 to-transparent" />
+          </>
         ) : (
           <PosterPlaceholder training={t} />
         )}
 
-        {/* Dark gradient overlay at bottom */}
+        {/* Dark gradient overlay at bottom (no-poster only) */}
         {!hasPoster && <div className="absolute inset-x-0 bottom-0 h-[55%] bg-gradient-to-t from-black/60 to-transparent" />}
 
-        {/* Top badges */}
-        {!hasPoster && <div className="absolute top-3.5 left-3.5 flex items-center gap-2">
+        {/* Top badges — always show */}
+        <div className="absolute top-3.5 left-3.5 flex items-center gap-2">
           <span
             className="flex items-center gap-1.5 text-[0.6rem] font-extrabold tracking-[0.1em] uppercase px-2.5 py-1 rounded-full text-white shadow-sm"
             style={{ backgroundColor: c }}
@@ -119,10 +123,10 @@ function TrainingCard({ t, index }: { t: TrainingItem; index: number }) {
               {t.category}
             </span>
           )}
-        </div>}
+        </div>
 
-        {/* Bottom-left: price */}
-        {!hasPoster && <div className="absolute bottom-3.5 left-3.5 right-3.5 flex items-end justify-between">
+        {/* Bottom: price + seats — always show */}
+        <div className="absolute bottom-3.5 left-3.5 right-3.5 flex items-end justify-between">
           <div>
             {(t.price || t.price_label) && (
               <p className="text-white font-extrabold text-[1.05rem] leading-none drop-shadow-sm">
@@ -136,7 +140,7 @@ function TrainingCard({ t, index }: { t: TrainingItem; index: number }) {
               {t.max_participants} peserta
             </span>
           )}
-        </div>}
+        </div>
       </div>
 
       {/* ── Body ── */}
