@@ -37,7 +37,7 @@ export const metadata: Metadata = {
       "Pelatihan & solusi governance, risk management, dan compliance untuk organisasi Indonesia. Tersertifikasi, praktis, dan relevan.",
     images: [
       {
-        url: `${BASE_URL}/og-image.png`,
+        url: `${BASE_URL}/opengraph-image`,
         width: 1200,
         height: 630,
         alt: "GRCC – Center for Governance, Risk & Compliance",
@@ -48,7 +48,7 @@ export const metadata: Metadata = {
     card: "summary_large_image",
     title: "GRCC | Center for Governance, Risk & Compliance",
     description: "Pelatihan GRC profesional untuk organisasi Indonesia.",
-    images: [`${BASE_URL}/og-image.png`],
+    images: [`${BASE_URL}/opengraph-image`],
   },
   alternates: {
     canonical: BASE_URL,
