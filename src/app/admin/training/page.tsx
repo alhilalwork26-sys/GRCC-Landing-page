@@ -72,6 +72,7 @@ export default function AdminTraining() {
     else setItems(data ?? []);
     setLoading(false);
   };
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => { load(); }, []);
 
   const openNew  = () => { setForm({ ...EMPTY }); setEditId(null); };
@@ -621,7 +622,7 @@ export default function AdminTraining() {
                     </div>
                     <p className="text-[0.7rem] text-amber-700 mb-3 leading-relaxed">
                       Isi setelah mendapat VA dari Universitas Airlangga.
-                      Klik <strong>"Kirim VA ke Peserta"</strong> di halaman utama setelah disimpan.
+                      Klik <strong>&quot;Kirim VA ke Peserta&quot;</strong> di halaman utama setelah disimpan.
                     </p>
                     <div className="grid grid-cols-2 gap-3">
                       <Field label="Bank VA">

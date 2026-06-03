@@ -14,7 +14,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { supabase, TrainingItem, PromoCode, ProgramItem, SubProgramItem } from "@/lib/supabase";
 import { siteConfig, telHref, whatsappHref } from "@/lib/site-config";
-import { getIcon } from "@/lib/iconMap";
+import { renderIcon } from "@/lib/iconMap";
 import dynamic from "next/dynamic";
 
 const FlipBookModal = dynamic(() => import("@/components/FlipBookModal"), { ssr: false });
@@ -421,7 +421,6 @@ export default function SubProgramPage() {
     );
   }
 
-  const Icon = getIcon(program.icon_name);
   const subIndex = allSubs.findIndex((s) => s.slug === subSlug);
   const prevSub  = subIndex > 0 ? allSubs[subIndex - 1] : null;
   const nextSub  = subIndex < allSubs.length - 1 ? allSubs[subIndex + 1] : null;
@@ -495,7 +494,7 @@ export default function SubProgramPage() {
             className="flex items-center gap-3 mb-6"
           >
             <div className="flex items-center gap-2 px-3 py-1.5 rounded-full border" style={{ borderColor: program.accent + "40", backgroundColor: program.accent + "18" }}>
-              <Icon size={13} style={{ color: program.accent }} />
+              {renderIcon(program.icon_name, { size: 13, style: { color: program.accent } })}
               <span className="text-[0.65rem] font-extrabold tracking-[0.12em] uppercase" style={{ color: program.accent }}>{program.short}</span>
             </div>
             <span className="text-white/25 text-[0.68rem] font-mono">#{String(subIndex + 1).padStart(2, "0")}</span>
@@ -561,7 +560,7 @@ export default function SubProgramPage() {
                       className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
                       style={{ backgroundColor: program.accent + "18" }}
                     >
-                      <Icon size={22} style={{ color: program.accent }} />
+                      {renderIcon(program.icon_name, { size: 22, style: { color: program.accent } })}
                     </div>
                     <div>
                       <p className="font-extrabold text-[1.05rem] leading-snug">{sub.name}</p>

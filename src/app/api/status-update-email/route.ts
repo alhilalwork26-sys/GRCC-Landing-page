@@ -5,10 +5,13 @@ const ADMIN_EMAIL = "grcc.ailg@gmail.com";
 const WA_NUMBER   = "6288298989171";
 const SITE_URL    = "https://grcc-landing-page.vercel.app";
 
-const supabaseServer = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL    ?? "",
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ""
-);
+function createSupabaseServerClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!url || !key) return null;
+  return createClient(url, key);
+}
 
 function formatRp(n: number) {
   return "Rp " + n.toLocaleString("id-ID");
@@ -192,6 +195,14 @@ export async function POST(req: NextRequest) {
 
     const apiKey = process.env.RESEND_API_KEY;
     if (!apiKey) return NextResponse.json({ success: true, skipped: true });
+
+    const supabaseServer = createSupabaseServerClient();
+    if (!supabaseServer) {
+      return NextResponse.json(
+        { success: false, message: "Supabase environment belum dikonfigurasi" },
+        { status: 500 }
+      );
+    }
 
     // Fetch registration + training
     const { data: reg } = await supabaseServer

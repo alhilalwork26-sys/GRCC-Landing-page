@@ -1,3 +1,4 @@
+import { createElement, type ComponentProps } from "react";
 import {
   Shield,
   Leaf,
@@ -65,6 +66,10 @@ const iconMap: Record<string, LucideIcon> = {
 
 export function getIcon(name: string): LucideIcon {
   return iconMap[name] ?? Shield;
+}
+
+export function renderIcon(name: string, props: ComponentProps<LucideIcon>) {
+  return createElement(getIcon(name), props);
 }
 
 export const iconOptions: { name: string; label: string }[] = [

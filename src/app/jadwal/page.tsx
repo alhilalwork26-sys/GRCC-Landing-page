@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, useRef, useCallback } from "react";
+import { useEffect, useState, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import {
@@ -133,8 +133,8 @@ export default function JadwalPage() {
     return d && d >= today;
   }).length;
 
-  const prevMonth = useCallback(() => setCalMonth(new Date(year, month - 1, 1)), [year, month]);
-  const nextMonth = useCallback(() => setCalMonth(new Date(year, month + 1, 1)), [year, month]);
+  const prevMonth = () => setCalMonth(new Date(year, month - 1, 1));
+  const nextMonth = () => setCalMonth(new Date(year, month + 1, 1));
 
   // Scroll list to top when date changes
   useEffect(() => {

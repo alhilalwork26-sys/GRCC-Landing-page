@@ -1,12 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 
-const supabaseAdmin = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-);
-
 const ADMIN_EMAIL = "grcc.ailg@gmail.com";
+
+function createSupabaseAdminClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!url || !key) return null;
+  return createClient(url, key);
+}
 
 function buildVAEmail(data: {
   nama: string;
@@ -108,6 +111,11 @@ export async function POST(req: NextRequest) {
   try {
     const { trainingId } = await req.json();
     if (!trainingId) return NextResponse.json({ error: "trainingId required" }, { status: 400 });
+
+    const supabaseAdmin = createSupabaseAdminClient();
+    if (!supabaseAdmin) {
+      return NextResponse.json({ error: "Supabase environment belum dikonfigurasi" }, { status: 500 });
+    }
 
     // Fetch training data
     const { data: training, error: tErr } = await supabaseAdmin

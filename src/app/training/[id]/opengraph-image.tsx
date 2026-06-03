@@ -5,17 +5,23 @@ export const runtime     = "edge";
 export const size        = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL    ?? "",
-  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? ""
-);
+function createSupabaseServerClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+
+  if (!url || !key) return null;
+  return createClient(url, key);
+}
 
 export default async function TrainingOgImage({ params }: { params: { id: string } }) {
-  const { data: t } = await supabase
-    .from("training")
-    .select("title, category, format, date_start, date_end, location, price, price_label, color")
-    .eq("id", params.id)
-    .single();
+  const supabase = createSupabaseServerClient();
+  const { data: t } = supabase
+    ? await supabase
+      .from("training")
+      .select("title, category, format, date_start, date_end, location, price, price_label, color")
+      .eq("id", params.id)
+      .single()
+    : { data: null };
 
   const c       = t?.color   || "#4F46E5";
   const title   = t?.title   || "Program Pelatihan GRCC";

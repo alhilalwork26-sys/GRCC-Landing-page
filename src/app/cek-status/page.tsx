@@ -84,7 +84,6 @@ export default function CekStatusPage() {
 
     if (err) { setError("Terjadi kesalahan. Silakan coba lagi."); return; }
 
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const mapped: RegResult[] = (data ?? []).map((r: any) => ({
       ...r,
       training: Array.isArray(r.training) ? r.training[0] ?? null : r.training,

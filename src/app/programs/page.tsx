@@ -7,7 +7,7 @@ import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { supabase, ProgramItem, SubProgramItem } from "@/lib/supabase";
-import { getIcon } from "@/lib/iconMap";
+import { renderIcon } from "@/lib/iconMap";
 
 // ── variants ──────────────────────────────────────────────────────────────────
 const fadeUp = {
@@ -76,7 +76,6 @@ export default function ProgramsPage() {
 
   const prog = programs[active];
   const subs = prog ? (subsMap[prog.id] ?? []) : [];
-  const Icon = prog ? getIcon(prog.icon_name) : null;
 
   if (loading) return (
     <>
@@ -159,14 +158,13 @@ export default function ProgramsPage() {
                 </p>
                 <nav className="flex flex-col gap-1.5">
                   {programs.map((p, i) => {
-                    const PIcon = getIcon(p.icon_name);
                     const isActive = active === i;
                     return (
                       <button key={p.id} onClick={() => setActive(i)}
                         className={`group flex items-center gap-3.5 px-4 py-3.5 rounded-xl text-left transition-all duration-250 ${isActive ? "bg-dark text-white shadow-sm" : "hover:bg-dark/[0.05] text-dark/60 hover:text-dark"}`}>
                         <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors"
                           style={{ backgroundColor: isActive ? p.accent+"25" : "rgba(0,0,0,0.05)" }}>
-                          <PIcon size={15} style={{ color: isActive ? p.accent : undefined }} />
+                          {renderIcon(p.icon_name, { size: 15, style: { color: isActive ? p.accent : undefined } })}
                         </div>
                         <div className="flex-1 min-w-0">
                           <p className={`text-[0.82rem] font-semibold leading-tight truncate ${isActive ? "text-white" : ""}`}>{p.title}</p>
@@ -191,7 +189,7 @@ export default function ProgramsPage() {
                       <div className="flex items-center gap-4">
                         <div className="w-12 h-12 rounded-xl flex items-center justify-center flex-shrink-0"
                           style={{ backgroundColor: prog.accent+"25" }}>
-                          {Icon && <Icon size={22} style={{ color: prog.accent }} />}
+                          {renderIcon(prog.icon_name, { size: 22, style: { color: prog.accent } })}
                         </div>
                         <div>
                           <p className="text-[0.68rem] font-bold tracking-[0.14em] uppercase mb-1" style={{ color: prog.accent }}>
