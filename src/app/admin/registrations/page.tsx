@@ -8,13 +8,16 @@ import {
   Download, ExternalLink, X, ChevronDown, Users2,
   FileText, Phone, Mail, Building2, Briefcase,
   Receipt, Tag, RefreshCw, AlertCircle, Users,
+  Database, GraduationCap, CircleDollarSign,
 } from "lucide-react";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
+const INFO_SOURCE_KEY = "sumber_informasi";
+
 const STATUS_CONFIG = {
-  pending:   { label: "Pending",   color: "#F59E0B", bg: "#FEF3C7", icon: Clock         },
-  confirmed: { label: "Confirmed", color: "#10B981", bg: "#D1FAE5", icon: CheckCircle2  },
-  rejected:  { label: "Rejected",  color: "#EF4444", bg: "#FEE2E2", icon: XCircle       },
+  pending:   { label: "Menunggu",      color: "#F59E0B", bg: "#FEF3C7", icon: Clock         },
+  confirmed: { label: "Dikonfirmasi",  color: "#10B981", bg: "#D1FAE5", icon: CheckCircle2  },
+  rejected:  { label: "Ditolak",       color: "#EF4444", bg: "#FEE2E2", icon: XCircle       },
 } as const;
 
 function formatDate(s: string) {
@@ -36,6 +39,26 @@ function StatusBadge({ status }: { status: Registration["status"] }) {
       {cfg.label}
     </span>
   );
+}
+
+function customDataLabel(key: string, training?: TrainingItem) {
+  if (key === INFO_SOURCE_KEY) return "Sumber Informasi";
+  const cf = training?.custom_fields?.find((f) => f.id === key);
+  return cf?.label ?? key.replace(/_/g, " ");
+}
+
+function getInfoSource(reg: Registration) {
+  return reg.custom_data?.[INFO_SOURCE_KEY] || "—";
+}
+
+function formatRp(n: number | null | undefined) {
+  if (n == null) return "—";
+  return `Rp ${n.toLocaleString("id-ID")}`;
+}
+
+function escapeCsv(value: unknown) {
+  const text = String(value ?? "");
+  return `"${text.replace(/"/g, '""')}"`;
 }
 
 // ── Detail Modal ──────────────────────────────────────────────────────────────
@@ -196,8 +219,6 @@ function DetailModal({
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {Object.entries(reg.custom_data).map(([key, val]) => {
-                    // Find matching custom field label from training
-                    const cf = training?.custom_fields?.find((f) => f.id === key);
                     return (
                       <div key={key} className="flex items-start gap-3 p-3 rounded-xl bg-[#F7F7F5]">
                         <div className="w-7 h-7 rounded-lg bg-white flex items-center justify-center flex-shrink-0 mt-0.5 border border-border">
@@ -205,7 +226,7 @@ function DetailModal({
                         </div>
                         <div className="min-w-0">
                           <p className="text-[0.62rem] text-muted font-semibold uppercase tracking-wide">
-                            {cf?.label ?? key}
+                            {customDataLabel(key, training)}
                           </p>
                           <p className="text-[0.82rem] font-semibold text-dark break-words">{val || "—"}</p>
                         </div>
@@ -402,6 +423,9 @@ function RegistrationRow({
         </p>
         <p className="text-[0.7rem] text-muted">{training?.date_start ?? ""}</p>
       </td>
+      <td className="py-4 px-3 hidden xl:table-cell">
+        <p className="text-[0.78rem] text-dark/70 font-semibold line-clamp-1">{getInfoSource(reg)}</p>
+      </td>
       <td className="py-4 px-3">
         <StatusBadge status={reg.status} />
       </td>
@@ -470,6 +494,8 @@ export default function AdminRegistrations() {
         r.nama_lengkap.toLowerCase().includes(q) ||
         r.email.toLowerCase().includes(q) ||
         r.instansi.toLowerCase().includes(q) ||
+        r.telepon.toLowerCase().includes(q) ||
+        getInfoSource(r).toLowerCase().includes(q) ||
         t?.title.toLowerCase().includes(q) ||
         !!inParticipants
       );
@@ -486,30 +512,160 @@ export default function AdminRegistrations() {
     grup:      registrations.filter((r) => r.is_group).length,
   };
 
+  const totalParticipants = registrations.reduce((sum, r) => sum + (r.participant_count || 1), 0);
+  const confirmedRevenue = registrations
+    .filter((r) => r.status === "confirmed")
+    .reduce((sum, r) => sum + (r.final_price ?? 0), 0);
+  const uniqueTrainingCount = new Set(registrations.map((r) => r.training_id).filter(Boolean)).size;
+  const sourceCounts = registrations.reduce<Record<string, number>>((acc, reg) => {
+    const source = getInfoSource(reg);
+    if (source !== "—") acc[source] = (acc[source] ?? 0) + 1;
+    return acc;
+  }, {});
+  const topSources = Object.entries(sourceCounts)
+    .sort((a, b) => b[1] - a[1])
+    .slice(0, 4);
+
+  const resetFilters = () => {
+    setSearch("");
+    setFilterStatus("all");
+    setFilterTraining("all");
+    setFilterType("all");
+  };
+
+  const exportCsv = () => {
+    const headers = [
+      "Tanggal Daftar",
+      "Nama",
+      "Email",
+      "Telepon",
+      "Instansi",
+      "Jabatan",
+      "Pelatihan",
+      "Tanggal Pelatihan",
+      "Tipe",
+      "Jumlah Peserta",
+      "Status",
+      "Sumber Informasi",
+      "Kode Promo",
+      "Harga Awal",
+      "Diskon",
+      "Total",
+    ];
+    const rows = filtered.map((r) => {
+      const t = trainingMap[r.training_id ?? ""];
+      return [
+        formatDate(r.created_at),
+        r.nama_lengkap,
+        r.email,
+        r.telepon,
+        r.instansi,
+        r.jabatan,
+        t?.title ?? "",
+        t?.date_start ?? "",
+        r.is_group ? "Grup" : "Individu",
+        r.participant_count || 1,
+        STATUS_CONFIG[r.status].label,
+        getInfoSource(r),
+        r.promo_code ?? "",
+        r.original_price ?? "",
+        r.discount_amount ?? "",
+        r.final_price ?? "",
+      ];
+    });
+    const csv = [headers, ...rows]
+      .map((row) => row.map(escapeCsv).join(","))
+      .join("\n");
+    const blob = new Blob([`\uFEFF${csv}`], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `database-peserta-grcc-${new Date().toISOString().slice(0, 10)}.csv`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  };
+
   return (
-    <div className="max-w-[1100px]">
+    <div className="max-w-[1440px]">
       {/* Header */}
       <div className="flex items-start justify-between gap-4 mb-8 flex-wrap">
         <div>
-          <h1 className="text-[1.6rem] font-extrabold tracking-tight">Registrasi</h1>
-          <p className="text-muted text-[0.88rem] mt-1">Kelola semua pendaftaran pelatihan</p>
+          <div className="flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 rounded-2xl bg-dark text-white flex items-center justify-center">
+              <Database size={18} />
+            </div>
+            <div>
+              <h1 className="text-[1.7rem] font-extrabold tracking-tight">Database Peserta</h1>
+              <p className="text-muted text-[0.88rem] mt-0.5">Kelola, pantau, dan ekspor semua peserta pelatihan GRCC</p>
+            </div>
+          </div>
+          {topSources.length > 0 && (
+            <div className="flex items-center gap-2 flex-wrap mt-4">
+              <span className="text-[0.68rem] font-bold tracking-[0.12em] uppercase text-muted">Sumber teratas</span>
+              {topSources.map(([source, total]) => (
+                <span key={source} className="text-[0.72rem] font-semibold px-2.5 py-1 rounded-full bg-white border border-border text-dark/65">
+                  {source} · {total}
+                </span>
+              ))}
+            </div>
+          )}
         </div>
-        <button
-          onClick={load}
-          className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border hover:bg-dark/[0.05] text-[0.82rem] font-semibold text-dark/70 transition-colors"
-        >
-          <RefreshCw size={14} />
-          Refresh
-        </button>
+        <div className="flex items-center gap-2">
+          <button
+            onClick={exportCsv}
+            disabled={filtered.length === 0}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-dark text-white hover:bg-dark/90 disabled:opacity-40 disabled:cursor-not-allowed text-[0.82rem] font-semibold transition-colors"
+          >
+            <Download size={14} />
+            Ekspor CSV
+          </button>
+          <button
+            onClick={load}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border bg-white hover:bg-dark/[0.05] text-[0.82rem] font-semibold text-dark/70 transition-colors"
+          >
+            <RefreshCw size={14} />
+            Refresh
+          </button>
+        </div>
       </div>
 
       {/* Stat Cards */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+        {[
+          { label: "Total Peserta", value: totalParticipants, color: "#4F46E5", icon: Users2, desc: `${registrations.length} registrasi` },
+          { label: "Pelatihan Terisi", value: uniqueTrainingCount, color: "#6366F1", icon: GraduationCap, desc: "program dengan pendaftar" },
+          { label: "Pendapatan Terkonfirmasi", value: formatRp(confirmedRevenue), color: "#10B981", icon: CircleDollarSign, desc: "berdasarkan status dikonfirmasi" },
+          { label: "Pendaftaran Grup", value: counts.grup, color: "#F59E0B", icon: Users, desc: "registrasi tipe grup" },
+        ].map(({ label, value, color, icon: Icon, desc }, idx) => (
+          <motion.div
+            key={label}
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3, delay: idx * 0.05 }}
+            className="bg-white border border-border rounded-2xl p-4"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div>
+                <p className="text-[0.68rem] font-bold tracking-[0.12em] uppercase text-muted mb-2">{label}</p>
+                <p className="text-[1.45rem] font-extrabold leading-none" style={{ color }}>{value}</p>
+                <p className="text-[0.72rem] text-muted mt-2">{desc}</p>
+              </div>
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0" style={{ backgroundColor: color + "16" }}>
+                <Icon size={18} style={{ color }} />
+              </div>
+            </div>
+          </motion.div>
+        ))}
+      </div>
+
       <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
         {([
           ["all",       "Total",     "#4F46E5", Users2,       "status" ],
-          ["pending",   "Pending",   "#F59E0B", Clock,        "status" ],
-          ["confirmed", "Confirmed", "#10B981", CheckCircle2, "status" ],
-          ["rejected",  "Rejected",  "#EF4444", XCircle,      "status" ],
+          ["pending",   "Menunggu",  "#F59E0B", Clock,        "status" ],
+          ["confirmed", "Dikonfirmasi", "#10B981", CheckCircle2, "status" ],
+          ["rejected",  "Ditolak",   "#EF4444", XCircle,      "status" ],
           ["grup",      "Grup",      "#6366F1", Users,        "type"   ],
         ] as const).map(([key, label, color, Icon, kind], idx) => {
           const isActive = kind === "status"
@@ -555,7 +711,7 @@ export default function AdminRegistrations() {
           <Search size={15} className="text-muted flex-shrink-0" />
           <input
             type="text"
-            placeholder="Cari nama, email, instansi, atau training..."
+            placeholder="Cari nama, email, telepon, instansi, pelatihan, atau sumber informasi..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="flex-1 bg-transparent text-[0.84rem] outline-none text-dark placeholder:text-muted"
@@ -591,7 +747,7 @@ export default function AdminRegistrations() {
             className="flex items-center gap-2 px-4 py-2.5 rounded-xl border border-border bg-white text-[0.82rem] font-semibold text-dark/70 hover:bg-dark/[0.04] transition-colors"
           >
             <Filter size={14} />
-            {filterTraining === "all" ? "Semua Training" : trainingMap[filterTraining]?.title.slice(0, 22) + "…"}
+            {filterTraining === "all" ? "Semua Pelatihan" : trainingMap[filterTraining]?.title.slice(0, 22) + "…"}
             <ChevronDown size={13} className={`transition-transform ${showFilters ? "rotate-180" : ""}`} />
           </button>
 
@@ -607,7 +763,7 @@ export default function AdminRegistrations() {
                   onClick={() => { setFilterTraining("all"); setShowFilters(false); }}
                   className={`w-full text-left px-4 py-2.5 text-[0.82rem] font-semibold transition-colors ${filterTraining === "all" ? "text-dark bg-dark/[0.05]" : "text-muted hover:text-dark hover:bg-dark/[0.03]"}`}
                 >
-                  Semua Training
+                  Semua Pelatihan
                 </button>
                 {trainings.map((t) => (
                   <button
@@ -627,6 +783,14 @@ export default function AdminRegistrations() {
         <p className="text-[0.76rem] text-muted ml-auto">
           {filtered.length} dari {registrations.length} registrasi
         </p>
+        {(search || filterStatus !== "all" || filterTraining !== "all" || filterType !== "all") && (
+          <button
+            onClick={resetFilters}
+            className="text-[0.76rem] font-semibold text-dark/60 hover:text-dark underline underline-offset-4"
+          >
+            Reset filter
+          </button>
+        )}
       </div>
 
       {/* Table */}
@@ -667,7 +831,10 @@ export default function AdminRegistrations() {
                     Instansi
                   </th>
                   <th className="text-left py-3 px-3 text-[0.68rem] font-bold uppercase tracking-widest text-muted hidden lg:table-cell">
-                    Training
+                    Pelatihan
+                  </th>
+                  <th className="text-left py-3 px-3 text-[0.68rem] font-bold uppercase tracking-widest text-muted hidden xl:table-cell">
+                    Sumber
                   </th>
                   <th className="text-left py-3 px-3 text-[0.68rem] font-bold uppercase tracking-widest text-muted">
                     Status
