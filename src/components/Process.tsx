@@ -6,7 +6,7 @@ const steps = [
   {
     num: "01",
     title: "Diagnose",
-    desc: "We begin with a comprehensive assessment of your current governance structures, risk exposure, and compliance gaps to establish a clear baseline and identify priorities.",
+    desc: "Kami memulai dengan asesmen menyeluruh terhadap struktur tata kelola, paparan risiko, dan kesenjangan kepatuhan untuk menetapkan baseline serta prioritas yang jelas.",
   },
   {
     num: "02",
@@ -16,12 +16,12 @@ const steps = [
   {
     num: "03",
     title: "Implement",
-    desc: "We lead or support hands-on implementation of governance policies, risk controls, and compliance programs, integrating seamlessly with your existing operations.",
+    desc: "Kami memimpin atau mendukung implementasi kebijakan tata kelola, kontrol risiko, dan program kepatuhan secara praktis serta terintegrasi dengan operasi yang sudah berjalan.",
   },
   {
     num: "04",
     title: "Sustain",
-    desc: "Ongoing monitoring, training, and refinement ensures governance excellence is embedded in your culture and continuously adapts to evolving regulatory conditions.",
+    desc: "Pemantauan, pelatihan, dan penyempurnaan berkelanjutan memastikan keunggulan tata kelola tertanam dalam budaya organisasi dan mampu beradaptasi dengan perubahan regulasi.",
   },
 ];
 
@@ -42,7 +42,7 @@ export default function Process() {
           <h2 className="text-[clamp(2rem,4vw,3.2rem)] font-extrabold leading-[1.12] tracking-[-0.025em]">
             A proven methodology{" "}
             <br className="hidden md:block" />
-            for lasting governance change
+            untuk perubahan tata kelola yang berkelanjutan
           </h2>
         </motion.div>
 

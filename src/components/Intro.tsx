@@ -4,8 +4,8 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 
 const phrases = [
-  "Governance you can trust.",
-  "Compliance you can rely on.",
+  "Tata kelola yang dapat dipercaya.",
+  "Kepatuhan yang dapat diandalkan.",
 ];
 
 // 3 stages: 0 = phrase[0], 1 = phrase[1], 2 = logo
@@ -85,7 +85,7 @@ export default function Intro({ onComplete }: IntroProps) {
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src="/grcc-logo.svg"
-                    alt="GRCC Logo"
+                    alt="Logo GRCC"
                     width={320}
                     height={320}
                     style={{ width: 320, height: 320, objectFit: "contain" }}

@@ -7,11 +7,11 @@ import { usePathname } from "next/navigation";
 import { usePageTransition } from "./TransitionProvider";
 
 const links = [
-  { label: "Services",  href: "#services",  page: false },
-  { label: "Programs",  href: "/programs",  page: true  },
+  { label: "Layanan",   href: "#services",  page: false },
+  { label: "Program",   href: "/programs",  page: true  },
   { label: "Jadwal",    href: "/jadwal",    page: true  },
-  { label: "About",     href: "/about",     page: true  },
-  { label: "Insights",  href: "/insights",  page: true  },
+  { label: "Tentang",   href: "/about",     page: true  },
+  { label: "Artikel",   href: "/insights",  page: true  },
   { label: "Kontak",    href: "/contact",   page: true  },
 ];
 
@@ -103,7 +103,7 @@ export default function Navbar() {
             whileTap={{ scale: 0.98 }}
             className="flex items-center gap-2 bg-dark text-white text-[0.85rem] font-semibold px-5 py-3 rounded-[4px] border border-dark hover:bg-[#222] transition-colors"
           >
-            Get in touch
+            Hubungi Kami
             <ArrowUpRight size={14} />
           </motion.a>
         </div>
@@ -112,7 +112,7 @@ export default function Navbar() {
         <button
           onClick={() => setOpen((o) => !o)}
           className="ml-auto lg:hidden p-2"
-          aria-label="Toggle menu"
+          aria-label="Buka menu"
         >
           {open ? <X size={22} /> : <Menu size={22} />}
         </button>
@@ -156,7 +156,7 @@ export default function Navbar() {
                 onClick={() => setOpen(false)}
                 className="mt-3 flex items-center gap-2 bg-dark text-white text-[0.9rem] font-semibold px-5 py-3 rounded-[4px] w-fit"
               >
-                Get in touch <ArrowUpRight size={14} />
+                Hubungi Kami <ArrowUpRight size={14} />
               </a>
             </div>
           </motion.div>

@@ -4,8 +4,8 @@ import { motion } from "framer-motion";
 
 const cases = [
   {
-    title: "Corporate Governance",
-    desc: "Board structure optimization, director accountability frameworks, and shareholder rights protection for private and public entities.",
+    title: "Tata Kelola Korporasi",
+    desc: "Optimalisasi struktur dewan, kerangka akuntabilitas direksi, dan perlindungan hak pemegang saham untuk entitas privat maupun publik.",
     icon: (
       <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
         <rect x="3" y="3" width="9" height="9" rx="2" fill="#0A0A0A" />
@@ -16,8 +16,8 @@ const cases = [
     ),
   },
   {
-    title: "Regulatory Compliance",
-    desc: "Systematic compliance mapping and monitoring for financial, health, environmental, and sector-specific regulations.",
+    title: "Kepatuhan Regulasi",
+    desc: "Pemetaan dan pemantauan kepatuhan secara sistematis untuk regulasi keuangan, kesehatan, lingkungan, dan sektor spesifik.",
     icon: (
       <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
         <path d="M4 14C4 8.477 8.477 4 14 4s10 4.477 10 10-4.477 10-10 10S4 19.523 4 14z" fill="#0A0A0A" opacity=".15" />
@@ -26,8 +26,8 @@ const cases = [
     ),
   },
   {
-    title: "Public Sector Reform",
-    desc: "Government institutions and state-owned enterprise transformation through accountability, transparency, and performance management systems.",
+    title: "Reformasi Sektor Publik",
+    desc: "Transformasi institusi pemerintah dan BUMN/BUMD melalui akuntabilitas, transparansi, dan sistem manajemen kinerja.",
     icon: (
       <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
         <path d="M6 22V10l8-6 8 6v12H6z" fill="#0A0A0A" opacity=".15" />
@@ -36,8 +36,8 @@ const cases = [
     ),
   },
   {
-    title: "Financial Risk Management",
-    desc: "Credit, market, liquidity, and operational risk frameworks for banks, insurers, and financial institutions.",
+    title: "Manajemen Risiko Keuangan",
+    desc: "Kerangka risiko kredit, pasar, likuiditas, dan operasional untuk bank, asuransi, dan lembaga keuangan.",
     icon: (
       <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
         <path d="M4 20L10 14l4 4 4-5 6 7" stroke="#0A0A0A" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
@@ -45,8 +45,8 @@ const cases = [
     ),
   },
   {
-    title: "Anti-Corruption & Integrity",
-    desc: "Anti-bribery policies, whistleblowing mechanisms, and integrity management systems aligned with UN and OECD standards.",
+    title: "Anti-Korupsi & Integritas",
+    desc: "Kebijakan anti-suap, mekanisme pelaporan pelanggaran, dan sistem manajemen integritas yang selaras dengan standar PBB dan OECD.",
     icon: (
       <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
         <circle cx="14" cy="10" r="5" fill="#0A0A0A" opacity=".2" />
@@ -55,8 +55,8 @@ const cases = [
     ),
   },
   {
-    title: "Data Privacy & Security",
-    desc: "GDPR, PDPA, and data governance frameworks ensuring your organization responsibly manages personal data and digital assets.",
+    title: "Privasi & Keamanan Data",
+    desc: "Kerangka GDPR, PDPA, dan tata kelola data untuk memastikan organisasi mengelola data pribadi dan aset digital secara bertanggung jawab.",
     icon: (
       <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
         <rect x="4" y="8" width="20" height="14" rx="2" fill="#0A0A0A" opacity=".15" />
@@ -66,8 +66,8 @@ const cases = [
     ),
   },
   {
-    title: "ESG Reporting",
-    desc: "GRI, SASB, and TCFD-aligned sustainability reporting frameworks connecting environmental and social performance to business strategy.",
+    title: "Pelaporan ESG",
+    desc: "Kerangka pelaporan keberlanjutan berbasis GRI, SASB, dan TCFD yang menghubungkan kinerja lingkungan dan sosial dengan strategi bisnis.",
     icon: (
       <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
         <path d="M5 18C8 14 12 10 14 10s5 6 9 4" stroke="#0A0A0A" strokeWidth="1.8" strokeLinecap="round" />
@@ -76,8 +76,8 @@ const cases = [
     ),
   },
   {
-    title: "Competitiveness Analytics",
-    desc: "Benchmarking studies, policy impact analysis, and competitiveness indices that inform strategic decisions at the organizational level.",
+    title: "Analitik Daya Saing",
+    desc: "Studi benchmarking, analisis dampak kebijakan, dan indeks daya saing untuk mendukung keputusan strategis di tingkat organisasi.",
     icon: (
       <svg width="28" height="28" viewBox="0 0 28 28" fill="none">
         <path d="M14 4l2.5 7.5H24l-6.5 4.5 2.5 7.5L14 19l-6 4.5 2.5-7.5L4 11.5h7.5L14 4z" fill="#0A0A0A" opacity=".2" stroke="#0A0A0A" strokeWidth="1.2" />
@@ -108,12 +108,12 @@ export default function UseCases() {
           className="mb-[clamp(40px,6vw,80px)]"
         >
           <p className="text-[0.78rem] font-bold tracking-[0.12em] uppercase text-muted mb-4">
-            Programs & Solutions
+            Program & Solusi
           </p>
           <h2 className="text-[clamp(2rem,4vw,3.2rem)] font-extrabold leading-[1.12] tracking-[-0.025em]">
-            Across industries and sectors,{" "}
+            Lintas industri dan sektor,{" "}
             <br className="hidden md:block" />
-            we drive governance outcomes
+            kami mendorong hasil tata kelola yang nyata
           </h2>
         </motion.div>
 

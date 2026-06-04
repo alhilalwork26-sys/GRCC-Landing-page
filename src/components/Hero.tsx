@@ -36,7 +36,7 @@ export default function Hero() {
         className="mb-10"
       >
         <span className="inline-block px-4 py-2 bg-dark/[0.06] rounded-full text-[0.78rem] font-semibold tracking-[0.05em] text-muted">
-          Governance you can trust · Compliance you can rely on
+          Tata kelola tepercaya · Kepatuhan yang dapat diandalkan
         </span>
       </motion.div>
 
@@ -45,7 +45,7 @@ export default function Hero() {
         <motion.h1
           className="text-[clamp(3rem,7vw,7rem)] font-extrabold leading-[1.0] tracking-[-0.03em] text-dark"
         >
-          {["Center for", "Governance,", "Risk,", "Compliance & Competitiveness"].map((line, i) => (
+          {["Pusat Tata Kelola,", "Manajemen Risiko,", "Kepatuhan,", "dan Daya Saing"].map((line, i) => (
             <motion.span
               key={i}
               custom={i + 1}
@@ -68,7 +68,7 @@ export default function Hero() {
         >
           <Image
             src="https://images.unsplash.com/photo-1557804506-669a67965ba0?w=600&q=80"
-            alt="GRCC team at work"
+            alt="Tim GRCC berdiskusi"
             width={600}
             height={450}
             className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
@@ -87,7 +87,7 @@ export default function Hero() {
         >
           <Image
             src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=900&q=80"
-            alt="GRCC professionals"
+            alt="Profesional GRCC"
             width={900}
             height={675}
             className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
@@ -103,7 +103,7 @@ export default function Hero() {
             animate="visible"
             className="text-[clamp(1rem,1.5vw,1.15rem)] leading-[1.75] text-muted"
           >
-            GRCC adalah unit strategis di bawah AILG Universitas Airlangga yang berfokus pada penguatan tata kelola, manajemen risiko, kepatuhan, dan daya saing berkelanjutan. GRCC menjadi mitra bagi sektor publik, BUMN/BUMD, korporasi swasta, dan UMKM dalam menerapkan sistem GRC dan sustainability berbasis standar global, bukti empiris, serta konteks Indonesia.
+            GRCC adalah unit strategis di bawah AILG Universitas Airlangga yang berfokus pada penguatan tata kelola, manajemen risiko, kepatuhan, dan daya saing berkelanjutan. GRCC menjadi mitra bagi sektor publik, BUMN/BUMD, korporasi swasta, dan UMKM dalam menerapkan sistem GRC dan keberlanjutan berbasis standar global, bukti empiris, serta konteks Indonesia.
           </motion.p>
 
           <motion.div
@@ -119,7 +119,7 @@ export default function Hero() {
               whileTap={{ scale: 0.97 }}
               className="flex items-center gap-2 bg-dark text-white text-[0.88rem] font-semibold px-5 py-3.5 rounded-[4px] border border-dark hover:bg-[#222] transition-colors group"
             >
-              Get in Touch
+              Hubungi Kami
               <ArrowUpRight size={14} className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
             </motion.a>
             <motion.a
@@ -128,7 +128,7 @@ export default function Hero() {
               whileTap={{ scale: 0.97 }}
               className="flex items-center gap-2 bg-transparent text-dark text-[0.88rem] font-semibold px-5 py-3.5 rounded-[4px] border border-dark hover:bg-dark hover:text-white transition-colors group"
             >
-              What We Do
+              Lihat Layanan
               <ArrowUpRight size={14} className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
             </motion.a>
           </motion.div>
@@ -156,7 +156,7 @@ export default function Hero() {
                 transition={{ duration: 0.4, delay: 1.4 }}
                 className="font-mono text-[0.65rem] tracking-[0.2em] text-dark/30 uppercase whitespace-nowrap"
               >
-                /Trusted by
+                /Dipercaya oleh
               </motion.span>
               <motion.div
                 initial={{ scaleX: 0 }}

@@ -30,20 +30,20 @@ const fadeIn = {
 
 const values = [
   {
-    label: "Integrity",
-    desc: "We hold ourselves to the same standards we help our clients achieve. Transparency and ethical conduct are non-negotiable.",
+    label: "Integritas",
+    desc: "Kami menerapkan standar yang sama dengan standar yang kami bantu wujudkan bagi klien. Transparansi dan perilaku etis adalah prinsip yang tidak dapat ditawar.",
   },
   {
-    label: "Impact",
-    desc: "Every engagement is measured by real-world outcomes — not reports on shelves but governance that actually works.",
+    label: "Dampak",
+    desc: "Setiap pendampingan diukur dari hasil nyata, bukan sekadar laporan, melainkan tata kelola yang benar-benar berjalan.",
   },
   {
-    label: "Independence",
-    desc: "Our advice is never shaped by vendor interests or political pressure. We tell the truth, even when it is uncomfortable.",
+    label: "Independensi",
+    desc: "Rekomendasi kami tidak dipengaruhi kepentingan vendor atau tekanan politik. Kami menyampaikan fakta secara jernih, bahkan ketika tidak mudah.",
   },
   {
-    label: "Collaboration",
-    desc: "We build with our clients, not for them. Sustainable governance requires ownership from within the organization.",
+    label: "Kolaborasi",
+    desc: "Kami membangun bersama klien, bukan hanya untuk klien. Tata kelola berkelanjutan membutuhkan kepemilikan dari dalam organisasi.",
   },
 ];
 
@@ -153,11 +153,11 @@ export default function AboutPage() {
       <main>
         {/* ── Hero ─────────────────────────────────────────────────────── */}
         <section className="pt-[calc(72px+clamp(80px,10vw,120px))] pb-[clamp(60px,8vw,100px)] px-6 lg:px-16 max-w-[1280px] mx-auto">
-          <SectionLabel text="/About GRCC" />
+          <SectionLabel text="/Tentang GRCC" />
 
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-end">
             <div>
-              {["We are the bridge", "between governance", "ideals and", "organizational reality."].map(
+              {["Kami menjembatani", "ideal tata kelola", "dengan realitas", "organisasi."].map(
                 (line, i) => (
                   <motion.span
                     key={i}
@@ -179,10 +179,10 @@ export default function AboutPage() {
                 animate="visible"
                 className="mt-8 text-[clamp(1rem,1.4vw,1.1rem)] leading-[1.8] text-muted max-w-[520px]"
               >
-                Founded to close the gap between governance theory and practice,
-                GRCC partners with organizations across the public and private
-                sectors to build frameworks that are transparent, accountable, and
-                built to last.
+                GRCC hadir untuk menjembatani teori dan praktik tata kelola.
+                Kami bermitra dengan organisasi sektor publik dan swasta untuk
+                membangun kerangka kerja yang transparan, akuntabel, dan
+                berkelanjutan.
               </motion.p>
             </div>
 
@@ -195,7 +195,7 @@ export default function AboutPage() {
             >
               <Image
                 src="https://images.unsplash.com/photo-1521737604893-d14cc237f11d?w=900&q=80"
-                alt="GRCC team"
+                alt="Tim GRCC"
                 width={900}
                 height={675}
                 className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
@@ -213,10 +213,10 @@ export default function AboutPage() {
             className="mt-[clamp(60px,8vw,100px)] grid grid-cols-2 md:grid-cols-4 gap-px bg-border rounded-lg overflow-hidden"
           >
             {[
-              { value: "15+", label: "Years of experience" },
-              { value: "200+", label: "Organizations served" },
-              { value: "18", label: "Countries of engagement" },
-              { value: "98%", label: "Client satisfaction rate" },
+              { value: "15+", label: "Tahun pengalaman" },
+              { value: "200+", label: "Organisasi didampingi" },
+              { value: "18", label: "Negara jangkauan" },
+              { value: "98%", label: "Tingkat kepuasan klien" },
             ].map((stat) => (
               <div key={stat.label} className="bg-bg px-8 py-8">
                 <p className="text-[clamp(2rem,3.5vw,3rem)] font-extrabold tracking-[-0.04em] text-dark leading-none mb-2">
@@ -240,7 +240,7 @@ export default function AboutPage() {
                 <motion.div style={{ y: imgY }} className="absolute inset-[-10%]">
                   <Image
                     src="https://images.unsplash.com/photo-1577495508048-b635879837f1?w=800&q=80"
-                    alt="GRCC origin"
+                    alt="Awal mula GRCC"
                     fill
                     className="object-cover"
                   />
@@ -249,7 +249,7 @@ export default function AboutPage() {
 
               {/* Text */}
               <div className="order-1 lg:order-2">
-                <SectionLabel text="/Our Story" />
+                <SectionLabel text="/Cerita Kami" />
                 <motion.h2
                   variants={fadeUp}
                   custom={1}
@@ -258,10 +258,10 @@ export default function AboutPage() {
                   viewport={{ once: true }}
                   className="text-[clamp(2rem,3.5vw,3.2rem)] font-extrabold leading-[1.15] tracking-[-0.03em] text-dark mb-8"
                 >
-                  The origin of GRCC
+                  Awal mula GRCC
                 </motion.h2>
                 {[
-                  "GRCC merupakan pusat layanan profesional yang berfokus pada penguatan governance, risk management, compliance, sustainability, dan organizational competitiveness. Kami percaya bahwa tata kelola yang baik bukan hanya soal kepatuhan, tetapi juga fondasi strategis untuk membangun organisasi yang adaptif, tangguh, dan berdaya saing jangka panjang.",
+                  "GRCC merupakan pusat layanan profesional yang berfokus pada penguatan tata kelola, manajemen risiko, kepatuhan, keberlanjutan, dan daya saing organisasi. Kami percaya bahwa tata kelola yang baik bukan hanya soal kepatuhan, tetapi juga fondasi strategis untuk membangun organisasi yang adaptif, tangguh, dan berdaya saing jangka panjang.",
                   "Dengan dukungan akademisi, praktisi, dan tenaga ahli lintas disiplin, GRCC mengintegrasikan kekuatan riset, pelatihan, konsultasi, asesmen, dan sertifikasi untuk menghasilkan solusi yang relevan, aplikatif, dan berdampak bagi organisasi mitra.",
                 ].map((para, i) => (
                   <motion.p
@@ -284,7 +284,7 @@ export default function AboutPage() {
         {/* ── Values ───────────────────────────────────────────────────── */}
         <section className="py-[clamp(80px,10vw,130px)] px-6 lg:px-16 max-w-[1280px] mx-auto">
           <div className="mb-16">
-            <SectionLabel text="/What We Stand For" />
+            <SectionLabel text="/Prinsip Kami" />
             <motion.h2
               variants={fadeUp}
               custom={1}
@@ -293,7 +293,7 @@ export default function AboutPage() {
               viewport={{ once: true }}
               className="text-[clamp(2rem,3.5vw,3.2rem)] font-extrabold leading-[1.15] tracking-[-0.03em] text-dark max-w-[560px]"
             >
-              Principles that guide every engagement
+              Prinsip yang memandu setiap pendampingan
             </motion.h2>
           </div>
 
@@ -342,7 +342,7 @@ export default function AboutPage() {
                 transition={{ duration: 0.5, delay: 0.3 }}
                 className="font-mono text-[0.65rem] tracking-[0.22em] text-dark/30 uppercase whitespace-nowrap"
               >
-                /People
+                /Tim Kami
               </motion.span>
               <motion.div
                 initial={{ scaleX: 0 }}
@@ -362,7 +362,7 @@ export default function AboutPage() {
               viewport={{ once: true }}
               className="text-[clamp(2rem,3.5vw,3.2rem)] font-extrabold leading-[1.15] tracking-[-0.03em] text-dark mb-14"
             >
-              Our team
+              Tim Kami
             </motion.h2>
 
             {/* Card grid — 3 cols desktop, 2 tablet, 1 mobile */}
@@ -396,7 +396,7 @@ export default function AboutPage() {
                   viewport={{ once: true }}
                   className="font-mono text-[0.62rem] tracking-[0.22em] uppercase text-white/25 mb-6"
                 >
-                  /Join Us
+                  /Bergabung
                 </motion.p>
                 <motion.h2
                   variants={fadeUp}
@@ -406,7 +406,7 @@ export default function AboutPage() {
                   viewport={{ once: true }}
                   className="text-[clamp(2rem,3.5vw,3.5rem)] font-extrabold leading-[1.1] tracking-[-0.03em] text-white mb-6"
                 >
-                  Shape the future of governance
+                  Bentuk masa depan tata kelola
                 </motion.h2>
                 <motion.p
                   variants={fadeUp}
@@ -416,10 +416,10 @@ export default function AboutPage() {
                   viewport={{ once: true }}
                   className="text-[0.95rem] leading-[1.8] text-white/45 max-w-[440px]"
                 >
-                  We are always looking for exceptional people who share our
-                  commitment to governance excellence. If you are passionate
-                  about making organizations more transparent, accountable, and
-                  competitive — we want to hear from you.
+                  Kami selalu terbuka bagi talenta unggul yang memiliki komitmen
+                  terhadap tata kelola yang lebih baik. Jika Anda ingin membantu
+                  organisasi menjadi lebih transparan, akuntabel, dan berdaya
+                  saing, kami ingin mengenal Anda.
                 </motion.p>
               </div>
 
@@ -432,9 +432,9 @@ export default function AboutPage() {
                 className="flex flex-col gap-4"
               >
                 {[
-                  { title: "Senior Governance Advisor", type: "Full-time · Jakarta" },
-                  { title: "Compliance Analyst", type: "Full-time · Jakarta" },
-                  { title: "ESG Research Associate", type: "Contract · Remote" },
+                  { title: "Penasihat Senior Tata Kelola", type: "Penuh waktu · Jakarta" },
+                  { title: "Analis Kepatuhan", type: "Penuh waktu · Jakarta" },
+                  { title: "Rekan Riset ESG", type: "Kontrak · Jarak jauh" },
                 ].map((job) => (
                   <a
                     key={job.title}
@@ -456,7 +456,7 @@ export default function AboutPage() {
                   href="#"
                   className="flex items-center gap-2 text-[0.85rem] font-semibold text-white/40 hover:text-white transition-colors mt-2 w-fit"
                 >
-                  View all open positions
+                  Lihat semua posisi terbuka
                   <ArrowUpRight size={14} />
                 </Link>
               </motion.div>

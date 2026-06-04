@@ -106,7 +106,7 @@ export default function ProgramsPage() {
           className="max-w-[1280px] mx-auto px-6 lg:px-16 w-full">
           <motion.p initial={{ opacity:0, y:14 }} animate={{ opacity:1, y:0 }} transition={{ duration:0.55, delay:0.1 }}
             className="text-white/30 text-[0.72rem] font-mono tracking-[0.2em] uppercase mb-8">
-            GRCC &nbsp;/&nbsp; Programs
+            GRCC &nbsp;/&nbsp; Program
           </motion.p>
 
           <div className="overflow-hidden mb-5">

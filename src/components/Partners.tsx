@@ -25,7 +25,7 @@ export default function Partners() {
           transition={{ duration: 0.5 }}
           className="text-[0.78rem] font-bold tracking-[0.12em] uppercase text-muted text-center mb-12"
         >
-          Trusted by &amp; affiliated with leading organizations
+          Dipercaya oleh dan berafiliasi dengan organisasi terkemuka
         </motion.p>
       </div>
 

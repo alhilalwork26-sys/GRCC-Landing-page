@@ -35,7 +35,7 @@ export default function TrustedBy() {
             transition={{ duration: 0.5, delay: 0.4 }}
             className="font-mono text-[0.68rem] tracking-[0.2em] text-dark/30 uppercase whitespace-nowrap"
           >
-            /Trusted by
+            /Dipercaya oleh
           </motion.span>
           <motion.div
             initial={{ scaleX: 0 }}

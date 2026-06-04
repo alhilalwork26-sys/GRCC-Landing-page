@@ -240,9 +240,9 @@ export default function Insights() {
               Pelatihan Mendatang
             </p>
             <h2 className="text-[clamp(2rem,4vw,3.2rem)] font-extrabold leading-[1.12] tracking-[-0.025em]">
-              Develop your expertise{" "}
+              Kembangkan keahlian Anda{" "}
               <br className="hidden md:block" />
-              in governance &amp; compliance
+              di bidang tata kelola &amp; kepatuhan
             </h2>
           </motion.div>
 
@@ -268,7 +268,7 @@ export default function Insights() {
           </div>
         ) : trainings.length === 0 ? (
           <div className="text-center py-16 text-muted text-[0.88rem]">
-            Belum ada training yang dipublikasikan.
+            Belum ada pelatihan yang dipublikasikan.
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -288,7 +288,7 @@ export default function Insights() {
         >
           Butuh program khusus?{" "}
           <a href="mailto:info@grcc.org" className="underline underline-offset-2 hover:text-dark transition-colors">
-            Hubungi kami untuk In-House Training
+            Hubungi kami untuk pelatihan in-house
           </a>
         </motion.p>
       </div>

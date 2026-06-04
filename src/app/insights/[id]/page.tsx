@@ -291,7 +291,7 @@ export default function InsightDetailPage() {
       <Navbar />
       <div className="min-h-screen bg-[#F7F7F5] flex flex-col items-center justify-center gap-6">
         <p className="text-[1.1rem] font-bold text-dark/50">Artikel tidak ditemukan.</p>
-        <Link href="/insights" className="text-[0.85rem] font-semibold text-dark underline underline-offset-4">← Kembali ke Insights</Link>
+        <Link href="/insights" className="text-[0.85rem] font-semibold text-dark underline underline-offset-4">← Kembali ke Artikel</Link>
       </div>
       <Footer />
     </>
@@ -319,7 +319,7 @@ export default function InsightDetailPage() {
             style={{ left: sel.x, top: sel.y, translateX: "-50%", position: "fixed" }}
             className="z-[200] bg-[#0A0A0A] text-white rounded-full px-1 py-1 flex items-center gap-0.5 shadow-2xl pointer-events-auto"
           >
-            <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`"${sel.text}" — via GRCC Insights\n${pageUrl}`)}`}
+            <a href={`https://twitter.com/intent/tweet?text=${encodeURIComponent(`"${sel.text}" — via GRCC Artikel\n${pageUrl}`)}`}
               target="_blank" rel="noopener noreferrer"
               className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-full hover:bg-white/15 transition-colors text-[0.7rem] font-bold">
               <X size={11} /> Tweet
@@ -355,7 +355,7 @@ export default function InsightDetailPage() {
             className="flex items-center gap-2 text-white/28 text-[0.65rem] font-mono tracking-[0.15em] uppercase mb-8">
             <Link href="/" className="hover:text-white/55 transition-colors">GRCC</Link>
             <ChevronRight size={10} />
-            <Link href="/insights" className="hover:text-white/55 transition-colors">Insights</Link>
+            <Link href="/insights" className="hover:text-white/55 transition-colors">Artikel</Link>
             <ChevronRight size={10} />
             <span className="text-white/45">{item.type}</span>
           </motion.div>
@@ -416,7 +416,7 @@ export default function InsightDetailPage() {
               <motion.button onClick={() => router.back()} whileHover={{ x: -3 }}
                 className="flex items-center gap-2 text-[0.78rem] font-bold text-dark/38 hover:text-dark transition-colors mb-10 group">
                 <ArrowLeft size={14} className="transition-transform group-hover:-translate-x-0.5" />
-                Kembali ke Insights
+                Kembali ke Artikel
               </motion.button>
 
               {item.content ? (
@@ -670,7 +670,7 @@ export default function InsightDetailPage() {
                 <h2 className="text-[1.3rem] font-extrabold tracking-tight">Artikel {item.type} Lainnya</h2>
               </div>
               <Link href="/insights" className="flex items-center gap-2 text-[0.8rem] font-bold text-dark/45 hover:text-dark transition-colors">
-                Semua Insights <ArrowUpRight size={14} />
+                Semua Artikel <ArrowUpRight size={14} />
               </Link>
             </div>
             <motion.div

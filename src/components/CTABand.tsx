@@ -16,16 +16,16 @@ export default function CTABand() {
         >
           <div>
             <p className="text-[0.78rem] font-bold tracking-[0.12em] uppercase text-white/40 mb-5">
-              Start the conversation
+              Mulai percakapan
             </p>
             <h2 className="text-[clamp(2rem,4vw,3.2rem)] font-extrabold leading-[1.1] tracking-[-0.03em] text-white mb-5">
-              Ready to strengthen your{" "}
+              Siap memperkuat{" "}
               <br className="hidden md:block" />
-              governance &amp; compliance?
+              tata kelola &amp; kepatuhan?
             </h2>
             <p className="text-[1rem] leading-[1.7] text-white/50 max-w-[48ch]">
-              Our experts are ready to assess your current state and design a path to
-              governance excellence tailored to your organization.
+              Tim ahli kami siap memetakan kondisi organisasi Anda dan merancang langkah
+              menuju tata kelola unggul yang sesuai dengan kebutuhan organisasi.
             </p>
           </div>
 
@@ -36,7 +36,7 @@ export default function CTABand() {
               whileTap={{ scale: 0.97 }}
               className="flex items-center gap-2 bg-white text-dark text-[0.95rem] font-semibold px-7 py-4 rounded-[4px] border border-white hover:bg-[#f0efea] transition-colors group"
             >
-              Get in Touch
+              Hubungi Kami
               <ArrowUpRight size={16} className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
             </motion.a>
             <div className="flex flex-col gap-1.5">

@@ -491,7 +491,7 @@ export default function DaftarPage() {
   if (!training) return (
     <div className="min-h-screen flex flex-col items-center justify-center gap-4 text-muted">
       <p>Program tidak ditemukan.</p>
-      <Link href="/programs" className="text-dark underline text-sm">← Kembali ke Programs</Link>
+      <Link href="/programs" className="text-dark underline text-sm">← Kembali ke Program</Link>
     </div>
   );
 
@@ -529,7 +529,7 @@ export default function DaftarPage() {
                 href="/programs"
                 className="inline-flex items-center gap-2 text-[0.78rem] font-semibold text-muted hover:text-dark transition-colors"
               >
-                <ArrowLeft size={13} /> Kembali ke Programs
+                <ArrowLeft size={13} /> Kembali ke Program
               </Link>
             </motion.div>
 

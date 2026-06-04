@@ -129,7 +129,7 @@ export default function ContactPage() {
                 <span className="text-dark/30">dengan Tim Kami</span>
               </motion.h1>
               <motion.p variants={fadeUp} className="text-[1rem] text-dark/55 leading-[1.75] max-w-[480px]">
-                Kami siap membantu Anda merancang solusi governance, risk, dan compliance yang tepat untuk organisasi Anda.
+                Kami siap membantu Anda merancang solusi tata kelola, manajemen risiko, dan kepatuhan yang tepat untuk organisasi Anda.
               </motion.p>
             </motion.div>
           </div>

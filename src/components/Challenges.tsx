@@ -139,10 +139,10 @@ function CentralText({ scrollYProgress }: { scrollYProgress: MotionValue<number>
     >
       <div className="text-center max-w-[520px]">
         <p className="text-[clamp(1.45rem,2.2vw,1.9rem)] font-extrabold leading-[1.35] tracking-[-0.03em] text-dark mb-3">
-          We recognize the challenges you face.
+          Kami memahami tantangan yang Anda hadapi.
         </p>
         <p className="text-[clamp(0.95rem,1.2vw,1.1rem)] font-normal leading-[1.7] text-dark/40">
-          That is why your path to governance excellence starts here.
+          Karena itu, perjalanan menuju tata kelola unggul dimulai dari sini.
         </p>
 
         {/* Decorative dots */}
@@ -229,10 +229,10 @@ export default function Challenges() {
             className="text-center mb-2"
           >
             <p className="text-[1.5rem] font-extrabold leading-[1.35] tracking-[-0.025em] text-dark mb-2">
-              We recognize the challenges you face.
+              Kami memahami tantangan yang Anda hadapi.
             </p>
             <p className="text-[0.95rem] text-dark/40 leading-[1.7]">
-              That is why your path to governance excellence starts here.
+              Karena itu, perjalanan menuju tata kelola unggul dimulai dari sini.
             </p>
           </motion.div>
 

@@ -6,33 +6,33 @@ import { ArrowUpRight } from "lucide-react";
 const services = [
   {
     num: "01",
-    title: "Governance Advisory",
-    desc: "Strategic guidance and roadmap development for building robust governance structures aligned with your organizational goals and regulatory landscape.",
+    title: "Konsultasi Tata Kelola",
+    desc: "Pendampingan strategis dan penyusunan peta jalan untuk membangun struktur tata kelola yang selaras dengan tujuan organisasi dan lanskap regulasi.",
   },
   {
     num: "02",
-    title: "Risk Management",
-    desc: "Comprehensive enterprise risk identification, assessment, and mitigation frameworks that protect your organization from operational, financial, and reputational risks.",
+    title: "Manajemen Risiko",
+    desc: "Kerangka identifikasi, asesmen, dan mitigasi risiko yang melindungi organisasi dari risiko operasional, keuangan, dan reputasi.",
   },
   {
     num: "03",
-    title: "Compliance Solutions",
-    desc: "End-to-end compliance programs tailored to industry standards and regulatory requirements, ensuring your organization meets obligations efficiently.",
+    title: "Solusi Kepatuhan",
+    desc: "Program kepatuhan end-to-end yang disesuaikan dengan standar industri dan persyaratan regulasi agar kewajiban organisasi terpenuhi secara efisien.",
   },
   {
     num: "04",
-    title: "Competitiveness Strategy",
-    desc: "Data-driven strategies that leverage governance excellence as a competitive differentiator, positioning your organization for sustainable market leadership.",
+    title: "Strategi Daya Saing",
+    desc: "Strategi berbasis data yang menjadikan keunggulan tata kelola sebagai pembeda kompetitif dan mendorong kepemimpinan pasar yang berkelanjutan.",
   },
   {
     num: "05",
-    title: "ESG & Sustainability",
-    desc: "Environmental, Social, and Governance framework development and reporting to meet stakeholder expectations and global sustainability standards.",
+    title: "ESG & Keberlanjutan",
+    desc: "Pengembangan kerangka dan pelaporan ESG untuk memenuhi ekspektasi pemangku kepentingan serta standar keberlanjutan global.",
   },
   {
     num: "06",
-    title: "Training & Capacity Building",
-    desc: "Tailored training programs that build governance and compliance capabilities across all levels of your organization, from board to operational teams.",
+    title: "Pelatihan & Penguatan Kapasitas",
+    desc: "Program pelatihan yang membangun kapabilitas tata kelola dan kepatuhan di seluruh level organisasi, dari pimpinan hingga tim operasional.",
   },
 ];
 
@@ -59,12 +59,12 @@ export default function Services() {
           className="mb-[clamp(40px,6vw,80px)]"
         >
           <p className="text-[0.78rem] font-bold tracking-[0.12em] uppercase text-muted mb-4">
-            Our Services
+            Layanan Kami
           </p>
           <h2 className="text-[clamp(2rem,4vw,3.2rem)] font-extrabold leading-[1.12] tracking-[-0.025em]">
-            Expert capabilities across{" "}
+            Kapabilitas ahli untuk seluruh{" "}
             <br className="hidden md:block" />
-            the governance spectrum
+            spektrum tata kelola
           </h2>
         </motion.div>
 
@@ -94,7 +94,7 @@ export default function Services() {
                 href="#contact"
                 className="inline-flex items-center gap-1.5 text-[0.8rem] font-bold tracking-[0.05em] text-dark"
               >
-                Learn more
+                Pelajari lebih lanjut
                 <ArrowUpRight
                   size={14}
                   className="transition-transform duration-250 group-hover:translate-x-0.5 group-hover:-translate-y-0.5"

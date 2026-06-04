@@ -395,7 +395,7 @@ export default function DaftarGrupPage() {
             {/* Back */}
             <motion.div initial={{ opacity: 0, x: -12 }} animate={{ opacity: 1, x: 0 }} className="mb-8">
               <Link href="/programs" className="inline-flex items-center gap-2 text-[0.78rem] font-semibold text-muted hover:text-dark transition-colors">
-                <ArrowLeft size={13} /> Kembali ke Programs
+                <ArrowLeft size={13} /> Kembali ke Program
               </Link>
             </motion.div>
 

@@ -7,31 +7,31 @@ type FooterCol = { heading: string; links: FooterLink[] };
 
 const footerNav: FooterCol[] = [
   {
-    heading: "Services",
+    heading: "Layanan",
     links: [
-      { label: "Governance Advisory",   href: "/programs" },
-      { label: "Risk Management",       href: "/programs" },
-      { label: "Compliance Solutions",  href: "/programs" },
-      { label: "ESG Frameworks",        href: "/programs" },
-      { label: "Training Programs",     href: "/programs" },
+      { label: "Konsultasi Tata Kelola", href: "/programs" },
+      { label: "Manajemen Risiko",       href: "/programs" },
+      { label: "Solusi Kepatuhan",       href: "/programs" },
+      { label: "Kerangka ESG",           href: "/programs" },
+      { label: "Program Pelatihan",      href: "/programs" },
     ],
   },
   {
-    heading: "Programs",
+    heading: "Program",
     links: [
-      { label: "Corporate Governance",  href: "/programs" },
-      { label: "Public Sector Reform",  href: "/programs" },
-      { label: "Anti-Corruption",       href: "/programs" },
-      { label: "Data Privacy",          href: "/programs" },
-      { label: "ESG Reporting",         href: "/programs" },
+      { label: "Tata Kelola Korporasi", href: "/programs" },
+      { label: "Reformasi Sektor Publik", href: "/programs" },
+      { label: "Anti-Korupsi",          href: "/programs" },
+      { label: "Privasi Data",          href: "/programs" },
+      { label: "Pelaporan ESG",         href: "/programs" },
     ],
   },
   {
-    heading: "Company",
+    heading: "Perusahaan",
     links: [
-      { label: "About GRCC",   href: "/about" },
+      { label: "Tentang GRCC", href: "/about" },
       { label: "Jadwal",       href: "/jadwal" },
-      { label: "Insights",     href: "/insights" },
+      { label: "Artikel",      href: "/insights" },
       { label: "Kontak",       href: "/contact" },
       { label: "Cek Status",   href: "/cek-status" },
     ],
@@ -63,9 +63,9 @@ export default function Footer() {
               />
             </Link>
             <p className="text-[0.86rem] leading-[1.7] text-white/35 mb-7">
-              Center for Governance,<br />
-              Risk, Compliance &amp;<br />
-              Competitiveness
+              Pusat Tata Kelola,<br />
+              Risiko, Kepatuhan &amp;<br />
+              Daya Saing
             </p>
             <div className="flex gap-2.5">
               {/* Instagram */}
@@ -126,10 +126,10 @@ export default function Footer() {
         {/* Bottom */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 py-6">
           <p className="text-[0.76rem] text-white/22">
-            &copy; 2025 GRCC — Center for Governance, Risk, Compliance &amp; Competitiveness. All rights reserved.
+            &copy; 2025 GRCC — Pusat Tata Kelola, Risiko, Kepatuhan &amp; Daya Saing. Seluruh hak cipta dilindungi.
           </p>
           <div className="flex gap-6 flex-wrap items-center">
-            {["Privacy Policy", "Terms of Use", "Responsible Governance"].map((l) => (
+            {["Kebijakan Privasi", "Ketentuan Penggunaan", "Tata Kelola Bertanggung Jawab"].map((l) => (
               <a key={l} href="#" className="text-[0.76rem] text-white/22 hover:text-white/55 transition-colors">
                 {l}
               </a>

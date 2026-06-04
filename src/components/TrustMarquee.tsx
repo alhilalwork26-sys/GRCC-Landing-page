@@ -1,12 +1,12 @@
 const items = [
-  "Governance Advisory",
-  "Risk Management",
-  "Regulatory Compliance",
-  "ESG Frameworks",
-  "Organizational Competitiveness",
-  "Policy Development",
-  "Internal Audit",
-  "Digital Governance",
+  "Konsultasi Tata Kelola",
+  "Manajemen Risiko",
+  "Kepatuhan Regulasi",
+  "Kerangka ESG",
+  "Daya Saing Organisasi",
+  "Pengembangan Kebijakan",
+  "Audit Internal",
+  "Tata Kelola Digital",
 ];
 
 export default function TrustMarquee() {

@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 
 export const runtime = "edge";
-export const alt     = "GRCC — Center for Governance, Risk, Compliance & Competitiveness";
+export const alt     = "GRCC — Pusat Tata Kelola, Risiko, Kepatuhan & Daya Saing";
 export const size    = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -118,8 +118,8 @@ export default function OgImage() {
                 flexDirection: "column",
               }}
             >
-              <span>Center for Governance,</span>
-              <span style={{ color: "rgba(255,255,255,0.5)" }}>Risk &amp; Compliance</span>
+              <span>Pusat Tata Kelola,</span>
+              <span style={{ color: "rgba(255,255,255,0.5)" }}>Risiko &amp; Kepatuhan</span>
             </div>
 
             <p

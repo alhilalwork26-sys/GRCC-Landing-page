@@ -298,7 +298,7 @@ export default function InsightsPage() {
             transition={{ duration: 0.5, delay: 0.1 }}
             className="text-white/25 text-[0.7rem] font-mono tracking-[0.22em] uppercase mb-8"
           >
-            GRCC &nbsp;/&nbsp; Insights
+            GRCC &nbsp;/&nbsp; Artikel
           </motion.p>
 
           <div className="overflow-hidden mb-4">
@@ -309,7 +309,7 @@ export default function InsightsPage() {
               className="text-white font-extrabold leading-[0.93] tracking-[-0.035em]"
               style={{ fontSize: "clamp(3rem, 7vw, 6.5rem)" }}
             >
-              Insights &amp;
+              Artikel &amp;
             </motion.h1>
           </div>
           <div className="overflow-hidden mb-8">
@@ -336,7 +336,7 @@ export default function InsightsPage() {
               className="text-white/38 text-[0.95rem] leading-[1.85] max-w-[460px]"
             >
               Dokumentasi kegiatan, publikasi riset, dan berita terkini dari
-              Center for Governance, Risk, Compliance &amp; Competitiveness.
+              Pusat Tata Kelola, Risiko, Kepatuhan &amp; Daya Saing.
             </motion.p>
 
             <motion.div
@@ -546,12 +546,12 @@ export default function InsightsPage() {
                 <br />dan riset terbaru GRCC.
               </h2>
               <p className="text-white/35 text-[0.9rem] leading-[1.85] mb-8">
-                Bergabunglah dengan 1.000+ profesional yang berlangganan — insights
-                governance, jadwal pelatihan, dan publikasi terbaru langsung ke inbox Anda.
+                Bergabunglah dengan 1.000+ profesional yang berlangganan — artikel
+                tata kelola, jadwal pelatihan, dan publikasi terbaru langsung ke kotak masuk Anda.
               </p>
               {/* Topic chips */}
               <div className="flex flex-wrap gap-2">
-                {["Corporate Governance","ESG","Audit Internal","Kepatuhan","Riset","Pelatihan"].map((t) => (
+                {["Tata Kelola Korporasi","ESG","Audit Internal","Kepatuhan","Riset","Pelatihan"].map((t) => (
                   <span
                     key={t}
                     className="text-[0.68rem] font-semibold px-3 py-1.5 rounded-full border border-white/10 text-white/40"

@@ -117,7 +117,7 @@ export default function VideoProfile() {
               <div className="flex items-center gap-3 mb-7">
                 <div className="w-8 h-[2px] bg-[#4F46E5]" />
                 <span className="text-[0.68rem] font-bold tracking-[0.22em] uppercase text-white/35">
-                  Company Profile
+                  Profil Perusahaan
                 </span>
               </div>
 
@@ -168,7 +168,7 @@ export default function VideoProfile() {
                 >
                   <Play size={16} fill="white" className="ml-0.5" />
                 </span>
-                Tonton Company Profile
+                Tonton Profil Perusahaan
               </motion.button>
             </motion.div>
 
@@ -200,7 +200,7 @@ export default function VideoProfile() {
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={thumbSrc}
-                    alt="GRCC Company Profile"
+                    alt="Profil Perusahaan GRCC"
                     className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
                     onError={(e) => { (e.target as HTMLImageElement).style.display = "none"; }}
                   />
@@ -239,10 +239,10 @@ export default function VideoProfile() {
                   <div className="absolute bottom-0 inset-x-0 px-6 py-5 flex items-end justify-between">
                     <div>
                       <p className="text-white font-extrabold text-[1rem] leading-snug">
-                        GRCC Company Profile
+                        Profil Perusahaan GRCC
                       </p>
                       <p className="text-white/50 text-[0.72rem] mt-0.5">
-                        Center for Governance, Risk, and Compliance
+                        Pusat Tata Kelola, Risiko, dan Kepatuhan
                       </p>
                     </div>
                     <motion.div
@@ -253,7 +253,7 @@ export default function VideoProfile() {
                       className="flex items-center gap-1.5 bg-white/10 backdrop-blur-sm border border-white/15 rounded-full px-3 py-1.5"
                     >
                       <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-                      <span className="text-white/70 text-[0.62rem] font-semibold tracking-[0.08em] uppercase">Watch Now</span>
+                      <span className="text-white/70 text-[0.62rem] font-semibold tracking-[0.08em] uppercase">Tonton Sekarang</span>
                     </motion.div>
                   </div>
                 </div>
@@ -263,7 +263,7 @@ export default function VideoProfile() {
                   <div className="flex items-center gap-3">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
                     <img src="/grcc-logo.png" alt="GRCC" className="h-5 w-auto opacity-70" />
-                    <span className="text-white/30 text-[0.65rem] font-mono tracking-[0.1em]">OFFICIAL CHANNEL</span>
+                    <span className="text-white/30 text-[0.65rem] font-mono tracking-[0.1em]">KANAL RESMI</span>
                   </div>
                   <div className="flex items-center gap-2">
                     <button className="w-7 h-7 rounded-full bg-white/8 hover:bg-white/15 flex items-center justify-center transition-all">

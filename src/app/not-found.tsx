@@ -7,7 +7,7 @@ import { ArrowLeft, Search, Calendar, BookOpen } from "lucide-react";
 const suggestions = [
   { label: "Jadwal Pelatihan", href: "/jadwal",   icon: Calendar  },
   { label: "Semua Program",    href: "/programs", icon: BookOpen  },
-  { label: "Insights & Berita",href: "/insights", icon: Search    },
+  { label: "Artikel & Berita", href: "/insights", icon: Search    },
 ];
 
 export default function NotFound() {
@@ -111,7 +111,7 @@ export default function NotFound() {
           transition={{ delay: 0.75 }}
           className="mt-8 text-[0.72rem] text-muted/50 font-medium tracking-wider"
         >
-          GRCC · Center for Governance, Risk &amp; Compliance
+          GRCC · Pusat Tata Kelola, Risiko &amp; Kepatuhan
         </motion.p>
       </div>
     </div>

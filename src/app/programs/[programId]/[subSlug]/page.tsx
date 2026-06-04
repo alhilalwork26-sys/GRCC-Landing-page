@@ -481,7 +481,7 @@ export default function SubProgramPage() {
               href="/programs"
               className="flex items-center gap-1.5 text-white/40 hover:text-white/70 transition-colors text-[0.72rem] font-mono tracking-[0.15em] uppercase"
             >
-              <ArrowLeft size={12} /> Programs
+              <ArrowLeft size={12} /> Program
             </Link>
             <span className="text-white/20 text-[0.7rem]">/</span>
             <span className="text-white/40 text-[0.72rem] font-mono tracking-[0.15em] uppercase truncate max-w-[180px]">{program.short}</span>

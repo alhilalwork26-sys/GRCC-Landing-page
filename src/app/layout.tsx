@@ -9,17 +9,17 @@ const BASE_URL = "https://grcc-landing-page.vercel.app";
 export const metadata: Metadata = {
   metadataBase: new URL(BASE_URL),
   title: {
-    default: "GRCC | Center for Governance, Risk, Compliance & Competitiveness",
+    default: "GRCC | Pusat Tata Kelola, Risiko, Kepatuhan & Daya Saing",
     template: "%s | GRCC",
   },
   description:
-    "GRCC menyediakan pelatihan & solusi di bidang Governance, Risk Management, Compliance, dan Competitiveness untuk organisasi Indonesia.",
+    "GRCC menyediakan pelatihan & solusi di bidang tata kelola, manajemen risiko, kepatuhan, dan daya saing untuk organisasi Indonesia.",
   keywords: [
-    "pelatihan governance", "risk management", "compliance training",
+    "pelatihan tata kelola", "manajemen risiko", "pelatihan kepatuhan",
     "GRC Indonesia", "internal control", "GRCC", "pelatihan profesional",
     "manajemen risiko", "tata kelola perusahaan", "Universitas Airlangga",
   ],
-  authors: [{ name: "GRCC – Center for Governance, Risk & Compliance" }],
+  authors: [{ name: "GRCC – Pusat Tata Kelola, Risiko & Kepatuhan" }],
   creator: "GRCC",
   publisher: "GRCC",
   robots: {
@@ -32,21 +32,21 @@ export const metadata: Metadata = {
     locale: "id_ID",
     url: BASE_URL,
     siteName: "GRCC",
-    title: "GRCC | Center for Governance, Risk, Compliance & Competitiveness",
+    title: "GRCC | Pusat Tata Kelola, Risiko, Kepatuhan & Daya Saing",
     description:
-      "Pelatihan & solusi governance, risk management, dan compliance untuk organisasi Indonesia. Tersertifikasi, praktis, dan relevan.",
+      "Pelatihan & solusi tata kelola, manajemen risiko, dan kepatuhan untuk organisasi Indonesia. Tersertifikasi, praktis, dan relevan.",
     images: [
       {
         url: `${BASE_URL}/opengraph-image`,
         width: 1200,
         height: 630,
-        alt: "GRCC – Center for Governance, Risk & Compliance",
+        alt: "GRCC – Pusat Tata Kelola, Risiko & Kepatuhan",
       },
     ],
   },
   twitter: {
     card: "summary_large_image",
-    title: "GRCC | Center for Governance, Risk & Compliance",
+    title: "GRCC | Pusat Tata Kelola, Risiko & Kepatuhan",
     description: "Pelatihan GRC profesional untuk organisasi Indonesia.",
     images: [`${BASE_URL}/opengraph-image`],
   },
