@@ -14,6 +14,19 @@ import Navbar from "@/components/Navbar";
 import { supabase, TrainingItem, CustomField, PromoCode } from "@/lib/supabase";
 import { paymentInstruction, siteConfig, whatsappHref } from "@/lib/site-config";
 
+const INFO_SOURCE_KEY = "sumber_informasi";
+const INFO_SOURCE_OPTIONS = [
+  "Instagram",
+  "LinkedIn",
+  "WhatsApp",
+  "Website GRCC",
+  "Email / Newsletter",
+  "Teman / Rekan Kerja",
+  "Instansi / Perusahaan",
+  "Dosen / Kampus",
+  "Lainnya",
+];
+
 // ── helpers ───────────────────────────────────────────────────────────────────
 function formatRp(n: number) {
   return "Rp " + n.toLocaleString("id-ID");
@@ -315,12 +328,12 @@ export default function DaftarPage() {
   useEffect(() => {
     const fields = [
       form.nama_lengkap, form.instansi, form.jabatan,
-      form.email, form.telepon,
+      form.email, form.telepon, customData[INFO_SOURCE_KEY],
     ];
     const filled = fields.filter(Boolean).length;
     const total = fields.length + 1; // +1 for payment file
     setProgress(Math.round(((filled + (paymentFile ? 1 : 0)) / total) * 100));
-  }, [form, paymentFile]);
+  }, [form, customData, paymentFile]);
 
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setForm(f => ({ ...f, [k]: e.target.value }));
@@ -335,6 +348,9 @@ export default function DaftarPage() {
     if (!form.email.trim()) e.email = "Email wajib diisi";
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(form.email)) e.email = "Format email tidak valid";
     if (!form.telepon.trim()) e.telepon = "Nomor telepon wajib diisi";
+    if (!customData[INFO_SOURCE_KEY]?.trim()) {
+      e[INFO_SOURCE_KEY] = "Sumber informasi wajib dipilih";
+    }
     if (!paymentFile) e.payment = "Bukti pembayaran wajib diunggah";
     // Custom required fields
     training?.custom_fields?.forEach(cf => {
@@ -613,6 +629,29 @@ export default function DaftarPage() {
                         value={form.npwp} onChange={set("npwp")}
                         className={inputCls(errors.npwp)}
                       />
+                    </FormField>
+                  </div>
+                  <div className="sm:col-span-2">
+                    <FormField
+                      label="Dari mana Anda mengetahui informasi pelatihan ini?"
+                      required
+                      error={errors[INFO_SOURCE_KEY]}
+                      icon={<Sparkles size={13} />}
+                    >
+                      <select
+                        data-error={errors[INFO_SOURCE_KEY] ? true : undefined}
+                        value={customData[INFO_SOURCE_KEY] || ""}
+                        onChange={(e) => {
+                          setCustomData((d) => ({ ...d, [INFO_SOURCE_KEY]: e.target.value }));
+                          setErrors((er) => ({ ...er, [INFO_SOURCE_KEY]: "" }));
+                        }}
+                        className={inputCls(errors[INFO_SOURCE_KEY])}
+                      >
+                        <option value="">Pilih sumber informasi...</option>
+                        {INFO_SOURCE_OPTIONS.map((option) => (
+                          <option key={option} value={option}>{option}</option>
+                        ))}
+                      </select>
                     </FormField>
                   </div>
                 </div>
