@@ -43,9 +43,9 @@ export default function Hero() {
       {/* Headline + top image */}
       <div className="grid grid-cols-1 lg:grid-cols-[1fr_auto] items-start gap-10 mb-[clamp(60px,8vw,100px)]">
         <motion.h1
-          className="text-[clamp(3rem,7vw,7rem)] font-extrabold leading-[1.0] tracking-[-0.03em] text-dark"
+          className="text-[clamp(2.65rem,6.2vw,6.1rem)] font-extrabold leading-[1.0] tracking-[-0.03em] text-dark"
         >
-          {["Pusat Tata Kelola,", "Manajemen Risiko,", "Kepatuhan,", "dan Daya Saing"].map((line, i) => (
+          {["Center For", "Governance,", "Risk, Compliance,", "and Competitiveness"].map((line, i) => (
             <motion.span
               key={i}
               custom={i + 1}
