@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { supabase } from "@/lib/supabase";
-import { Check, Loader2, Plus, Trash2 } from "lucide-react";
+import { Check, Image as ImageIcon, Loader2, Plus, Trash2, Upload, X } from "lucide-react";
 
 const COLORS = ["#4F46E5","#10B981","#EF4444","#F59E0B","#8B5CF6","#0EA5E9","#F97316"];
 const STATUSES = [
@@ -31,6 +31,7 @@ export default function AdminPromo() {
   const [facilitators,setFacilitators]= useState<Facilitator[]>([{ name:"", role:"", org:"", img:"" }]);
   const [highlights,  setHighlights]  = useState<Highlight[]>([]);
   const [saving,      setSaving]      = useState(false);
+  const [uploadingFacilitatorPhoto, setUploadingFacilitatorPhoto] = useState<number | null>(null);
   const [msg,         setMsg]         = useState("");
   const [loading,     setLoading]     = useState(true);
 
@@ -57,6 +58,39 @@ export default function AdminPromo() {
   const removeFacilitator = (i: number) => setFacilitators(facilitators.filter((_,idx) => idx !== i));
   const updateFacilitator = (i: number, field: keyof Facilitator, val: string | boolean) =>
     setFacilitators(facilitators.map((f, idx) => idx === i ? { ...f, [field]: val } : f));
+
+  const uploadFacilitatorPhoto = async (i: number, file: File) => {
+    const allowed = ["image/jpeg", "image/png", "image/webp"];
+    if (!allowed.includes(file.type)) {
+      setMsg("Format foto harus JPG, PNG, atau WebP.");
+      setTimeout(() => setMsg(""), 2500);
+      return;
+    }
+    if (file.size > 15 * 1024 * 1024) {
+      setMsg("Foto fasilitator maksimal 15MB.");
+      setTimeout(() => setMsg(""), 2500);
+      return;
+    }
+
+    setUploadingFacilitatorPhoto(i);
+    const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+    const filename = `promo-facilitators/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const { data, error } = await supabase.storage
+      .from("insight-images")
+      .upload(filename, file, { contentType: file.type, upsert: false });
+
+    setUploadingFacilitatorPhoto(null);
+    if (error) {
+      setMsg(`Gagal upload foto: ${error.message}`);
+      setTimeout(() => setMsg(""), 3500);
+      return;
+    }
+
+    const { data: pub } = supabase.storage.from("insight-images").getPublicUrl(data.path);
+    updateFacilitator(i, "img", pub.publicUrl);
+    setMsg("Foto fasilitator berhasil diupload!");
+    setTimeout(() => setMsg(""), 2500);
+  };
 
   const addHighlight    = () => setHighlights([...highlights, { icon: "✅", text: "" }]);
   const removeHighlight = (i: number) => setHighlights(highlights.filter((_,idx) => idx !== i));
@@ -230,7 +264,59 @@ export default function AdminPromo() {
                 </div>
                 <div className="grid grid-cols-2 gap-2">
                   <input value={f.org} onChange={e => updateFacilitator(i,"org",e.target.value)} placeholder="Institusi" className="input text-[0.8rem]" />
-                  <input value={f.img ?? ""} onChange={e => updateFacilitator(i,"img",e.target.value)} placeholder="URL foto (opsional)" className="input text-[0.8rem]" />
+                  <div className="rounded-[10px] border border-[#E5E5E5] bg-[#FAFAFA] p-2">
+                    <input
+                      id={`facilitator-photo-${i}`}
+                      type="file"
+                      accept="image/jpeg,image/png,image/webp"
+                      className="hidden"
+                      onChange={e => {
+                        const file = e.target.files?.[0];
+                        if (file) uploadFacilitatorPhoto(i, file);
+                        e.currentTarget.value = "";
+                      }}
+                    />
+                    {f.img ? (
+                      <div className="flex items-center gap-2">
+                        <div className="w-10 h-10 rounded-lg overflow-hidden border border-border bg-white flex-shrink-0">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={f.img} alt={f.name || "Foto fasilitator"} className="w-full h-full object-cover" />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="text-[0.72rem] font-bold text-emerald-700 truncate">Foto aktif</p>
+                          <p className="text-[0.62rem] text-muted truncate">{f.img.split("/").pop()}</p>
+                        </div>
+                        <label
+                          htmlFor={`facilitator-photo-${i}`}
+                          className="cursor-pointer p-1.5 rounded-lg bg-dark text-white hover:bg-dark/90 transition-colors"
+                          title="Ganti foto"
+                        >
+                          {uploadingFacilitatorPhoto === i ? <Loader2 size={13} className="animate-spin" /> : <Upload size={13} />}
+                        </label>
+                        <button
+                          type="button"
+                          onClick={() => updateFacilitator(i, "img", "")}
+                          className="p-1.5 rounded-lg border border-border text-muted hover:text-red-500 hover:bg-red-50 transition-colors"
+                          title="Hapus foto"
+                        >
+                          <X size={13} />
+                        </button>
+                      </div>
+                    ) : (
+                      <label
+                        htmlFor={`facilitator-photo-${i}`}
+                        className="flex cursor-pointer items-center gap-2 rounded-lg border border-dashed border-border bg-white px-3 py-2 text-[0.75rem] font-bold text-dark/65 hover:bg-dark/[0.03] transition-colors"
+                      >
+                        <span className="w-8 h-8 rounded-lg bg-dark/[0.06] flex items-center justify-center flex-shrink-0">
+                          {uploadingFacilitatorPhoto === i ? <Loader2 size={14} className="animate-spin text-muted" /> : <ImageIcon size={14} className="text-muted" />}
+                        </span>
+                        <span className="min-w-0">
+                          <span className="block">Upload foto</span>
+                          <span className="block text-[0.62rem] font-semibold text-muted">JPG, PNG, WebP · maks. 15MB</span>
+                        </span>
+                      </label>
+                    )}
+                  </div>
                 </div>
                 <label className="flex items-center gap-2 mt-2 cursor-pointer">
                   <input type="checkbox" checked={!!f.main} onChange={e => updateFacilitator(i,"main",e.target.checked)} />
