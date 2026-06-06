@@ -9,7 +9,7 @@ import {
   Target, CheckCircle2, UserCheck, CreditCard, BookOpen,
   Wifi, MonitorPlay, Building2, MessageCircle, FileText,
   Sparkles, Briefcase, GraduationCap, Landmark, LineChart,
-  UserCircle2, Award, ShieldCheck,
+  UserCircle2, Award, ShieldCheck, Eye, X,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
@@ -31,16 +31,72 @@ function FormatIcon({ format }: { format: string }) {
   return <Building2 size={14} />;
 }
 
+type PromoFacilitator = { name: string; role: string; org: string; img?: string | null; main?: boolean };
+type SpeakerProfile = {
+  name: string;
+  role: string;
+  org: string;
+  summary: string;
+  focus: string[];
+  cvHighlights: string[];
+  img?: string | null;
+  main?: boolean;
+};
+
+const ICOFR_TRAINING_ID = "3b2f7f0a-665c-46fc-b8ae-3359abaa47ec";
+
+const SPEAKERS_BY_TRAINING: Record<string, SpeakerProfile[]> = {
+  [ICOFR_TRAINING_ID]: [
+    {
+      name: "Dina Heriyati, S.E., M.ForAccy",
+      role: "Fasilitator ICoFR",
+      org: "GRCC, AILG Universitas Airlangga",
+      summary: "Fasilitator program ICoFR yang mendampingi peserta memahami hubungan proses bisnis, risiko, dan kontrol internal dalam pelaporan keuangan.",
+      focus: ["Internal control over financial reporting", "Pemetaan proses dan risiko", "Kontrol internal berbasis praktik organisasi"],
+      cvHighlights: ["Berpengalaman sebagai fasilitator program ICoFR", "Aktif dalam penguatan literasi tata kelola dan kontrol internal", "Mendampingi pembelajaran berbasis studi kasus dan diskusi praktis"],
+    },
+    {
+      name: "Prof. Dr. Bambang Tjahjadi, SE., MBA., Ak., CMA., CPM., CA., CSSL.",
+      role: "Guru Besar & Coordinator Fasilitator ICoFR",
+      org: "GRCC, AILG Universitas Airlangga",
+      summary: "Koordinator fasilitator yang memandu kerangka besar ICoFR, tata kelola, dan akuntabilitas organisasi dalam konteks manajemen non-akuntan.",
+      focus: ["Good governance dan akuntabilitas", "Kerangka ICoFR untuk manajemen", "Penguatan kontrol dan kesiapan audit"],
+      cvHighlights: ["Guru Besar dan koordinator fasilitator program", "Memiliki latar belakang kuat di bidang akuntansi, kontrol, dan tata kelola", "Mengarahkan pembelajaran strategis untuk pimpinan dan manajemen"],
+      main: true,
+    },
+    {
+      name: "Tantri Sun Estuning Dasih, S.A., M.A.",
+      role: "Fasilitator ICoFR",
+      org: "GRCC, AILG Universitas Airlangga",
+      summary: "Fasilitator program yang membantu peserta menerjemahkan konsep ICoFR ke dalam kebutuhan dokumentasi, koordinasi, dan implementasi di unit kerja.",
+      focus: ["Dokumentasi kontrol internal", "Koordinasi lintas unit kerja", "Implementasi pembelajaran ke proses operasional"],
+      cvHighlights: ["Fasilitator program ICoFR untuk peserta non-akuntan", "Berfokus pada pemahaman konseptual dan penerapan praktis", "Mendukung proses pembelajaran yang ringkas, jelas, dan aplikatif"],
+    },
+  ],
+};
+
+function normalizeName(name: string) {
+  return name.toLowerCase().replace(/[^a-z0-9]+/g, "");
+}
+
 export default function TrainingDetailPage() {
   const { id } = useParams<{ id: string }>();
   const [training, setTraining] = useState<TrainingItem | null>(null);
   const [loading, setLoading]   = useState(true);
   const [flipBookUrl, setFlipBookUrl] = useState<string | null>(null);
+  const [promoFacilitators, setPromoFacilitators] = useState<PromoFacilitator[]>([]);
+  const [selectedSpeaker, setSelectedSpeaker] = useState<SpeakerProfile | null>(null);
 
   useEffect(() => {
     if (!id) return;
-    supabase.from("training").select("*").eq("id", id).single()
-      .then(({ data }) => { setTraining(data ?? null); setLoading(false); });
+    Promise.all([
+      supabase.from("training").select("*").eq("id", id).single(),
+      supabase.from("promo").select("facilitators").eq("active", true).order("created_at", { ascending: false }).limit(1).maybeSingle(),
+    ]).then(([trainingRes, promoRes]) => {
+      setTraining(trainingRes.data ?? null);
+      setPromoFacilitators((promoRes.data?.facilitators as PromoFacilitator[] | null) ?? []);
+      setLoading(false);
+    });
   }, [id]);
 
   if (loading) return (
@@ -67,6 +123,10 @@ export default function TrainingDetailPage() {
   const c = training.color || "#4F46E5";
   const objectives    = training.objectives     ? parseBullets(training.objectives)     : [];
   const audience      = training.target_audience ? parseBullets(training.target_audience) : [];
+  const speakers      = (SPEAKERS_BY_TRAINING[training.id] ?? []).map((speaker) => {
+    const uploaded = promoFacilitators.find((f) => normalizeName(f.name) === normalizeName(speaker.name));
+    return { ...speaker, img: uploaded?.img ?? speaker.img ?? null, main: uploaded?.main ?? speaker.main };
+  });
   const daftarHref    = `/daftar/${training.id}`;
   const daftarGrpHref = `/daftar-grup/${training.id}`;
   const waMsg = `Halo, saya ingin informasi lebih lanjut tentang program pelatihan:\n\n*${training.title}*\n\nTerima kasih.`;
@@ -78,6 +138,10 @@ export default function TrainingDetailPage() {
       {/* FlipBook */}
       {flipBookUrl && (
         <FlipBookModal pdfUrl={flipBookUrl} title={training.title} accent={c} onClose={() => setFlipBookUrl(null)} />
+      )}
+
+      {selectedSpeaker && (
+        <SpeakerCvModal speaker={selectedSpeaker} color={c} onClose={() => setSelectedSpeaker(null)} />
       )}
 
       {/* ── HERO ─────────────────────────────────────────── */}
@@ -216,6 +280,79 @@ export default function TrainingDetailPage() {
                     <p className="text-[0.9rem] leading-[1.95] text-dark/65 whitespace-pre-line">
                       {training.description}
                     </p>
+                  </div>
+                </motion.div>
+              )}
+
+              {/* ── Pembicara ── */}
+              {speakers.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 24 }} whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }} transition={{ duration: 0.6, delay: 0.03 }}
+                  className="bg-white rounded-2xl border border-border overflow-hidden"
+                >
+                  <div className="flex items-center gap-3 px-7 py-5 border-b border-border">
+                    <motion.div
+                      animate={{ scale: [1, 1.08, 1] }}
+                      transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
+                      className="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+                      style={{ backgroundColor: c + "18" }}
+                    >
+                      <Award size={16} style={{ color: c }} />
+                    </motion.div>
+                    <div>
+                      <p className="font-extrabold text-[0.92rem] text-dark">Pembicara</p>
+                      <p className="text-[0.68rem] text-muted mt-0.5">Profil ringkas fasilitator program</p>
+                    </div>
+                    <span className="ml-auto text-[0.68rem] font-bold px-2.5 py-1 rounded-full"
+                      style={{ backgroundColor: c + "15", color: c }}>
+                      {speakers.length} pembicara
+                    </span>
+                  </div>
+
+                  <div className="px-7 py-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+                    {speakers.map((speaker, i) => (
+                      <motion.div
+                        key={speaker.name}
+                        initial={{ opacity: 0, y: 14 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        transition={{ duration: 0.45, delay: i * 0.08 }}
+                        className="rounded-2xl border border-border bg-[#FAFAFA] p-4 flex flex-col min-h-[260px]"
+                      >
+                        <div className="flex items-start gap-3">
+                          <div className="w-14 h-14 rounded-2xl overflow-hidden border border-border bg-white flex-shrink-0">
+                            {speaker.img ? (
+                              // eslint-disable-next-line @next/next/no-img-element
+                              <img src={speaker.img} alt={speaker.name} className="w-full h-full object-cover" />
+                            ) : (
+                              <AvatarInitials name={speaker.name} color={c} />
+                            )}
+                          </div>
+                          <div className="min-w-0">
+                            {speaker.main && (
+                              <span className="inline-block text-[0.55rem] font-extrabold tracking-[0.12em] uppercase px-2 py-0.5 rounded-full mb-1"
+                                style={{ backgroundColor: c + "18", color: c }}>
+                                Koordinator
+                              </span>
+                            )}
+                            <p className="font-extrabold text-[0.82rem] leading-snug text-dark">{speaker.name}</p>
+                            <p className="text-[0.66rem] text-muted leading-snug mt-1">{speaker.role}</p>
+                          </div>
+                        </div>
+
+                        <p className="text-[0.73rem] leading-[1.65] text-dark/60 mt-4 flex-1">
+                          {speaker.summary}
+                        </p>
+
+                        <button
+                          onClick={() => setSelectedSpeaker(speaker)}
+                          className="mt-4 flex items-center justify-center gap-2 rounded-xl border border-border bg-white px-3 py-2.5 text-[0.74rem] font-extrabold text-dark/70 hover:text-dark hover:border-dark/20 transition-colors"
+                        >
+                          <Eye size={13} /> Preview CV
+                        </button>
+                      </motion.div>
+                    ))}
                   </div>
                 </motion.div>
               )}
@@ -467,6 +604,105 @@ function ContentSection({ icon, label, color, children }: {
       </div>
       {children}
     </motion.div>
+  );
+}
+
+function SpeakerCvModal({ speaker, color, onClose }: { speaker: SpeakerProfile; color: string; onClose: () => void }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0 }}
+      animate={{ opacity: 1 }}
+      exit={{ opacity: 0 }}
+      className="fixed inset-0 z-[80] bg-black/60 backdrop-blur-sm flex items-center justify-center px-4"
+      onClick={onClose}
+    >
+      <motion.div
+        initial={{ opacity: 0, y: 18, scale: 0.97 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        exit={{ opacity: 0, y: 10, scale: 0.98 }}
+        transition={{ type: "spring", stiffness: 280, damping: 24 }}
+        className="w-full max-w-[560px] bg-white rounded-3xl border border-border overflow-hidden shadow-2xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex items-start gap-4 p-6 border-b border-border">
+          <div className="w-16 h-16 rounded-2xl overflow-hidden border border-border bg-[#F7F7F5] flex-shrink-0">
+            {speaker.img ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={speaker.img} alt={speaker.name} className="w-full h-full object-cover" />
+            ) : (
+              <AvatarInitials name={speaker.name} color={color} />
+            )}
+          </div>
+          <div className="min-w-0 flex-1">
+            {speaker.main && (
+              <span className="inline-block text-[0.58rem] font-extrabold tracking-[0.12em] uppercase px-2 py-0.5 rounded-full mb-2"
+                style={{ backgroundColor: color + "18", color }}>
+                Koordinator Program
+              </span>
+            )}
+            <p className="font-extrabold text-[1.05rem] leading-tight text-dark">{speaker.name}</p>
+            <p className="text-[0.78rem] font-semibold text-dark/55 mt-1">{speaker.role}</p>
+            <p className="text-[0.72rem] text-muted mt-1">{speaker.org}</p>
+          </div>
+          <button
+            onClick={onClose}
+            className="w-9 h-9 rounded-full border border-border flex items-center justify-center text-muted hover:text-dark hover:bg-dark/[0.04] transition-colors flex-shrink-0"
+            aria-label="Tutup preview CV"
+          >
+            <X size={16} />
+          </button>
+        </div>
+
+        <div className="p-6 flex flex-col gap-5">
+          <div>
+            <p className="text-[0.68rem] font-extrabold tracking-[0.14em] uppercase text-muted mb-2">Ringkasan CV</p>
+            <p className="text-[0.86rem] leading-[1.8] text-dark/65">{speaker.summary}</p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="rounded-2xl border border-border bg-[#FAFAFA] p-4">
+              <p className="text-[0.68rem] font-extrabold tracking-[0.14em] uppercase text-muted mb-3">Fokus Keahlian</p>
+              <div className="flex flex-col gap-2">
+                {speaker.focus.map((item) => (
+                  <p key={item} className="flex items-start gap-2 text-[0.76rem] leading-snug text-dark/65">
+                    <CheckCircle2 size={13} className="mt-0.5 flex-shrink-0" style={{ color }} />
+                    {item}
+                  </p>
+                ))}
+              </div>
+            </div>
+            <div className="rounded-2xl border border-border bg-[#FAFAFA] p-4">
+              <p className="text-[0.68rem] font-extrabold tracking-[0.14em] uppercase text-muted mb-3">Highlight Profil</p>
+              <div className="flex flex-col gap-2">
+                {speaker.cvHighlights.map((item) => (
+                  <p key={item} className="flex items-start gap-2 text-[0.76rem] leading-snug text-dark/65">
+                    <Award size={13} className="mt-0.5 flex-shrink-0" style={{ color }} />
+                    {item}
+                  </p>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      </motion.div>
+    </motion.div>
+  );
+}
+
+function AvatarInitials({ name, color }: { name: string; color: string }) {
+  const initials = name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0])
+    .join("")
+    .toUpperCase();
+
+  return (
+    <div className="w-full h-full flex items-center justify-center font-black text-[0.82rem]"
+      style={{ backgroundColor: color + "12", color }}>
+      {initials || "GR"}
+    </div>
   );
 }
 
