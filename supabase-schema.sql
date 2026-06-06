@@ -256,7 +256,7 @@ insert into promo (title, subtitle, description, status, highlights, facilitator
   'coming_soon',
   '[{"icon":"Users","text":"Untuk Manajemen Non-Akuntan"},{"icon":"Award","text":"Sertifikat GRCC · AILG · UNAIR"},{"icon":"Sparkles","text":"Program Eksklusif · Segera Hadir"}]',
   '[{"name":"Dina Heriyati, S.E., M.ForAccy","role":"Fasilitator ICoFR","org":"GRCC, AILG Universitas Airlangga","img":null},{"name":"Prof. Dr. Bambang Tjahjadi, SE., MBA., Ak., CMA., CPM., CA., CSSL.","role":"Guru Besar & Coordinator Fasilitator ICoFR","org":"GRCC, AILG Universitas Airlangga","img":null,"main":true},{"name":"Tantri Sun Estuning Dasih, S.A., M.A.","role":"Fasilitator ICoFR","org":"GRCC, AILG Universitas Airlangga","img":null}]',
-  'mailto:info@grcc.org'
+  '/training/3b2f7f0a-665c-46fc-b8ae-3359abaa47ec'
 );
 
 -- Seed: beberapa insights awal
