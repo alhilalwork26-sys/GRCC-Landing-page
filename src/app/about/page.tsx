@@ -213,16 +213,16 @@ export default function AboutPage() {
             className="mt-[clamp(60px,8vw,100px)] grid grid-cols-2 md:grid-cols-4 gap-px bg-border rounded-lg overflow-hidden"
           >
             {[
-              { value: "15+", label: "Tahun pengalaman" },
-              { value: "200+", label: "Organisasi didampingi" },
-              { value: "18", label: "Negara jangkauan" },
-              { value: "98%", label: "Tingkat kepuasan klien" },
+              { value: "600", label: "Pakar" },
+              { value: "2075", label: "Tenaga Kependidikan" },
+              { value: "1000", label: "Partner" },
+              { value: "12", label: "Jumlah Layanan" },
             ].map((stat) => (
-              <div key={stat.label} className="bg-bg px-8 py-8">
-                <p className="text-[clamp(2rem,3.5vw,3rem)] font-extrabold tracking-[-0.04em] text-dark leading-none mb-2">
+              <div key={stat.label} className="bg-bg px-8 py-10 text-center">
+                <p className="text-[0.95rem] text-muted mb-3">{stat.label}</p>
+                <p className="text-[clamp(2rem,3.5vw,3rem)] font-normal tracking-[0.02em] text-[#082B52] leading-none">
                   {stat.value}
                 </p>
-                <p className="text-[0.8rem] text-muted">{stat.label}</p>
               </div>
             ))}
           </motion.div>
