@@ -500,7 +500,7 @@ export default function AdminTraining() {
                       </Field>
                       <Field label="Lokasi">
                         <input value={form.location} onChange={e=>setForm({...form,location:e.target.value})}
-                          placeholder="Zoom / Jakarta" className="input"/>
+                          placeholder="Zoom / Surabaya" className="input"/>
                       </Field>
                     </div>
                     <Field label="Maks. Peserta">

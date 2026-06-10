@@ -31,7 +31,7 @@ export default function CTABand() {
 
           <div className="flex flex-col gap-5 items-start">
             <motion.a
-              href="mailto:info@grcc.org"
+              href="mailto:grcc.ailg@gmail.com"
               whileHover={{ scale: 1.02, y: -1 }}
               whileTap={{ scale: 0.97 }}
               className="flex items-center gap-2 bg-white text-dark text-[0.95rem] font-semibold px-7 py-4 rounded-[4px] border border-white hover:bg-[#f0efea] transition-colors group"
@@ -41,16 +41,16 @@ export default function CTABand() {
             </motion.a>
             <div className="flex flex-col gap-1.5">
               <a
-                href="mailto:info@grcc.org"
+                href="mailto:grcc.ailg@gmail.com"
                 className="text-[0.86rem] text-white/45 hover:text-white transition-colors"
               >
-                info@grcc.org
+                grcc.ailg@gmail.com
               </a>
               <a
-                href="tel:+6221000000"
+                href="tel:+6288298989171"
                 className="text-[0.86rem] text-white/45 hover:text-white transition-colors"
               >
-                +62 21 000 0000
+                +62 882-9898-9171
               </a>
             </div>
           </div>

@@ -197,7 +197,7 @@ Ada yang ingin Anda tanyakan lebih lanjut?`,
 **5.** Lakukan pembayaran sesuai instruksi
 **6.** Konfirmasi otomatis dikirim ke email Anda
 
-Untuk **In-House Training** (pelatihan di kantor Anda), silakan hubungi GRCC langsung melalui email **info@grcc.id** untuk konsultasi kebutuhan.
+Untuk **In-House Training** (pelatihan di kantor Anda), silakan hubungi GRCC langsung melalui email **grcc.ailg@gmail.com** untuk konsultasi kebutuhan.
 
 Ada yang bisa saya bantu lagi?`,
   },
@@ -243,7 +243,7 @@ Cek format tersedia untuk tiap program di halaman **Training** di website. Ada y
 
 **Cocok untuk:** BUMN, perusahaan swasta, kementerian, instansi pemerintah, universitas.
 
-Untuk konsultasi dan penawaran In-House Training, hubungi GRCC di **info@grcc.id**. Tim kami siap membantu merancang program yang tepat untuk organisasi Anda.`,
+Untuk konsultasi dan penawaran In-House Training, hubungi GRCC di **grcc.ailg@gmail.com**. Tim kami siap membantu merancang program yang tepat untuk organisasi Anda.`,
   },
 
   // ── Sertifikat ──
@@ -257,7 +257,7 @@ Sertifikat GRCC berguna untuk:
 - Portofolio **kompetensi** di bidang tata kelola & keuangan
 - Kebutuhan **akreditasi** atau audit internal
 
-Detail sertifikasi bisa berbeda tiap program. Cek halaman Training untuk info lengkap, atau hubungi **info@grcc.id**.`,
+Detail sertifikasi bisa berbeda tiap program. Cek halaman Training untuk info lengkap, atau hubungi **grcc.ailg@gmail.com**.`,
   },
 
   // ── Kontak ──
@@ -265,9 +265,11 @@ Detail sertifikasi bisa berbeda tiap program. Cek halaman Training untuk info le
     keywords: ["kontak", "hubungi", "contact", "email", "telepon", "whatsapp", "wa", "alamat", "lokasi", "kantor grcc", "di mana"],
     answer: `Berikut cara menghubungi GRCC:
 
-- **Email:** info@grcc.id
+- **Email:** grcc.ailg@gmail.com
+- **WhatsApp:** +62 882-9898-9171
 - **Website:** grcc.id
-- **Kolaborasi:** AEEC — Universitas Airlangga, Yogyakarta
+- **Lokasi:** Surabaya, Indonesia
+- **Kolaborasi:** AILG — Universitas Airlangga, Surabaya
 
 Tim GRCC siap membantu Anda untuk:
 - Informasi program & pendaftaran
@@ -321,7 +323,7 @@ GRCC telah melayani profesional dari BUMN, perusahaan swasta, instansi pemerinta
     priority: 8,
     answer: `Sama-sama! Senang bisa membantu 😊
 
-Jika ada pertanyaan lain tentang program GRCC, jangan ragu untuk bertanya kapan saja. Kami juga bisa dihubungi langsung di **info@grcc.id** untuk informasi lebih lanjut.
+Jika ada pertanyaan lain tentang program GRCC, jangan ragu untuk bertanya kapan saja. Kami juga bisa dihubungi langsung di **grcc.ailg@gmail.com** untuk informasi lebih lanjut.
 
 Semoga sukses dengan rencana pengembangan Anda! 🚀`,
   },
@@ -360,7 +362,7 @@ function findAnswer(userMessage: string): string {
 Saya tidak menemukan jawaban spesifik untuk pertanyaan tersebut. Untuk informasi lebih akurat, silakan:
 
 - **Cek website** grcc.id — halaman Training & Program
-- **Email kami** di info@grcc.id
+- **Email kami** di grcc.ailg@gmail.com
 - **Tanyakan hal lain** — saya siap membantu tentang program GRC, ESG, Auditing, Accounting, HCM, DTF, OC, dan Penelitian!
 
 Ada yang bisa saya bantu lagi?`;
@@ -399,12 +401,12 @@ export async function POST(req: Request) {
     const SYSTEM_PROMPT = `Kamu adalah Asisten AI resmi GRCC (Center for Governance, Risk, Compliance & Competitiveness). Namamu adalah "GRCC Assistant". Kamu membantu pengunjung website grcc.id — calon peserta pelatihan, profesional, akademisi, dan pimpinan perusahaan.
 
 TENTANG GRCC:
-GRCC adalah pusat pengembangan profesional dan konsultasi yang berfokus pada Tata Kelola (Governance), Manajemen Risiko (Risk), Kepatuhan (Compliance), dan Daya Saing Organisasi (Competitiveness). GRCC berkolaborasi dengan Airlangga Executive Education Center (AEEC) Universitas Airlangga, Yogyakarta.
+GRCC adalah pusat pengembangan profesional dan konsultasi yang berfokus pada Tata Kelola (Governance), Manajemen Risiko (Risk), Kepatuhan (Compliance), dan Daya Saing Organisasi (Competitiveness). GRCC berkolaborasi dengan AILG Universitas Airlangga, Surabaya.
 
 8 PROGRAM UTAMA: GRC (Governance, Risk & Compliance), ESG (Keberlanjutan Bisnis), ACC (Accounting), AUD (Auditing & ICoFR), OC (Organizational Competitiveness), HCM (Human Capital Management), DTF (Digital & Technology in Finance), RES (Penelitian).
 
 Format: Workshop, Pelatihan Bersertifikat, Konferensi Eksekutif, In-House Training, Online & In-Person.
-Kontak: info@grcc.id | Website: grcc.id
+Kontak: grcc.ailg@gmail.com | WhatsApp: +62 882-9898-9171 | Lokasi: Surabaya | Website: grcc.id
 
 Jawab dalam Bahasa Indonesia yang hangat dan profesional. Maksimal 3-4 paragraf. Gunakan bullet points untuk daftar.`;
 

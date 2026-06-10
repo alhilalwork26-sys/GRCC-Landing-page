@@ -37,15 +37,15 @@ const contactInfo = [
   {
     icon: <WhatsAppIcon size={20} />,
     label: "WhatsApp",
-    value: "Hubungi via WhatsApp",
-    href: "https://wa.me/62",
+    value: "+62 882-9898-9171",
+    href: "https://wa.me/6288298989171",
     desc: "Respons lebih cepat untuk pertanyaan mendesak",
   },
   {
     icon: <MapPin size={20} />,
     label: "Lokasi",
-    value: "Jakarta, Indonesia",
-    href: "https://maps.google.com/?q=Jakarta,Indonesia",
+    value: "Surabaya, Indonesia",
+    href: "https://maps.google.com/?q=Surabaya,Indonesia",
     desc: "Universitas Airlangga · AILG",
   },
 ];

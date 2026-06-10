@@ -211,7 +211,7 @@ export default function ProgramsPage() {
                     )}
                     <p className="text-white/50 text-[0.88rem] leading-[1.8] mb-8 max-w-[620px]">{prog.description}</p>
 
-                    <motion.a href="mailto:info@grcc.org" whileHover={{ scale:1.02, y:-1 }} whileTap={{ scale:0.97 }}
+                    <motion.a href="mailto:grcc.ailg@gmail.com" whileHover={{ scale:1.02, y:-1 }} whileTap={{ scale:0.97 }}
                       className="inline-flex items-center gap-2 text-[0.82rem] font-bold px-5 py-2.5 rounded-[6px] transition-colors group"
                       style={{ backgroundColor: prog.accent, color:"#fff" }}>
                       Daftar / Konsultasi
@@ -247,7 +247,7 @@ export default function ProgramsPage() {
           </motion.div>
           <motion.div variants={stagger} initial="hidden" whileInView="visible" viewport={{ once:true }} className="grid sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {[
-              { icon:"🏛", title:"Public Training",  desc:"Sesi intensif tatap muka di Jakarta, Surabaya, atau lokasi klien." },
+              { icon:"🏛", title:"Public Training",  desc:"Sesi intensif tatap muka di Surabaya atau lokasi klien." },
               { icon:"💻", title:"Online Training",  desc:"Live virtual session yang interaktif dengan materi digital lengkap." },
               { icon:"⚡", title:"Hybrid Training",  desc:"Kombinasi fleksibel antara sesi tatap muka dan virtual." },
               { icon:"🏢", title:"In-House Training", desc:"Program yang dirancang khusus sesuai kebutuhan spesifik organisasi Anda." },
@@ -276,7 +276,7 @@ export default function ProgramsPage() {
               Konsultasikan kebutuhan organisasi Anda dengan tim GRCC untuk mendapatkan program yang paling sesuai.
             </p>
             <div className="flex flex-wrap gap-4 justify-center">
-              <motion.a href="mailto:info@grcc.org" whileHover={{ scale:1.03, y:-2 }} whileTap={{ scale:0.97 }}
+              <motion.a href="mailto:grcc.ailg@gmail.com" whileHover={{ scale:1.03, y:-2 }} whileTap={{ scale:0.97 }}
                 className="flex items-center gap-2 bg-white text-dark text-[0.88rem] font-bold px-7 py-3.5 rounded-[6px] hover:bg-white/90 transition-colors group">
                 Hubungi Kami <ArrowUpRight size={14} className="transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
               </motion.a>

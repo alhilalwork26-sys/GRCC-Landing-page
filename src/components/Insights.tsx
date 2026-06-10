@@ -287,7 +287,7 @@ export default function Insights() {
           className="text-center text-[0.76rem] text-muted mt-10"
         >
           Butuh program khusus?{" "}
-          <a href="mailto:info@grcc.org" className="underline underline-offset-2 hover:text-dark transition-colors">
+          <a href="mailto:grcc.ailg@gmail.com" className="underline underline-offset-2 hover:text-dark transition-colors">
             Hubungi kami untuk pelatihan in-house
           </a>
         </motion.p>

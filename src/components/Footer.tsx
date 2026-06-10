@@ -40,8 +40,8 @@ const footerNav: FooterCol[] = [
     heading: "Hubungi Kami",
     links: [
       { label: "grcc.ailg@gmail.com",  href: "mailto:grcc.ailg@gmail.com" },
-      { label: "Jakarta, Indonesia",   href: "https://maps.google.com/?q=Jakarta,Indonesia" },
-      { label: "Hubungi via WhatsApp", href: "https://wa.me/62" },
+      { label: "Surabaya, Indonesia",  href: "https://maps.google.com/?q=Surabaya,Indonesia" },
+      { label: "+62 882-9898-9171",    href: "https://wa.me/6288298989171" },
     ],
   },
 ];

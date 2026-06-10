@@ -1,7 +1,7 @@
 const cleanPhone = (value?: string) => value?.replace(/[^\d]/g, "") ?? "";
 
 export const siteConfig = {
-  contactEmail:   process.env.NEXT_PUBLIC_CONTACT_EMAIL || "info@grcc.or.id",
+  contactEmail:   process.env.NEXT_PUBLIC_CONTACT_EMAIL || "grcc.ailg@gmail.com",
   whatsappNumber: cleanPhone(process.env.NEXT_PUBLIC_WHATSAPP_NUMBER),
   phoneNumber:    cleanPhone(process.env.NEXT_PUBLIC_PHONE_NUMBER),
   payment: {
@@ -10,7 +10,7 @@ export const siteConfig = {
     accountName:   process.env.NEXT_PUBLIC_PAYMENT_ACCOUNT_NAME   || "",
   },
   social: {
-    instagram: process.env.NEXT_PUBLIC_INSTAGRAM_URL || "",
+    instagram: process.env.NEXT_PUBLIC_INSTAGRAM_URL || "https://www.instagram.com/grcc_ailgunair/",
     linkedin:  process.env.NEXT_PUBLIC_LINKEDIN_URL  || "",
     youtube:   process.env.NEXT_PUBLIC_YOUTUBE_URL   || "",
     twitter:   process.env.NEXT_PUBLIC_TWITTER_URL   || "",

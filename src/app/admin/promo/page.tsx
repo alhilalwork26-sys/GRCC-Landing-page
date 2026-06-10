@@ -27,7 +27,7 @@ export default function AdminPromo() {
   const [description, setDesc]        = useState("");
   const [status,      setStatus]      = useState("coming_soon");
   const [ctaLabel,    setCtaLabel]    = useState("Daftar & Info Lengkap");
-  const [ctaHref,     setCtaHref]     = useState("mailto:info@grcc.org");
+  const [ctaHref,     setCtaHref]     = useState("mailto:grcc.ailg@gmail.com");
   const [facilitators,setFacilitators]= useState<Facilitator[]>([{ name:"", role:"", org:"", img:"" }]);
   const [highlights,  setHighlights]  = useState<Highlight[]>([]);
   const [saving,      setSaving]      = useState(false);

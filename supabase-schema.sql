@@ -18,7 +18,7 @@ create table if not exists promo (
   highlights    jsonb default '[]',
   facilitators  jsonb default '[]',
   cta_label     text default 'Daftar & Info Lengkap',
-  cta_href      text default 'mailto:info@grcc.org',
+  cta_href      text default 'mailto:grcc.ailg@gmail.com',
   created_at    timestamptz default now(),
   updated_at    timestamptz default now()
 );
@@ -262,5 +262,5 @@ insert into promo (title, subtitle, description, status, highlights, facilitator
 -- Seed: beberapa insights awal
 insert into insights (type, tag, title, excerpt, date, location, img, color, featured) values
 ('Kegiatan','Workshop','Workshop Nasional: Implementasi GCG di Era Transformasi Digital','Workshop intensif dua hari bagi 80+ eksekutif dari perusahaan publik dan BUMN.','14–15 Maret 2025','Surabaya','https://images.unsplash.com/photo-1540575467063-178a50c2df87?w=1200&q=90&fit=crop','#4F46E5',true),
-('Kegiatan','Seminar','Seminar ESG: Menuju Bisnis Berkelanjutan Berbasis Standar GRI & ISSB','Pakar ESG dari OJK, BEI, dan praktisi sustainability multinasional.','28 Februari 2025','Jakarta','https://images.unsplash.com/photo-1591115765373-5207764f72e7?w=900&q=85&fit=crop','#10B981',false),
-('Berita','Kerjasama','GRCC dan BPKP Jalin MoU untuk Penguatan Audit Pemerintahan','Penandatanganan MoU untuk program pelatihan auditor dan riset bersama.','10 Maret 2025','Jakarta','https://images.unsplash.com/photo-1521791136064-7986c2920216?w=900&q=85&fit=crop','#EF4444',false);
+('Kegiatan','Seminar','Seminar ESG: Menuju Bisnis Berkelanjutan Berbasis Standar GRI & ISSB','Pakar ESG dari OJK, BEI, dan praktisi sustainability multinasional.','28 Februari 2025','Surabaya','https://images.unsplash.com/photo-1591115765373-5207764f72e7?w=900&q=85&fit=crop','#10B981',false),
+('Berita','Kerjasama','GRCC dan BPKP Jalin MoU untuk Penguatan Audit Pemerintahan','Penandatanganan MoU untuk program pelatihan auditor dan riset bersama.','10 Maret 2025','Surabaya','https://images.unsplash.com/photo-1521791136064-7986c2920216?w=900&q=85&fit=crop','#EF4444',false);

@@ -68,7 +68,7 @@ export default function AdminLogin() {
                 type="email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
-                placeholder="admin@grcc.org"
+                placeholder="admin@grcc.id"
                 required
                 className="w-full bg-white/[0.06] border border-white/[0.1] rounded-xl px-4 py-3 text-white text-[0.88rem] placeholder:text-white/20 focus:outline-none focus:border-white/25 transition-colors"
               />

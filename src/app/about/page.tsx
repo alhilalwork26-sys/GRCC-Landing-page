@@ -432,8 +432,8 @@ export default function AboutPage() {
                 className="flex flex-col gap-4"
               >
                 {[
-                  { title: "Penasihat Senior Tata Kelola", type: "Penuh waktu · Jakarta" },
-                  { title: "Analis Kepatuhan", type: "Penuh waktu · Jakarta" },
+                  { title: "Penasihat Senior Tata Kelola", type: "Penuh waktu · Surabaya" },
+                  { title: "Analis Kepatuhan", type: "Penuh waktu · Surabaya" },
                   { title: "Rekan Riset ESG", type: "Kontrak · Jarak jauh" },
                 ].map((job) => (
                   <a
