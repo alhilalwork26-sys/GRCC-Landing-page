@@ -122,29 +122,6 @@ export default function Hero() {
             </motion.div>
           </motion.div>
 
-          {/* Floating speaker thumbnail */}
-          <motion.div
-            initial={{ opacity: 0, scale: 0.85, x: 12, y: -12 }}
-            animate={{ opacity: 1, scale: 1, x: 0, y: 0 }}
-            transition={{ delay: 1.3, duration: 0.55, ease: [0.34, 1.56, 0.64, 1] }}
-            whileHover={{ scale: 1.04, rotate: -1 }}
-            className="absolute -top-5 -right-5 w-[38%] aspect-[3/4] rounded-lg overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.18)] border-[3px] border-white cursor-pointer"
-          >
-            <Image
-              src="/event-speaker.jpg"
-              alt="Narasumber GRCC"
-              width={300}
-              height={400}
-              className="w-full h-full object-cover object-top"
-            />
-            {/* Shine sweep on hover */}
-            <motion.div
-              variants={{ hover: { x: "200%" } }}
-              initial={{ x: "-100%" }}
-              transition={{ duration: 0.5 }}
-              className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent skew-x-12 pointer-events-none"
-            />
-          </motion.div>
         </motion.div>
 
         <div className="flex flex-col gap-8">
