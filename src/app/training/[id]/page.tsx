@@ -9,12 +9,12 @@ import {
   Target, CheckCircle2, UserCheck, CreditCard, BookOpen,
   Wifi, MonitorPlay, Building2, MessageCircle, FileText,
   Sparkles, Briefcase, GraduationCap, Landmark, LineChart,
-  UserCircle2, Award, ShieldCheck, Eye, X,
+  UserCircle2, Award, ShieldCheck, Eye, X, Star, Quote,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ShareTrainingButton from "@/components/ShareTrainingButton";
-import { supabase, TrainingItem } from "@/lib/supabase";
+import { supabase, TrainingItem, TestimonialItem } from "@/lib/supabase";
 import { whatsappHref } from "@/lib/site-config";
 import dynamic from "next/dynamic";
 
@@ -582,8 +582,243 @@ export default function TrainingDetailPage() {
         </div>
       </main>
 
+      {/* ── TESTIMONIALS ─────────────────────────────────── */}
+      <TrainingTestimonialsSection trainingId={training.id} color={c} />
+
       <Footer />
     </>
+  );
+}
+
+// ── TrainingTestimonialsSection ───────────────────────────────────────────────
+function TStarRating({ rating, color }: { rating: number; color: string }) {
+  return (
+    <div className="flex items-center gap-0.5">
+      {Array.from({ length: 5 }).map((_, i) => (
+        <motion.div
+          key={i}
+          initial={{ opacity: 0, scale: 0 }}
+          whileInView={{ opacity: 1, scale: 1 }}
+          viewport={{ once: true }}
+          transition={{ delay: i * 0.06, type: "spring", stiffness: 380 }}
+        >
+          <Star
+            size={12}
+            className={i < rating ? "fill-current" : "opacity-15"}
+            style={{ color: i < rating ? color : undefined }}
+          />
+        </motion.div>
+      ))}
+    </div>
+  );
+}
+
+function TAvatar({ name, src, color }: { name: string; src?: string | null; color: string }) {
+  if (src) {
+    // eslint-disable-next-line @next/next/no-img-element
+    return <img src={src} alt={name} className="w-9 h-9 rounded-full object-cover ring-2 ring-white" />;
+  }
+  const initials = name.split(" ").slice(0, 2).map(w => w[0]).join("").toUpperCase();
+  return (
+    <div className="w-9 h-9 rounded-full flex items-center justify-center text-white font-extrabold text-[0.7rem] ring-2 ring-white flex-shrink-0"
+      style={{ backgroundColor: color }}>
+      {initials}
+    </div>
+  );
+}
+
+function TCard({ t, index, color }: { t: TestimonialItem; index: number; color: string }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 28 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-40px" }}
+      transition={{ duration: 0.5, delay: index * 0.1, ease: [0.4, 0, 0.2, 1] }}
+      whileHover={{ y: -4, boxShadow: "0 12px 40px rgba(0,0,0,0.09)" }}
+      className="bg-white rounded-2xl border border-black/[0.07] flex flex-col gap-0 overflow-hidden h-full"
+      style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.05)" }}
+    >
+      {/* Color bar */}
+      <div className="h-[3px] w-full" style={{ backgroundColor: color }} />
+
+      <div className="flex flex-col gap-4 p-6 flex-1">
+        {/* Top row: stars + quote icon */}
+        <div className="flex items-start justify-between gap-3">
+          <TStarRating rating={t.rating} color={color} />
+          <Quote size={22} style={{ color: color + "28" }} className="fill-current flex-shrink-0 mt-0.5" />
+        </div>
+
+        {/* Content */}
+        <p className="text-[0.875rem] leading-[1.9] text-dark/60 flex-1 italic">
+          &ldquo;{t.content}&rdquo;
+        </p>
+
+        {/* Bottom: author */}
+        <div className="flex items-center gap-3 pt-4 border-t border-black/[0.06]">
+          <TAvatar name={t.name} src={t.avatar_url} color={color} />
+          <div className="min-w-0 flex-1">
+            <p className="font-extrabold text-[0.85rem] text-dark truncate leading-tight">{t.name}</p>
+            {(t.position || t.company) && (
+              <p className="text-[0.71rem] text-muted truncate mt-0.5">
+                {[t.position, t.company].filter(Boolean).join(" · ")}
+              </p>
+            )}
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+function TSkeletonCard() {
+  return (
+    <div className="bg-white rounded-2xl border border-border overflow-hidden animate-pulse">
+      <div className="h-[3px] bg-dark/[0.08] w-full" />
+      <div className="p-6 flex flex-col gap-4">
+        <div className="flex gap-1">{[1,2,3,4,5].map(i => <div key={i} className="w-3 h-3 rounded bg-dark/[0.07]" />)}</div>
+        <div className="flex flex-col gap-2 flex-1">
+          <div className="h-3 bg-dark/[0.06] rounded w-full" />
+          <div className="h-3 bg-dark/[0.06] rounded w-5/6" />
+          <div className="h-3 bg-dark/[0.06] rounded w-4/5" />
+        </div>
+        <div className="flex items-center gap-3 pt-4 border-t border-border">
+          <div className="w-9 h-9 rounded-full bg-dark/[0.07]" />
+          <div className="flex flex-col gap-1.5">
+            <div className="h-3 w-24 bg-dark/[0.07] rounded" />
+            <div className="h-2.5 w-32 bg-dark/[0.05] rounded" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+function TrainingTestimonialsSection({ trainingId, color }: { trainingId: string; color: string }) {
+  const [items, setItems]     = useState<TestimonialItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // First fetch testimonials specific to this training
+    supabase
+      .from("testimonials")
+      .select("*")
+      .eq("published", true)
+      .eq("training_id", trainingId)
+      .order("featured", { ascending: false })
+      .order("created_at", { ascending: false })
+      .limit(3)
+      .then(({ data: specific }) => {
+        if (specific && specific.length >= 2) {
+          setItems(specific);
+          setLoading(false);
+        } else {
+          // fallback: mix specific + general
+          supabase
+            .from("testimonials")
+            .select("*")
+            .eq("published", true)
+            .order("featured", { ascending: false })
+            .order("created_at", { ascending: false })
+            .limit(3)
+            .then(({ data: all }) => {
+              setItems(all ?? []);
+              setLoading(false);
+            });
+        }
+      });
+  }, [trainingId]);
+
+  if (!loading && items.length === 0) return null;
+
+  return (
+    <section className="bg-[#FAFAF8] border-t border-border py-[clamp(60px,8vw,100px)]">
+      <div className="max-w-[1280px] mx-auto px-6 lg:px-16">
+
+        {/* Header */}
+        <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-6 mb-12">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
+          >
+            <p className="text-[0.68rem] font-extrabold tracking-[0.2em] uppercase mb-3" style={{ color }}>
+              Testimoni Alumni
+            </p>
+            <h2 className="text-[clamp(1.7rem,3.5vw,2.6rem)] font-extrabold leading-[1.15] tracking-[-0.025em] text-dark">
+              Yang dikatakan{" "}
+              <span className="relative inline-block">
+                peserta kami
+                <motion.span
+                  initial={{ scaleX: 0 }}
+                  whileInView={{ scaleX: 1 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.55, delay: 0.35, ease: [0.4, 0, 0.2, 1] }}
+                  className="absolute -bottom-1 left-0 right-0 h-[2.5px] rounded-full origin-left"
+                  style={{ backgroundColor: color }}
+                />
+              </span>
+            </h2>
+          </motion.div>
+
+          {/* Rating summary */}
+          {!loading && items.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              whileInView={{ opacity: 1 }}
+              viewport={{ once: true }}
+              transition={{ delay: 0.25 }}
+              className="flex items-center gap-3 bg-white border border-border rounded-xl px-4 py-3 self-start sm:self-auto"
+            >
+              <div className="flex gap-0.5">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <Star key={i} size={14} className="fill-current" style={{ color }} />
+                ))}
+              </div>
+              <span className="font-extrabold text-[0.9rem] text-dark">
+                {(items.reduce((s, t) => s + t.rating, 0) / items.length).toFixed(1)}
+              </span>
+              <span className="text-[0.73rem] text-muted">/ 5 · {items.length} ulasan</span>
+            </motion.div>
+          )}
+        </div>
+
+        {/* Cards */}
+        {loading ? (
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            {[1, 2, 3].map(n => <TSkeletonCard key={n} />)}
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+            {items.map((t, i) => (
+              <TCard key={t.id} t={t} index={i} color={color} />
+            ))}
+          </div>
+        )}
+
+        {/* CTA */}
+        {!loading && (
+          <motion.div
+            initial={{ opacity: 0, y: 12 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true }}
+            transition={{ delay: 0.3, duration: 0.5 }}
+            className="mt-10 text-center"
+          >
+            <p className="text-[0.8rem] text-muted mb-3">
+              Pernah mengikuti program ini?
+            </p>
+            <a
+              href={`https://wa.me/${process.env.NEXT_PUBLIC_WHATSAPP_NUMBER?.replace(/[^\d]/g, "") || ""}?text=${encodeURIComponent("Halo Tim GRCC, saya ingin mengirimkan testimoni untuk program pelatihan yang pernah saya ikuti.")}`}
+              target="_blank" rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 border border-border text-dark text-[0.8rem] font-semibold px-5 py-2.5 rounded-xl hover:border-dark/30 hover:bg-white transition-all"
+            >
+              Bagikan pengalaman Anda →
+            </a>
+          </motion.div>
+        )}
+      </div>
+    </section>
   );
 }
 
