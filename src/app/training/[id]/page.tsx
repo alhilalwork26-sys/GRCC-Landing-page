@@ -741,24 +741,51 @@ function TrainingTestimonialsSection({ trainingId, color }: { trainingId: string
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
             transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
+            className="max-w-[640px]"
           >
-            <p className="text-[0.68rem] font-extrabold tracking-[0.2em] uppercase mb-3" style={{ color }}>
-              Testimoni Alumni
+            <p className="text-[0.68rem] font-extrabold tracking-[0.2em] uppercase mb-5" style={{ color }}>
+              Kata Mereka
             </p>
-            <h2 className="text-[clamp(1.7rem,3.5vw,2.6rem)] font-extrabold leading-[1.15] tracking-[-0.025em] text-dark">
-              Yang dikatakan{" "}
-              <span className="relative inline-block">
-                peserta kami
-                <motion.span
-                  initial={{ scaleX: 0 }}
-                  whileInView={{ scaleX: 1 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.55, delay: 0.35, ease: [0.4, 0, 0.2, 1] }}
-                  className="absolute -bottom-1 left-0 right-0 h-[2.5px] rounded-full origin-left"
-                  style={{ backgroundColor: color }}
-                />
-              </span>
-            </h2>
+
+            {/* Pull-quote style heading */}
+            <div className="relative">
+              {/* Decorative opening quote */}
+              <motion.span
+                initial={{ opacity: 0, x: -8 }}
+                whileInView={{ opacity: 1, x: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.5, delay: 0.1 }}
+                className="absolute -top-3 -left-1 font-serif text-[4.5rem] leading-none select-none pointer-events-none"
+                style={{ color: color + "22" }}
+              >
+                "
+              </motion.span>
+
+              <h2 className="text-[clamp(1.55rem,3.2vw,2.4rem)] font-extrabold leading-[1.2] tracking-[-0.02em] text-dark italic pl-5">
+                Pelatihannya tidak hanya teori —{" "}
+                <span className="not-italic relative inline-block">
+                  langsung bisa diterapkan.
+                  <motion.span
+                    initial={{ scaleX: 0 }}
+                    whileInView={{ scaleX: 1 }}
+                    viewport={{ once: true }}
+                    transition={{ duration: 0.55, delay: 0.4, ease: [0.4, 0, 0.2, 1] }}
+                    className="absolute -bottom-1 left-0 right-0 h-[2.5px] rounded-full origin-left"
+                    style={{ backgroundColor: color }}
+                  />
+                </span>
+              </h2>
+
+              <motion.p
+                initial={{ opacity: 0 }}
+                whileInView={{ opacity: 1 }}
+                viewport={{ once: true }}
+                transition={{ delay: 0.5, duration: 0.4 }}
+                className="mt-3 pl-5 text-[0.75rem] font-semibold tracking-[0.08em] uppercase text-muted"
+              >
+                — Alumni yang pernah hadir
+              </motion.p>
+            </div>
           </motion.div>
 
           {/* Rating summary */}
