@@ -64,35 +64,87 @@ export default function Hero() {
           variants={fadeIn}
           initial="hidden"
           animate="visible"
-          className="w-[clamp(220px,28vw,380px)] aspect-[4/3] rounded-lg overflow-hidden hidden lg:block flex-shrink-0 mt-2"
+          className="w-[clamp(220px,28vw,380px)] aspect-[4/3] rounded-lg overflow-hidden hidden lg:block flex-shrink-0 mt-2 relative"
         >
           <Image
-            src="https://images.unsplash.com/photo-1557804506-669a67965ba0?w=600&q=80"
-            alt="Tim GRCC berdiskusi"
+            src="/event-speaker.jpg"
+            alt="Narasumber GRCC sedang presentasi"
             width={600}
             height={450}
-            className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
+            className="w-full h-full object-cover hover:scale-105 transition-transform duration-700 object-top"
+            priority
           />
+          {/* Subtle vignette overlay */}
+          <div className="absolute inset-0 ring-1 ring-inset ring-black/[0.06] rounded-lg pointer-events-none" />
         </motion.div>
       </div>
 
       {/* Lower row: image + description + CTAs */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-[clamp(40px,5vw,80px)] items-center">
+        {/* ── Animated dual-photo block ── */}
         <motion.div
           custom={1}
           variants={fadeIn}
           initial="hidden"
           animate="visible"
-          className="aspect-[4/3] rounded-lg overflow-hidden"
+          className="relative"
         >
-          <Image
-            src="https://images.unsplash.com/photo-1600880292203-757bb62b4baf?w=900&q=80"
-            alt="Profesional GRCC"
-            width={900}
-            height={675}
-            className="w-full h-full object-cover hover:scale-105 transition-transform duration-700"
-            priority
-          />
+          {/* Main photo — group */}
+          <motion.div
+            className="aspect-[4/3] rounded-lg overflow-hidden relative"
+            whileHover="hover"
+          >
+            <motion.div
+              variants={{ hover: { scale: 1.04 } }}
+              transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
+              className="w-full h-full"
+            >
+              <Image
+                src="/event-group.jpg"
+                alt="Peserta pelatihan GRCC"
+                width={900}
+                height={675}
+                className="w-full h-full object-cover object-center"
+                priority
+              />
+            </motion.div>
+            {/* Bottom fade */}
+            <div className="absolute inset-x-0 bottom-0 h-1/3 bg-gradient-to-t from-black/30 to-transparent pointer-events-none" />
+            {/* Badge overlay */}
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 1.1, duration: 0.5 }}
+              className="absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm rounded-md px-3 py-2 shadow-sm"
+            >
+              <p className="text-[0.65rem] font-bold tracking-[0.1em] uppercase text-dark/40 mb-0.5">Peserta Aktif</p>
+              <p className="text-[1.05rem] font-extrabold text-dark leading-none">500+ Alumni</p>
+            </motion.div>
+          </motion.div>
+
+          {/* Floating speaker thumbnail */}
+          <motion.div
+            initial={{ opacity: 0, scale: 0.85, x: 12, y: -12 }}
+            animate={{ opacity: 1, scale: 1, x: 0, y: 0 }}
+            transition={{ delay: 1.3, duration: 0.55, ease: [0.34, 1.56, 0.64, 1] }}
+            whileHover={{ scale: 1.04, rotate: -1 }}
+            className="absolute -top-5 -right-5 w-[38%] aspect-[3/4] rounded-lg overflow-hidden shadow-[0_8px_32px_rgba(0,0,0,0.18)] border-[3px] border-white cursor-pointer"
+          >
+            <Image
+              src="/event-speaker.jpg"
+              alt="Narasumber GRCC"
+              width={300}
+              height={400}
+              className="w-full h-full object-cover object-top"
+            />
+            {/* Shine sweep on hover */}
+            <motion.div
+              variants={{ hover: { x: "200%" } }}
+              initial={{ x: "-100%" }}
+              transition={{ duration: 0.5 }}
+              className="absolute inset-0 bg-gradient-to-r from-transparent via-white/25 to-transparent skew-x-12 pointer-events-none"
+            />
+          </motion.div>
         </motion.div>
 
         <div className="flex flex-col gap-8">
