@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase, TeamMember } from "@/lib/supabase";
-import { Plus, Pencil, Trash2, GripVertical, X, Check, Loader2 } from "lucide-react";
+import { Plus, Pencil, Trash2, GripVertical, X, Check, Loader2, Upload, UserCircle2, CheckCircle2 } from "lucide-react";
 
 const EMPTY: Omit<TeamMember,"id"> = {
   num:"", name:"", role:"", photo:"", bio:"", order_index: 0, active: true,
@@ -14,8 +14,10 @@ export default function AdminTeam() {
   const [loading, setLoading] = useState(true);
   const [form,    setForm]    = useState<typeof EMPTY | null>(null);
   const [editId,  setEditId]  = useState<string | null>(null);
-  const [saving,  setSaving]  = useState(false);
-  const [msg,     setMsg]     = useState("");
+  const [saving,        setSaving]        = useState(false);
+  const [uploadingPhoto, setUploadingPhoto] = useState(false);
+  const [msg,           setMsg]           = useState("");
+  const photoInputRef = useRef<HTMLInputElement>(null);
 
   const load = async () => {
     setLoading(true);
@@ -31,6 +33,22 @@ export default function AdminTeam() {
     setForm(rest); setEditId(id);
   };
   const closeForm = () => { setForm(null); setEditId(null); };
+
+  const uploadPhoto = async (file: File) => {
+    if (!form) return;
+    const allowed = ["image/jpeg", "image/png", "image/webp"];
+    if (!allowed.includes(file.type)) { setMsg("Format foto harus JPG, PNG, atau WebP."); return; }
+    if (file.size > 20 * 1024 * 1024) { setMsg("Foto maksimal 20MB."); return; }
+    setUploadingPhoto(true);
+    const ext = file.name.split(".").pop();
+    const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const { data, error } = await supabase.storage
+      .from("team-photos").upload(filename, file, { contentType: file.type, upsert: false });
+    setUploadingPhoto(false);
+    if (error) { setMsg(`Gagal upload: ${error.message}`); return; }
+    const { data: pub } = supabase.storage.from("team-photos").getPublicUrl(data.path);
+    setForm(cur => cur ? { ...cur, photo: pub.publicUrl } : cur);
+  };
 
   const save = async () => {
     if (!form) return;
@@ -124,10 +142,44 @@ export default function AdminTeam() {
                   </div>
                   <div><label className="label">Jabatan</label>
                     <input value={form.role} onChange={e=>setForm({...form,role:e.target.value})} placeholder="Manager GRCC" className="input"/></div>
-                  <div><label className="label">URL Foto</label>
-                    <input value={form.photo} onChange={e=>setForm({...form,photo:e.target.value})} placeholder="https://..." className="input"/>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    {form.photo && <img src={form.photo} alt="" className="mt-2 w-16 h-16 rounded-xl object-cover"/>}
+
+                  {/* ── Foto Upload ── */}
+                  <div>
+                    <label className="label">Foto</label>
+                    <input ref={photoInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden"
+                      onChange={e=>{ const f=e.target.files?.[0]; if(f) uploadPhoto(f); e.currentTarget.value=""; }}/>
+                    {form.photo ? (
+                      <div className="flex gap-4 p-3 rounded-2xl border border-border bg-[#FAFAFA] items-center">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img src={form.photo} alt="" className="w-16 h-16 rounded-xl object-cover object-top border border-border flex-shrink-0"/>
+                        <div className="flex flex-col justify-between flex-1 min-w-0 gap-2">
+                          <p className="text-[0.78rem] font-bold text-emerald-700 flex items-center gap-1.5">
+                            <CheckCircle2 size={13}/> Foto aktif
+                          </p>
+                          <div className="flex gap-2">
+                            <button type="button" onClick={()=>photoInputRef.current?.click()} disabled={uploadingPhoto}
+                              className="flex items-center gap-1.5 bg-dark text-white text-[0.72rem] font-bold px-3 py-1.5 rounded-lg disabled:opacity-50">
+                              {uploadingPhoto ? <Loader2 size={11} className="animate-spin"/> : <Upload size={11}/>} Ganti
+                            </button>
+                            <button type="button" onClick={()=>setForm({...form,photo:""})}
+                              className="flex items-center gap-1.5 border border-border text-muted text-[0.72rem] font-bold px-3 py-1.5 rounded-lg hover:text-dark">
+                              <X size={11}/> Hapus
+                            </button>
+                          </div>
+                        </div>
+                      </div>
+                    ) : (
+                      <button type="button" onClick={()=>photoInputRef.current?.click()} disabled={uploadingPhoto}
+                        className="flex w-full items-center gap-3 p-4 rounded-2xl border border-dashed border-border bg-[#FAFAFA] hover:bg-dark/[0.03] transition-colors disabled:opacity-50">
+                        <span className="w-10 h-10 rounded-xl bg-dark/[0.06] flex items-center justify-center flex-shrink-0">
+                          {uploadingPhoto ? <Loader2 size={16} className="animate-spin text-muted"/> : <UserCircle2 size={18} className="text-muted"/>}
+                        </span>
+                        <span className="text-left">
+                          <span className="block text-[0.8rem] font-bold text-dark">Upload foto (JPG / PNG / WebP)</span>
+                          <span className="block text-[0.7rem] text-muted">Maks. 20MB.</span>
+                        </span>
+                      </button>
+                    )}
                   </div>
                   <div><label className="label">Bio</label>
                     <textarea rows={4} value={form.bio} onChange={e=>setForm({...form,bio:e.target.value})} className="input resize-none" placeholder="Deskripsi singkat peran…"/></div>
