@@ -239,10 +239,13 @@ export default function AboutPage() {
               >
                 <motion.div style={{ y: imgY }} className="absolute inset-[-10%]">
                   <Image
-                    src="https://images.unsplash.com/photo-1577495508048-b635879837f1?w=800&q=80"
-                    alt="Awal mula GRCC"
+                    src="/unair-building.jpg"
+                    alt="Gedung Universitas Airlangga — kampus GRCC"
                     fill
-                    className="object-cover"
+                    sizes="(max-width: 1024px) 100vw, 50vw"
+                    quality={90}
+                    className="object-cover object-top"
+                    priority
                   />
                 </motion.div>
               </div>
