@@ -158,28 +158,8 @@ export default function ProgramsPage() {
                   {programs.length} Program
                 </p>
                 <nav className="flex flex-col gap-1.5">
-                  {programs.map((p, i) => {
-                    const isActive = active === i && !inHouseActive;
-                    return (
-                      <button key={p.id} onClick={() => { setActive(i); setInHouseActive(false); }}
-                        className={`group flex items-center gap-3.5 px-4 py-3.5 rounded-xl text-left transition-all duration-250 ${isActive ? "bg-dark text-white shadow-sm" : "hover:bg-dark/[0.05] text-dark/60 hover:text-dark"}`}>
-                        <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors"
-                          style={{ backgroundColor: isActive ? p.accent+"25" : "rgba(0,0,0,0.05)" }}>
-                          {renderIcon(p.icon_name, { size: 15, style: { color: isActive ? p.accent : undefined } })}
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className={`text-[0.82rem] font-semibold leading-tight truncate ${isActive ? "text-white" : ""}`}>{p.title}</p>
-                          <p className={`text-[0.65rem] mt-0.5 font-mono tracking-[0.1em] uppercase ${isActive ? "text-white/40" : "text-muted"}`}>
-                            {(subsMap[p.id] ?? []).length} sub-program
-                          </p>
-                        </div>
-                        {isActive && <ChevronRight size={14} className="text-white/40 flex-shrink-0" />}
-                      </button>
-                    );
-                  })}
-
                   {/* ── Pinned In-House Training ── */}
-                  <div className="pt-2 mt-1 border-t border-border">
+                  <div className="mb-2">
                     <button onClick={() => setInHouseActive(true)}
                       className={`group w-full flex items-center gap-3.5 px-4 py-3.5 rounded-xl text-left transition-all duration-250 ${inHouseActive ? "shadow-lg" : "hover:shadow-md"}`}
                       style={inHouseActive
@@ -212,6 +192,30 @@ export default function ProgramsPage() {
                       }
                     </button>
                   </div>
+
+                  {/* Separator */}
+                  <div className="border-t border-border mb-1 mt-1" />
+
+                  {/* ── 8 Programs ── */}
+                  {programs.map((p, i) => {
+                    const isActive = active === i && !inHouseActive;
+                    return (
+                      <button key={p.id} onClick={() => { setActive(i); setInHouseActive(false); }}
+                        className={`group flex items-center gap-3.5 px-4 py-3.5 rounded-xl text-left transition-all duration-250 ${isActive ? "bg-dark text-white shadow-sm" : "hover:bg-dark/[0.05] text-dark/60 hover:text-dark"}`}>
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 transition-colors"
+                          style={{ backgroundColor: isActive ? p.accent+"25" : "rgba(0,0,0,0.05)" }}>
+                          {renderIcon(p.icon_name, { size: 15, style: { color: isActive ? p.accent : undefined } })}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <p className={`text-[0.82rem] font-semibold leading-tight truncate ${isActive ? "text-white" : ""}`}>{p.title}</p>
+                          <p className={`text-[0.65rem] mt-0.5 font-mono tracking-[0.1em] uppercase ${isActive ? "text-white/40" : "text-muted"}`}>
+                            {(subsMap[p.id] ?? []).length} sub-program
+                          </p>
+                        </div>
+                        {isActive && <ChevronRight size={14} className="text-white/40 flex-shrink-0" />}
+                      </button>
+                    );
+                  })}
                 </nav>
               </div>
 
