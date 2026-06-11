@@ -165,6 +165,17 @@ export interface TeamMember {
   active: boolean;
 }
 
+export interface ComingSoonPost {
+  id: string;
+  title: string;
+  subtitle: string | null;
+  category: string | null;
+  color: string;
+  visible: boolean;
+  expected_date: string | null;
+  created_at: string;
+}
+
 export interface TestimonialItem {
   id: string;
   name: string;

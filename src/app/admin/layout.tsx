@@ -5,7 +5,7 @@ import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import {
   LayoutDashboard, Megaphone, Newspaper,
-  CalendarDays, Users, LogOut, ExternalLink, Menu, X, Database, Tag, Layers, Star
+  CalendarDays, Users, LogOut, ExternalLink, Menu, X, Database, Tag, Layers, Star, Clock
 } from "lucide-react";
 
 const nav = [
@@ -14,6 +14,7 @@ const nav = [
   { href: "/admin/programs",        icon: Layers,           label: "Program"        },
   { href: "/admin/insights",        icon: Newspaper,        label: "Insights"      },
   { href: "/admin/training",        icon: CalendarDays,     label: "Training"      },
+  { href: "/admin/coming-soon",     icon: Clock,            label: "Coming Soon"   },
   { href: "/admin/promo-codes",     icon: Tag,              label: "Kode Promo"    },
   { href: "/admin/registrations",   icon: Database,         label: "Database Peserta" },
   { href: "/admin/testimonials",    icon: Star,             label: "Testimoni"     },

@@ -4,8 +4,8 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { supabase, TrainingItem } from "@/lib/supabase";
-import { ArrowUpRight, Calendar, MapPin, Users, Wifi, MonitorPlay, Building2 } from "lucide-react";
+import { supabase, TrainingItem, ComingSoonPost } from "@/lib/supabase";
+import { ArrowUpRight, Calendar, MapPin, Users, Wifi, MonitorPlay, Building2, Clock } from "lucide-react";
 import ShareTrainingButton from "@/components/ShareTrainingButton";
 
 // ── format icon ───────────────────────────────────────────────────────────────
@@ -206,22 +206,116 @@ function TrainingCard({ t, index }: { t: TrainingItem; index: number }) {
   );
 }
 
+// ── Coming Soon Card ──────────────────────────────────────────────────────────
+function ComingSoonCard({ post, index }: { post: ComingSoonPost; index: number }) {
+  const c = post.color || "#4F46E5";
+  return (
+    <motion.article
+      initial={{ opacity: 0, y: 32 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, margin: "-40px" }}
+      transition={{ duration: 0.55, delay: index * 0.1, ease: [0.4, 0, 0.2, 1] }}
+      className="flex flex-col rounded-[20px] overflow-hidden bg-white border border-black/[0.07] h-full"
+      style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.04)" }}
+    >
+      {/* Poster area */}
+      <div className="relative h-[220px] overflow-hidden">
+        {/* Animated background */}
+        <div className="absolute inset-0"
+          style={{
+            background: `linear-gradient(135deg, ${c}18 0%, ${c}08 50%, ${c}14 100%)`,
+          }}
+        />
+        <div className="absolute inset-0"
+          style={{
+            backgroundImage: `linear-gradient(${c}15 1px, transparent 1px), linear-gradient(90deg, ${c}15 1px, transparent 1px)`,
+            backgroundSize: "28px 28px",
+          }}
+        />
+        <div className="absolute inset-0"
+          style={{ background: `radial-gradient(ellipse at 50% 60%, ${c}25 0%, transparent 65%)` }}
+        />
+
+        {/* Center icon */}
+        <div className="absolute inset-0 flex items-center justify-center">
+          <motion.div
+            animate={{ scale: [1, 1.06, 1], opacity: [0.6, 1, 0.6] }}
+            transition={{ duration: 2.8, repeat: Infinity, ease: "easeInOut" }}
+            className="w-16 h-16 rounded-2xl flex items-center justify-center shadow-lg"
+            style={{ backgroundColor: c + "22", border: `1.5px solid ${c}40` }}
+          >
+            <Clock size={28} style={{ color: c }} strokeWidth={1.5} />
+          </motion.div>
+        </div>
+
+        {/* Top badge */}
+        <div className="absolute top-3.5 left-3.5">
+          <motion.span
+            animate={{ opacity: [0.8, 1, 0.8] }}
+            transition={{ duration: 1.8, repeat: Infinity }}
+            className="flex items-center gap-1.5 text-[0.6rem] font-extrabold tracking-[0.12em] uppercase px-2.5 py-1 rounded-full text-white shadow-sm"
+            style={{ backgroundColor: c }}
+          >
+            <span className="w-1.5 h-1.5 rounded-full bg-white/70 inline-block" />
+            Segera Hadir
+          </motion.span>
+        </div>
+
+        {post.category && (
+          <span className="absolute top-3.5 left-[calc(3.5*4px+6.5rem)] text-[0.6rem] font-bold tracking-[0.08em] uppercase px-2.5 py-1 rounded-full bg-white/80 backdrop-blur-sm text-dark/70 shadow-sm">
+            {post.category}
+          </span>
+        )}
+
+        {/* Bottom: expected date */}
+        {post.expected_date && (
+          <div className="absolute bottom-3.5 left-3.5 flex items-center gap-1.5">
+            <span className="flex items-center gap-1.5 text-[0.68rem] font-semibold px-2.5 py-1 rounded-full backdrop-blur-sm"
+              style={{ backgroundColor: c + "20", color: c }}>
+              <Clock size={10} /> {post.expected_date}
+            </span>
+          </div>
+        )}
+      </div>
+
+      {/* Body */}
+      <div className="flex flex-col flex-1 p-5 gap-3">
+        <h3 className="text-[0.97rem] font-bold leading-[1.4] tracking-tight line-clamp-2 text-dark">
+          {post.title}
+        </h3>
+        {post.subtitle && (
+          <p className="text-[0.78rem] leading-[1.65] text-muted flex-1 line-clamp-2">
+            {post.subtitle}
+          </p>
+        )}
+
+        {/* CTA — decorative only */}
+        <div className="mt-1 flex items-center justify-center gap-2 text-[0.8rem] font-bold py-2.5 rounded-xl border-2 border-dashed"
+          style={{ borderColor: c + "40", color: c + "99" }}>
+          Pendaftaran dibuka segera
+        </div>
+      </div>
+    </motion.article>
+  );
+}
+
 // ── Section ───────────────────────────────────────────────────────────────────
 export default function Insights() {
-  const [trainings, setTrainings] = useState<TrainingItem[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [trainings,   setTrainings]   = useState<TrainingItem[]>([]);
+  const [comingSoon,  setComingSoon]  = useState<ComingSoonPost[]>([]);
+  const [loading,     setLoading]     = useState(true);
 
   useEffect(() => {
-    supabase
-      .from("training")
-      .select("*")
-      .eq("published", true)
-      .order("created_at", { ascending: false })
-      .limit(3)
-      .then(({ data }) => {
-        setTrainings(data ?? []);
-        setLoading(false);
-      });
+    Promise.all([
+      supabase.from("training").select("*").eq("published", true)
+        .order("created_at", { ascending: false }).limit(3),
+      supabase.from("coming_soon_posts").select("*").eq("visible", true)
+        .order("created_at", { ascending: false }),
+    ]).then(([{ data: t }, { data: cs }]) => {
+      setTrainings(t ?? []);
+      setComingSoon(cs ?? []);
+      setLoading(false);
+    });
   }, []);
 
   return (
@@ -266,7 +360,7 @@ export default function Insights() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {[1, 2, 3].map((n) => <SkeletonCard key={n} />)}
           </div>
-        ) : trainings.length === 0 ? (
+        ) : trainings.length === 0 && comingSoon.length === 0 ? (
           <div className="text-center py-16 text-muted text-[0.88rem]">
             Belum ada pelatihan yang dipublikasikan.
           </div>
@@ -274,6 +368,9 @@ export default function Insights() {
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {trainings.map((t, i) => (
               <TrainingCard key={t.id} t={t} index={i} />
+            ))}
+            {comingSoon.map((cs, i) => (
+              <ComingSoonCard key={cs.id} post={cs} index={trainings.length + i} />
             ))}
           </div>
         )}
