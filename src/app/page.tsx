@@ -1,8 +1,4 @@
-"use client";
-
-import { useState } from "react";
-import { AnimatePresence, motion } from "framer-motion";
-import Intro from "@/components/Intro";
+import IntroOverlay from "@/components/IntroOverlay";
 import Navbar from "@/components/Navbar";
 import Hero from "@/components/Hero";
 import Challenges from "@/components/Challenges";
@@ -19,36 +15,28 @@ import Footer from "@/components/Footer";
 import PromoModal from "@/components/PromoModal";
 
 export default function Home() {
-  const [introDone, setIntroD] = useState(false);
-
   return (
     <>
-      <Intro onComplete={() => setIntroD(true)} />
-
-      <AnimatePresence>
-        {introDone && (
-          <motion.main
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ duration: 0.5, ease: "easeOut" }}
-          >
-            <Navbar />
-            <Hero />
-            <Challenges />
-            <TrustMarquee />
-            <Services />
-            <UseCases />
-            <Stats />
-            <VideoProfile />
-            <Process />
-            <Insights />
-            <Testimonials />
-            <CTABand />
-            <Footer />
-            <PromoModal />
-          </motion.main>
-        )}
-      </AnimatePresence>
+      <IntroOverlay />
+      {/* Content is always in the SSR HTML for search engine indexing.
+          The CSS animation holds opacity:0 until the intro overlay finishes (6.9s),
+          matching the previous introDone behaviour without blocking SSR. */}
+      <main style={{ animation: "mainFadeIn 0.5s ease-out 6.9s both" }}>
+        <Navbar />
+        <Hero />
+        <Challenges />
+        <TrustMarquee />
+        <Services />
+        <UseCases />
+        <Stats />
+        <VideoProfile />
+        <Process />
+        <Insights />
+        <Testimonials />
+        <CTABand />
+        <Footer />
+        <PromoModal />
+      </main>
     </>
   );
 }
