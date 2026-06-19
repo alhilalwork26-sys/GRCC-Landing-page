@@ -47,6 +47,12 @@ export interface InsightItem {
   created_at: string;
 }
 
+export interface TrainingSession {
+  date: string;    // "17 April 2026"
+  day: string;     // "Jumat"
+  times: string[]; // ["15:30 - 17:30 WIB", "19:30 - 20:30"]
+}
+
 export interface TrainingItem {
   id: string;
   title: string;
@@ -71,6 +77,7 @@ export interface TrainingItem {
   va_set_at: string | null;
   objectives: string | null;
   target_audience: string | null;
+  sessions: TrainingSession[] | null;
   created_at: string;
 }
 

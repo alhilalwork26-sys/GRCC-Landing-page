@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { supabase, TrainingItem, CustomField } from "@/lib/supabase";
+import { supabase, TrainingItem, TrainingSession, CustomField } from "@/lib/supabase";
 import {
   Plus, Pencil, Trash2, Eye, EyeOff, X, Check, Loader2,
   GripVertical, Settings2, Upload, Image as ImageIcon, FileText,
@@ -31,7 +31,7 @@ const EMPTY: Omit<TrainingItem,"id"|"created_at"> = {
   max_participants: null, color:"#4F46E5", description:"", published: true,
   poster_url: null, brochure_url: null, custom_fields: [], program_id: null,
   va_bank: null, va_number: null, va_set_at: null,
-  objectives: null, target_audience: null,
+  objectives: null, target_audience: null, sessions: null,
 };
 
 // ── small helpers ─────────────────────────────────────────────────────────────
@@ -483,26 +483,114 @@ export default function AdminTraining() {
 
                   {/* ── Section: Jadwal ── */}
                   <Section icon={<Calendar size={14}/>} label="Jadwal & Lokasi">
-                    <div className="grid grid-cols-2 gap-3">
-                      <Field label="Tanggal Mulai">
-                        <input value={form.date_start} onChange={e=>setForm({...form,date_start:e.target.value})}
-                          placeholder="18 April 2026" className="input"/>
-                      </Field>
-                      <Field label="Tanggal Selesai">
-                        <input value={form.date_end??""} onChange={e=>setForm({...form,date_end:e.target.value||null})}
-                          placeholder="opsional" className="input"/>
-                      </Field>
+                    {/* Mode toggle */}
+                    <div className="flex items-center gap-3 p-3 rounded-xl bg-dark/[0.03] border border-border">
+                      <Clock size={13} className="text-muted flex-shrink-0"/>
+                      <span className="text-[0.78rem] font-semibold flex-1">Jadwal Multi-Sesi</span>
+                      <div
+                        onClick={() => setForm({...form, sessions: form.sessions
+                          ? null
+                          : [{ date:"", day:"", times:[""] }]
+                        })}
+                        className={`w-10 h-5 rounded-full transition-colors relative cursor-pointer flex-shrink-0 ${form.sessions ? "bg-dark" : "bg-dark/20"}`}>
+                        <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${form.sessions ? "left-5" : "left-0.5"}`}/>
+                      </div>
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <Field label="Waktu">
-                        <input value={form.time} onChange={e=>setForm({...form,time:e.target.value})}
-                          placeholder="Sabtu 08.00–17.00" className="input"/>
-                      </Field>
-                      <Field label="Lokasi">
-                        <input value={form.location} onChange={e=>setForm({...form,location:e.target.value})}
-                          placeholder="Zoom / Surabaya" className="input"/>
-                      </Field>
-                    </div>
+
+                    {!form.sessions ? (
+                      /* ── Single schedule ── */
+                      <>
+                        <div className="grid grid-cols-2 gap-3">
+                          <Field label="Tanggal Mulai">
+                            <input value={form.date_start} onChange={e=>setForm({...form,date_start:e.target.value})}
+                              placeholder="18 April 2026" className="input"/>
+                          </Field>
+                          <Field label="Tanggal Selesai">
+                            <input value={form.date_end??""} onChange={e=>setForm({...form,date_end:e.target.value||null})}
+                              placeholder="opsional" className="input"/>
+                          </Field>
+                        </div>
+                        <div className="grid grid-cols-2 gap-3">
+                          <Field label="Waktu">
+                            <input value={form.time} onChange={e=>setForm({...form,time:e.target.value})}
+                              placeholder="Sabtu 08.00–17.00" className="input"/>
+                          </Field>
+                          <Field label="Lokasi">
+                            <input value={form.location} onChange={e=>setForm({...form,location:e.target.value})}
+                              placeholder="Zoom / Surabaya" className="input"/>
+                          </Field>
+                        </div>
+                      </>
+                    ) : (
+                      /* ── Multi-session editor ── */
+                      <div className="flex flex-col gap-3">
+                        <Field label="Lokasi">
+                          <input value={form.location} onChange={e=>setForm({...form,location:e.target.value})}
+                            placeholder="Zoom / Surabaya" className="input"/>
+                        </Field>
+                        {form.sessions.map((session: TrainingSession, si: number) => (
+                          <div key={si} className="border border-border rounded-xl p-3 bg-[#FAFAFA] flex flex-col gap-2.5">
+                            {/* Session header: date + day */}
+                            <div className="flex items-center gap-2">
+                              <span className="w-5 h-5 rounded-md bg-dark text-white text-[0.62rem] font-black flex items-center justify-center flex-shrink-0">
+                                {si + 1}
+                              </span>
+                              <input value={session.date}
+                                onChange={e=>{const s=[...form.sessions!];s[si]={...s[si],date:e.target.value};setForm({...form,sessions:s});}}
+                                placeholder="17 April 2026" className="input flex-1 text-[0.82rem]"/>
+                              <input value={session.day}
+                                onChange={e=>{const s=[...form.sessions!];s[si]={...s[si],day:e.target.value};setForm({...form,sessions:s});}}
+                                placeholder="Jumat" className="input text-[0.82rem]" style={{width:80}}/>
+                              <button type="button"
+                                onClick={()=>setForm({...form,sessions:form.sessions!.filter((_,i)=>i!==si)})}
+                                className="w-6 h-6 rounded-lg bg-red-50 hover:bg-red-100 flex items-center justify-center flex-shrink-0 transition-colors">
+                                <X size={11} className="text-red-400"/>
+                              </button>
+                            </div>
+                            {/* Time slots */}
+                            <div className="flex flex-col gap-1.5 ml-7">
+                              {session.times.map((t: string, ti: number) => (
+                                <div key={ti} className="flex gap-2 items-center">
+                                  <input value={t}
+                                    onChange={e=>{
+                                      const s=[...form.sessions!];
+                                      const times=[...s[si].times]; times[ti]=e.target.value;
+                                      s[si]={...s[si],times}; setForm({...form,sessions:s});
+                                    }}
+                                    placeholder="15:30 - 17:30 WIB" className="input flex-1 text-[0.8rem]"/>
+                                  {session.times.length > 1 && (
+                                    <button type="button"
+                                      onClick={()=>{
+                                        const s=[...form.sessions!];
+                                        s[si]={...s[si],times:s[si].times.filter((_,i)=>i!==ti)};
+                                        setForm({...form,sessions:s});
+                                      }}
+                                      className="w-7 h-9 rounded-lg hover:bg-red-50 flex items-center justify-center flex-shrink-0 transition-colors">
+                                      <X size={11} className="text-muted hover:text-red-400"/>
+                                    </button>
+                                  )}
+                                </div>
+                              ))}
+                              <button type="button"
+                                onClick={()=>{
+                                  const s=[...form.sessions!];
+                                  s[si]={...s[si],times:[...s[si].times,""]};
+                                  setForm({...form,sessions:s});
+                                }}
+                                className="flex items-center gap-1 text-[0.7rem] font-semibold text-dark/40 hover:text-dark transition-colors mt-0.5">
+                                <Plus size={10}/> Tambah slot waktu
+                              </button>
+                            </div>
+                          </div>
+                        ))}
+                        <button type="button"
+                          onClick={()=>setForm({...form,sessions:[...(form.sessions||[]),{date:"",day:"",times:[""]}]})}
+                          className="flex items-center justify-center gap-1.5 text-[0.75rem] font-bold border border-dashed border-border rounded-xl py-2.5 text-dark/50 hover:text-dark hover:border-dark/30 transition-all">
+                          <Plus size={12}/> Tambah Sesi
+                        </button>
+                      </div>
+                    )}
+
                     <Field label="Maks. Peserta">
                       <input type="number" value={form.max_participants??""} placeholder="30"
                         onChange={e=>setForm({...form,max_participants:+e.target.value||null})} className="input w-[50%]"/>

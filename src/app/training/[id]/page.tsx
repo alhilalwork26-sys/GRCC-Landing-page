@@ -14,7 +14,7 @@ import {
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ShareTrainingButton from "@/components/ShareTrainingButton";
-import { supabase, TrainingItem, TestimonialItem } from "@/lib/supabase";
+import { supabase, TrainingItem, TrainingSession, TestimonialItem } from "@/lib/supabase";
 import { whatsappHref } from "@/lib/site-config";
 import dynamic from "next/dynamic";
 
@@ -225,12 +225,20 @@ export default function TrainingDetailPage() {
             initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
             className="flex flex-wrap gap-3"
           >
-            {training.date_start && (
+            {training.sessions ? (
               <MetaChip icon={<Calendar size={12} />} white>
-                {training.date_start}{training.date_end ? ` – ${training.date_end}` : ""}
+                {training.sessions.length} sesi · {training.sessions[0]?.date}{training.sessions.length > 1 ? ` – ${training.sessions[training.sessions.length-1]?.date}` : ""}
               </MetaChip>
+            ) : (
+              <>
+                {training.date_start && (
+                  <MetaChip icon={<Calendar size={12} />} white>
+                    {training.date_start}{training.date_end ? ` – ${training.date_end}` : ""}
+                  </MetaChip>
+                )}
+                {training.time && <MetaChip icon={<Clock size={12} />} white>{training.time}</MetaChip>}
+              </>
             )}
-            {training.time && <MetaChip icon={<Clock size={12} />} white>{training.time}</MetaChip>}
             {training.location && <MetaChip icon={<MapPin size={12} />} white>{training.location}</MetaChip>}
             {training.max_participants && (
               <MetaChip icon={<Users size={12} />} white>Maks. {training.max_participants} peserta</MetaChip>
@@ -522,12 +530,38 @@ export default function TrainingDetailPage() {
                 <div className="p-5 flex flex-col gap-3">
                   {/* Info rows */}
                   <div className="flex flex-col gap-2.5">
-                    {training.date_start && (
-                      <InfoRow icon={<Calendar size={13} />}>
-                        {training.date_start}{training.date_end ? ` – ${training.date_end}` : ""}
-                      </InfoRow>
+                    {training.sessions ? (
+                      /* Multi-session schedule table */
+                      <div className="flex flex-col gap-0 rounded-xl overflow-hidden border border-border">
+                        {training.sessions.map((s: TrainingSession, i: number) => (
+                          <div key={i} className={`flex gap-0 ${i < training.sessions!.length - 1 ? "border-b border-border" : ""}`}>
+                            <div className="flex flex-col items-center justify-center px-4 py-3 bg-[#F7F7F5] border-r border-border min-w-[72px] flex-shrink-0">
+                              <span className="text-[1.4rem] font-black leading-none" style={{ color: training.color }}>
+                                {s.date.split(" ")[0]}
+                              </span>
+                              <span className="text-[0.6rem] font-semibold text-muted uppercase tracking-wider mt-0.5">
+                                {s.date.split(" ").slice(1).join(" ")}
+                              </span>
+                            </div>
+                            <div className="flex flex-col justify-center px-4 py-3 gap-0.5">
+                              <span className="text-[0.72rem] font-bold text-dark/50 uppercase tracking-wider">{s.day}</span>
+                              {s.times.map((t: string, ti: number) => (
+                                <span key={ti} className="text-[0.82rem] font-semibold text-dark">{t}</span>
+                              ))}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <>
+                        {training.date_start && (
+                          <InfoRow icon={<Calendar size={13} />}>
+                            {training.date_start}{training.date_end ? ` – ${training.date_end}` : ""}
+                          </InfoRow>
+                        )}
+                        {training.time && <InfoRow icon={<Clock size={13} />}>{training.time}</InfoRow>}
+                      </>
                     )}
-                    {training.time && <InfoRow icon={<Clock size={13} />}>{training.time}</InfoRow>}
                     {training.location && <InfoRow icon={<MapPin size={13} />}>{training.location}</InfoRow>}
                     {training.max_participants && (
                       <InfoRow icon={<Users size={13} />}>Maks. {training.max_participants} peserta</InfoRow>
