@@ -131,6 +131,7 @@ export interface PromoCode {
   active: boolean;
   expires_at: string | null;
   promo_type: "individu" | "grup" | "semua";
+  training_ids: string[] | null;
   created_at: string;
 }
 
