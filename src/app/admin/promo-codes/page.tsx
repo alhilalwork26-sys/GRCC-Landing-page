@@ -9,7 +9,7 @@ import {
   ToggleLeft, ToggleRight, Copy, CheckCheck, User, Users,
   BookOpen, ChevronDown,
 } from "lucide-react";
-import { TrainingItem } from "@/lib/supabase";
+import { TrainingItem, ComingSoonPost } from "@/lib/supabase";
 
 const EMPTY: Omit<PromoCode, "id" | "created_at" | "used_count"> = {
   code: "",
@@ -60,13 +60,14 @@ function CopyCode({ code }: { code: string }) {
 
 // ── Form Modal ────────────────────────────────────────────────────────────────
 function PromoForm({
-  initial, onSave, onClose, saving, trainings,
+  initial, onSave, onClose, saving, trainings, comingSoon,
 }: {
   initial: typeof EMPTY & { id?: string };
   onSave: (data: typeof EMPTY) => void;
   onClose: () => void;
   saving: boolean;
   trainings: Pick<TrainingItem, "id" | "title">[];
+  comingSoon: Pick<ComingSoonPost, "id" | "title">[];
 }) {
   const [form, setForm] = useState<typeof EMPTY>({ ...initial });
   const [showTrainingPicker, setShowTrainingPicker] = useState(false);
@@ -263,6 +264,11 @@ function PromoForm({
                     </div>
                     Semua pelatihan
                   </button>
+                  {trainings.length > 0 && (
+                    <p className="px-4 py-2 text-[0.65rem] font-bold uppercase tracking-widest text-muted bg-[#F7F7F5] border-b border-border">
+                      Pelatihan Terpublikasi
+                    </p>
+                  )}
                   {trainings.map((t) => {
                     const selected = (form.training_ids ?? []).includes(t.id);
                     return (
@@ -270,7 +276,7 @@ function PromoForm({
                         key={t.id}
                         type="button"
                         onClick={() => toggleTraining(t.id)}
-                        className="w-full flex items-center gap-2 px-4 py-2.5 text-[0.8rem] border-b border-border last:border-0 hover:bg-[#F7F7F5] transition-colors text-left"
+                        className="w-full flex items-center gap-2 px-4 py-2.5 text-[0.8rem] border-b border-border hover:bg-[#F7F7F5] transition-colors text-left"
                       >
                         <div className={`w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 ${selected ? "bg-dark border-dark" : "border-gray-300"}`}>
                           {selected && <Check size={10} className="text-white" />}
@@ -279,8 +285,29 @@ function PromoForm({
                       </button>
                     );
                   })}
-                  {trainings.length === 0 && (
-                    <p className="px-4 py-3 text-[0.78rem] text-muted">Belum ada pelatihan terpublikasi.</p>
+                  {comingSoon.length > 0 && (
+                    <p className="px-4 py-2 text-[0.65rem] font-bold uppercase tracking-widest text-amber-600 bg-amber-50 border-b border-border">
+                      Segera Hadir
+                    </p>
+                  )}
+                  {comingSoon.map((t) => {
+                    const selected = (form.training_ids ?? []).includes(t.id);
+                    return (
+                      <button
+                        key={t.id}
+                        type="button"
+                        onClick={() => toggleTraining(t.id)}
+                        className="w-full flex items-center gap-2 px-4 py-2.5 text-[0.8rem] border-b border-border last:border-0 hover:bg-[#F7F7F5] transition-colors text-left"
+                      >
+                        <div className={`w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 ${selected ? "bg-amber-500 border-amber-500" : "border-gray-300"}`}>
+                          {selected && <Check size={10} className="text-white" />}
+                        </div>
+                        <span className={selected ? "font-semibold text-amber-700" : "text-muted"}>{t.title}</span>
+                      </button>
+                    );
+                  })}
+                  {trainings.length === 0 && comingSoon.length === 0 && (
+                    <p className="px-4 py-3 text-[0.78rem] text-muted">Belum ada pelatihan.</p>
                   )}
                 </div>
               )}
@@ -345,6 +372,7 @@ function PromoForm({
 export default function AdminPromoCodes() {
   const [items, setItems] = useState<PromoCode[]>([]);
   const [trainings, setTrainings] = useState<Pick<TrainingItem, "id" | "title">[]>([]);
+  const [comingSoon, setComingSoon] = useState<Pick<ComingSoonPost, "id" | "title">[]>([]);
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState<(typeof EMPTY & { id?: string }) | null>(null);
   const [saving, setSaving] = useState(false);
@@ -353,12 +381,14 @@ export default function AdminPromoCodes() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const [{ data: promos }, { data: trns }] = await Promise.all([
+    const [{ data: promos }, { data: trns }, { data: cs }] = await Promise.all([
       supabase.from("promo_codes").select("*").order("created_at", { ascending: false }),
       supabase.from("training").select("id, title").eq("published", true).order("date_start", { ascending: true }),
+      supabase.from("coming_soon_posts").select("id, title").eq("visible", true).order("created_at", { ascending: true }),
     ]);
     setItems(promos ?? []);
     setTrainings(trns ?? []);
+    setComingSoon(cs ?? []);
     setLoading(false);
   }, []);
 
@@ -617,6 +647,7 @@ export default function AdminPromoCodes() {
             onClose={() => setFormData(null)}
             saving={saving}
             trainings={trainings}
+            comingSoon={comingSoon}
           />
         )}
       </AnimatePresence>
