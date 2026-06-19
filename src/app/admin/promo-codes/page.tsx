@@ -355,7 +355,7 @@ export default function AdminPromoCodes() {
     setLoading(true);
     const [{ data: promos }, { data: trns }] = await Promise.all([
       supabase.from("promo_codes").select("*").order("created_at", { ascending: false }),
-      supabase.from("trainings").select("id, title").eq("published", true).order("date_start", { ascending: true }),
+      supabase.from("training").select("id, title").eq("published", true).order("date_start", { ascending: true }),
     ]);
     setItems(promos ?? []);
     setTrainings(trns ?? []);
