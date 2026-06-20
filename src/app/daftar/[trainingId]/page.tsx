@@ -315,6 +315,7 @@ export default function DaftarPage() {
         .then(({ data }) => {
           if (data &&
               (data.promo_type ?? "semua") !== "grup" &&
+              !(data.training_ids && data.training_ids.length > 0 && !data.training_ids.includes(trainingId)) &&
               !(data.expires_at && new Date(data.expires_at) < new Date()) &&
               !(data.max_uses !== null && data.used_count >= data.max_uses)) {
             setAppliedPromo(data);
@@ -393,6 +394,8 @@ export default function DaftarPage() {
       setPromoError("Kode promo tidak ditemukan atau tidak aktif.");
     } else if ((data.promo_type ?? "semua") === "grup") {
       setPromoError("Kode ini hanya berlaku untuk pendaftaran grup.");
+    } else if (data.training_ids && data.training_ids.length > 0 && !data.training_ids.includes(trainingId)) {
+      setPromoError("Kode promo ini tidak berlaku untuk pelatihan ini.");
     } else if (data.expires_at && new Date(data.expires_at) < new Date()) {
       setPromoError("Kode promo sudah kadaluarsa.");
     } else if (data.max_uses !== null && data.used_count >= data.max_uses) {

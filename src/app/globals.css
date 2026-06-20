@@ -22,3 +22,9 @@
     animation-play-state: paused;
   }
 }
+
+/* Main content fades in exactly when the intro overlay finishes (6.9s) */
+@keyframes mainFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}

@@ -259,6 +259,7 @@ export default function DaftarGrupPage() {
     const { data } = await supabase.from("promo_codes").select("*").eq("code", code).eq("active", true).maybeSingle();
     if (!data) setPromoError("Kode promo tidak ditemukan atau tidak aktif.");
     else if ((data.promo_type ?? "semua") === "individu") setPromoError("Kode ini hanya berlaku untuk pendaftaran individu.");
+    else if (data.training_ids && data.training_ids.length > 0 && !data.training_ids.includes(trainingId)) setPromoError("Kode promo ini tidak berlaku untuk pelatihan ini.");
     else if (data.expires_at && new Date(data.expires_at) < new Date()) setPromoError("Kode promo sudah kadaluarsa.");
     else if (data.max_uses !== null && data.used_count >= data.max_uses) setPromoError("Kode promo sudah habis.");
     else if (subtotal > 0 && data.min_price > subtotal) setPromoError(`Berlaku untuk minimal ${formatRp(data.min_price)}.`);

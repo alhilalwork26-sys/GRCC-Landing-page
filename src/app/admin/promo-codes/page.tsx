@@ -7,7 +7,9 @@ import {
   Plus, Pencil, Trash2, X, Check, Loader2,
   Tag, Percent, BadgeDollarSign, Users2, Calendar,
   ToggleLeft, ToggleRight, Copy, CheckCheck, User, Users,
+  BookOpen, ChevronDown,
 } from "lucide-react";
+import { TrainingItem, ComingSoonPost } from "@/lib/supabase";
 
 const EMPTY: Omit<PromoCode, "id" | "created_at" | "used_count"> = {
   code: "",
@@ -19,6 +21,7 @@ const EMPTY: Omit<PromoCode, "id" | "created_at" | "used_count"> = {
   active: true,
   expires_at: null,
   promo_type: "semua",
+  training_ids: null,
 };
 
 const PROMO_TYPE_CONFIG = {
@@ -57,17 +60,26 @@ function CopyCode({ code }: { code: string }) {
 
 // ── Form Modal ────────────────────────────────────────────────────────────────
 function PromoForm({
-  initial, onSave, onClose, saving,
+  initial, onSave, onClose, saving, trainings, comingSoon,
 }: {
   initial: typeof EMPTY & { id?: string };
   onSave: (data: typeof EMPTY) => void;
   onClose: () => void;
   saving: boolean;
+  trainings: Pick<TrainingItem, "id" | "title">[];
+  comingSoon: Pick<ComingSoonPost, "id" | "title">[];
 }) {
   const [form, setForm] = useState<typeof EMPTY>({ ...initial });
+  const [showTrainingPicker, setShowTrainingPicker] = useState(false);
   const isEdit = !!initial.id;
 
   const set = (patch: Partial<typeof EMPTY>) => setForm((f) => ({ ...f, ...patch }));
+
+  const toggleTraining = (id: string) => {
+    const current = form.training_ids ?? [];
+    const next = current.includes(id) ? current.filter((t) => t !== id) : [...current, id];
+    set({ training_ids: next.length > 0 ? next : null });
+  };
 
   return (
     <>
@@ -223,6 +235,85 @@ function PromoForm({
               <p className="text-[0.68rem] text-muted mt-1">Kosong = tidak ada kadaluarsa</p>
             </div>
 
+            {/* Training restriction */}
+            <div>
+              <label className="label">Berlaku untuk Pelatihan</label>
+              <button
+                type="button"
+                onClick={() => setShowTrainingPicker((v) => !v)}
+                className="input flex items-center justify-between text-left"
+              >
+                <span className={form.training_ids ? "text-dark font-semibold" : "text-muted"}>
+                  {form.training_ids
+                    ? `${form.training_ids.length} pelatihan dipilih`
+                    : "Semua pelatihan (tidak dibatasi)"}
+                </span>
+                <ChevronDown size={14} className={`text-muted transition-transform ${showTrainingPicker ? "rotate-180" : ""}`} />
+              </button>
+              {showTrainingPicker && (
+                <div className="mt-2 rounded-xl border border-border bg-white overflow-hidden max-h-52 overflow-y-auto">
+                  <button
+                    type="button"
+                    onClick={() => set({ training_ids: null })}
+                    className={`w-full flex items-center gap-2 px-4 py-2.5 text-[0.8rem] border-b border-border hover:bg-[#F7F7F5] transition-colors ${
+                      !form.training_ids ? "font-bold text-dark" : "text-muted"
+                    }`}
+                  >
+                    <div className={`w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 ${!form.training_ids ? "bg-dark border-dark" : "border-gray-300"}`}>
+                      {!form.training_ids && <Check size={10} className="text-white" />}
+                    </div>
+                    Semua pelatihan
+                  </button>
+                  {trainings.length > 0 && (
+                    <p className="px-4 py-2 text-[0.65rem] font-bold uppercase tracking-widest text-muted bg-[#F7F7F5] border-b border-border">
+                      Pelatihan Terpublikasi
+                    </p>
+                  )}
+                  {trainings.map((t) => {
+                    const selected = (form.training_ids ?? []).includes(t.id);
+                    return (
+                      <button
+                        key={t.id}
+                        type="button"
+                        onClick={() => toggleTraining(t.id)}
+                        className="w-full flex items-center gap-2 px-4 py-2.5 text-[0.8rem] border-b border-border hover:bg-[#F7F7F5] transition-colors text-left"
+                      >
+                        <div className={`w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 ${selected ? "bg-dark border-dark" : "border-gray-300"}`}>
+                          {selected && <Check size={10} className="text-white" />}
+                        </div>
+                        <span className={selected ? "font-semibold text-dark" : "text-muted"}>{t.title}</span>
+                      </button>
+                    );
+                  })}
+                  {comingSoon.length > 0 && (
+                    <p className="px-4 py-2 text-[0.65rem] font-bold uppercase tracking-widest text-amber-600 bg-amber-50 border-b border-border">
+                      Segera Hadir
+                    </p>
+                  )}
+                  {comingSoon.map((t) => {
+                    const selected = (form.training_ids ?? []).includes(t.id);
+                    return (
+                      <button
+                        key={t.id}
+                        type="button"
+                        onClick={() => toggleTraining(t.id)}
+                        className="w-full flex items-center gap-2 px-4 py-2.5 text-[0.8rem] border-b border-border last:border-0 hover:bg-[#F7F7F5] transition-colors text-left"
+                      >
+                        <div className={`w-4 h-4 rounded border-2 flex items-center justify-center flex-shrink-0 ${selected ? "bg-amber-500 border-amber-500" : "border-gray-300"}`}>
+                          {selected && <Check size={10} className="text-white" />}
+                        </div>
+                        <span className={selected ? "font-semibold text-amber-700" : "text-muted"}>{t.title}</span>
+                      </button>
+                    );
+                  })}
+                  {trainings.length === 0 && comingSoon.length === 0 && (
+                    <p className="px-4 py-3 text-[0.78rem] text-muted">Belum ada pelatihan.</p>
+                  )}
+                </div>
+              )}
+              <p className="text-[0.68rem] text-muted mt-1">Kosong = berlaku untuk semua pelatihan</p>
+            </div>
+
             {/* Active toggle */}
             <label className="flex items-center gap-3 cursor-pointer select-none">
               <div
@@ -249,7 +340,8 @@ function PromoForm({
                   {" "}untuk pendaftaran <strong>{PROMO_TYPE_CONFIG[form.promo_type].label.toLowerCase()}</strong>
                   {form.min_price > 0 && `, minimal ${formatRupiah(form.min_price)}`}
                   {form.max_uses && `, maks. ${form.max_uses}x`}
-                  {form.expires_at && `, s.d. ${new Date(form.expires_at).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}`}.
+                  {form.expires_at && `, s.d. ${new Date(form.expires_at).toLocaleDateString("id-ID", { day: "numeric", month: "long", year: "numeric" })}`}
+                  {form.training_ids && form.training_ids.length > 0 && `. Hanya untuk ${form.training_ids.length} pelatihan tertentu`}.
                 </p>
               </div>
             )}
@@ -279,6 +371,8 @@ function PromoForm({
 // ── Main ──────────────────────────────────────────────────────────────────────
 export default function AdminPromoCodes() {
   const [items, setItems] = useState<PromoCode[]>([]);
+  const [trainings, setTrainings] = useState<Pick<TrainingItem, "id" | "title">[]>([]);
+  const [comingSoon, setComingSoon] = useState<Pick<ComingSoonPost, "id" | "title">[]>([]);
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState<(typeof EMPTY & { id?: string }) | null>(null);
   const [saving, setSaving] = useState(false);
@@ -287,8 +381,14 @@ export default function AdminPromoCodes() {
 
   const load = useCallback(async () => {
     setLoading(true);
-    const { data } = await supabase.from("promo_codes").select("*").order("created_at", { ascending: false });
-    setItems(data ?? []);
+    const [{ data: promos }, { data: trns }, { data: cs }] = await Promise.all([
+      supabase.from("promo_codes").select("*").order("created_at", { ascending: false }),
+      supabase.from("training").select("id, title").eq("published", true).order("date_start", { ascending: true }),
+      supabase.from("coming_soon_posts").select("id, title").eq("visible", true).order("created_at", { ascending: true }),
+    ]);
+    setItems(promos ?? []);
+    setTrainings(trns ?? []);
+    setComingSoon(cs ?? []);
     setLoading(false);
   }, []);
 
@@ -501,6 +601,14 @@ export default function AdminPromoCodes() {
                           s.d. {new Date(item.expires_at).toLocaleDateString("id-ID", { day: "numeric", month: "short", year: "numeric" })}
                         </div>
                       )}
+                      {item.training_ids && item.training_ids.length > 0 && (
+                        <div className="flex items-center gap-1.5 text-[0.75rem] text-amber-600 bg-amber-50 border border-amber-200 rounded-full px-2 py-0.5">
+                          <BookOpen size={10} />
+                          {item.training_ids.length === 1
+                            ? trainings.find((t) => t.id === item.training_ids![0])?.title ?? "1 pelatihan"
+                            : `${item.training_ids.length} pelatihan`}
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -538,6 +646,8 @@ export default function AdminPromoCodes() {
             onSave={save}
             onClose={() => setFormData(null)}
             saving={saving}
+            trainings={trainings}
+            comingSoon={comingSoon}
           />
         )}
       </AnimatePresence>
