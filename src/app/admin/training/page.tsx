@@ -7,7 +7,7 @@ import {
   Plus, Pencil, Trash2, Eye, EyeOff, X, Check, Loader2,
   GripVertical, Settings2, Upload, Image as ImageIcon, FileText,
   CreditCard, Send, AlertCircle, Calendar, MapPin, Users,
-  Clock, BookOpen, CheckCircle2, Radio, ChevronDown,
+  Clock, BookOpen, CheckCircle2, Radio, ChevronDown, Video,
 } from "lucide-react";
 
 const COLORS   = ["#4F46E5","#10B981","#EF4444","#F59E0B","#8B5CF6","#0EA5E9","#F97316"];
@@ -54,6 +54,7 @@ export default function AdminTraining() {
   const [uploadingPoster,   setUploadingPoster]   = useState(false);
   const [uploadingBrochure, setUploadingBrochure] = useState(false);
   const [broadcasting, setBroadcasting] = useState<string | null>(null);
+  const [broadcastingZoom, setBroadcastingZoom] = useState<string | null>(null);
   const [msg,     setMsg]     = useState<{ text: string; ok: boolean } | null>(null);
   const [filterPublished, setFilterPublished] = useState<"all"|"published"|"draft">("all");
   const posterInputRef   = useRef<HTMLInputElement>(null);
@@ -122,6 +123,37 @@ export default function AdminTraining() {
       showMsg("Gagal broadcast. Coba lagi.", false);
     } finally {
       setBroadcasting(null);
+    }
+  };
+
+  const broadcastZoom = async (trainingId: string, title: string) => {
+    const zoomLink = prompt(`Masukkan link Zoom untuk:\n"${title}"`);
+    if (!zoomLink?.trim()) return;
+
+    const notes = prompt("Catatan tambahan untuk peserta (opsional):", "Mohon hadir 10 menit sebelum sesi dimulai.") ?? "";
+    if (!confirm(`Blast link Zoom ke semua pendaftar non-rejected:\n"${title}"\n\nLink:\n${zoomLink.trim()}\n\nLanjutkan?`)) return;
+
+    setBroadcastingZoom(trainingId);
+    try {
+      const res = await fetch("/api/broadcast-zoom", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ trainingId, zoomLink: zoomLink.trim(), notes: notes.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) {
+        showMsg(data.error || "Gagal blast link Zoom.", false);
+        return;
+      }
+
+      const waInfo = data.whatsappGatewayConfigured
+        ? `WA ${data.whatsappSent}/${data.whatsappTotal}`
+        : "WA gateway belum aktif";
+      showMsg(`Blast Zoom selesai — email ${data.emailSent}/${data.total}, ${waInfo}`);
+    } catch {
+      showMsg("Gagal blast link Zoom. Coba lagi.", false);
+    } finally {
+      setBroadcastingZoom(null);
     }
   };
 
@@ -373,6 +405,16 @@ export default function AdminTraining() {
                             className="flex items-center gap-1.5 text-[0.7rem] font-bold px-2.5 py-1.5 rounded-lg bg-indigo-50 text-indigo-700 hover:bg-indigo-100 transition-colors disabled:opacity-50">
                             {broadcasting === item.id ? <Loader2 size={11} className="animate-spin"/> : <Send size={11}/>}
                             <span className="hidden sm:inline">Kirim VA</span>
+                          </motion.button>
+                        )}
+                        {(item.format === "Online" || item.format === "Hybrid" || item.location?.toLowerCase().includes("zoom")) && (
+                          <motion.button whileHover={{ scale:1.05 }} whileTap={{ scale:0.95 }}
+                            onClick={() => broadcastZoom(item.id, item.title)}
+                            disabled={broadcastingZoom === item.id}
+                            title="Blast link Zoom ke peserta"
+                            className="flex items-center gap-1.5 text-[0.7rem] font-bold px-2.5 py-1.5 rounded-lg bg-sky-50 text-sky-700 hover:bg-sky-100 transition-colors disabled:opacity-50">
+                            {broadcastingZoom === item.id ? <Loader2 size={11} className="animate-spin"/> : <Video size={11}/>}
+                            <span className="hidden sm:inline">Blast Zoom</span>
                           </motion.button>
                         )}
                         <button onClick={() => togglePublish(item.id, item.published)}
