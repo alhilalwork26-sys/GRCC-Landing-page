@@ -792,7 +792,7 @@ function TrainingTestimonialsSection({ trainingId, color }: { trainingId: string
                 className="absolute -top-3 -left-1 font-serif text-[4.5rem] leading-none select-none pointer-events-none"
                 style={{ color: color + "22" }}
               >
-                "
+                &ldquo;
               </motion.span>
 
               <h2 className="text-[clamp(1.55rem,3.2vw,2.4rem)] font-extrabold leading-[1.2] tracking-[-0.02em] text-dark italic pl-5">
