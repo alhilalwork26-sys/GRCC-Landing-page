@@ -13,6 +13,7 @@ import {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const INFO_SOURCE_KEY = "sumber_informasi";
+const SELECTED_SESSION_KEY = "selected_session";
 
 const STATUS_CONFIG = {
   pending:   { label: "Menunggu",      color: "#F59E0B", bg: "#FEF3C7", icon: Clock         },
@@ -43,12 +44,17 @@ function StatusBadge({ status }: { status: Registration["status"] }) {
 
 function customDataLabel(key: string, training?: TrainingItem) {
   if (key === INFO_SOURCE_KEY) return "Sumber Informasi";
+  if (key === SELECTED_SESSION_KEY) return "Pilihan Waktu";
   const cf = training?.custom_fields?.find((f) => f.id === key);
   return cf?.label ?? key.replace(/_/g, " ");
 }
 
 function getInfoSource(reg: Registration) {
   return reg.custom_data?.[INFO_SOURCE_KEY] || "—";
+}
+
+function getSelectedSession(reg: Registration) {
+  return reg.selected_session || reg.custom_data?.[SELECTED_SESSION_KEY] || "";
 }
 
 function formatRp(n: number | null | undefined) {
@@ -120,7 +126,12 @@ function DetailModal({
     { icon: Mail,      label: "Email",            value: reg.email },
     { icon: Phone,     label: "Nomor Telepon",    value: reg.telepon },
     { icon: Tag,       label: "NPWP",             value: reg.npwp || "—" },
+    ...(getSelectedSession(reg)
+      ? [{ icon: Clock, label: "Pilihan Waktu", value: getSelectedSession(reg) }]
+      : []),
   ];
+  const visibleCustomEntries = Object.entries(reg.custom_data ?? {})
+    .filter(([key]) => key !== SELECTED_SESSION_KEY);
 
   return (
     <AnimatePresence>
@@ -212,13 +223,13 @@ function DetailModal({
             )}
 
             {/* Custom fields */}
-            {reg.custom_data && Object.keys(reg.custom_data).length > 0 && (
+            {visibleCustomEntries.length > 0 && (
               <div>
                 <p className="text-[0.65rem] font-bold tracking-[0.12em] uppercase text-muted mb-3">
                   Kolom Tambahan
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {Object.entries(reg.custom_data).map(([key, val]) => {
+                  {visibleCustomEntries.map(([key, val]) => {
                     return (
                       <div key={key} className="flex items-start gap-3 p-3 rounded-xl bg-[#F7F7F5]">
                         <div className="w-7 h-7 rounded-lg bg-white flex items-center justify-center flex-shrink-0 mt-0.5 border border-border">
@@ -424,6 +435,11 @@ function RegistrationRow({
           {training?.title ?? <span className="text-muted">—</span>}
         </p>
         <p className="text-[0.7rem] text-muted">{training?.date_start ?? ""}</p>
+        {getSelectedSession(reg) && (
+          <p className="text-[0.68rem] text-indigo-600 font-semibold mt-0.5 line-clamp-1">
+            {getSelectedSession(reg)}
+          </p>
+        )}
       </td>
       <td className="py-4 px-3 hidden xl:table-cell">
         <p className="text-[0.78rem] text-dark/70 font-semibold line-clamp-1">{getInfoSource(reg)}</p>
@@ -543,6 +559,7 @@ export default function AdminRegistrations() {
     if (search) {
       const q = search.toLowerCase();
       const t = trainingMap[r.training_id ?? ""];
+      const selectedSession = getSelectedSession(r);
       const inParticipants = r.is_group && r.participants?.some(
         (p) => p.nama.toLowerCase().includes(q) || p.email.toLowerCase().includes(q)
       );
@@ -552,6 +569,7 @@ export default function AdminRegistrations() {
         r.instansi.toLowerCase().includes(q) ||
         r.telepon.toLowerCase().includes(q) ||
         getInfoSource(r).toLowerCase().includes(q) ||
+        selectedSession.toLowerCase().includes(q) ||
         t?.title.toLowerCase().includes(q) ||
         !!inParticipants
       );
@@ -599,6 +617,7 @@ export default function AdminRegistrations() {
       "Jabatan",
       "Pelatihan",
       "Tanggal Pelatihan",
+      "Pilihan Waktu",
       "Tipe",
       "Jumlah Peserta",
       "Status",
@@ -619,6 +638,7 @@ export default function AdminRegistrations() {
         r.jabatan,
         t?.title ?? "",
         t?.date_start ?? "",
+        getSelectedSession(r),
         r.is_group ? "Grup" : "Individu",
         r.participant_count || 1,
         STATUS_CONFIG[r.status].label,
@@ -767,7 +787,7 @@ export default function AdminRegistrations() {
           <Search size={15} className="text-muted flex-shrink-0" />
           <input
             type="text"
-            placeholder="Cari nama, email, telepon, instansi, pelatihan, atau sumber informasi..."
+            placeholder="Cari nama, email, telepon, instansi, pelatihan, pilihan waktu, atau sumber informasi..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="flex-1 bg-transparent text-[0.84rem] outline-none text-dark placeholder:text-muted"

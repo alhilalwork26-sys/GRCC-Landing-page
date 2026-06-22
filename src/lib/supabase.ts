@@ -113,6 +113,7 @@ export interface Registration {
   original_price: number | null;
   discount_amount: number | null;
   final_price: number | null;
+  selected_session?: string | null;
   participant_count: number;
   is_group: boolean;
   participants: Participant[];

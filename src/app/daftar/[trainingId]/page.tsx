@@ -5,7 +5,7 @@ import { useParams, useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import {
-  ArrowLeft, Calendar, MapPin, User, Building2, Briefcase,
+  ArrowLeft, Calendar, MapPin, User, Building2, Briefcase, Clock,
   Mail, Phone, CreditCard, Upload, Check, ChevronRight,
   AlertCircle, Loader2, FileText, X, Sparkles, Tag,
   BadgePercent, CheckCircle2,
@@ -31,6 +31,19 @@ const INFO_SOURCE_OPTIONS = [
 // ── helpers ───────────────────────────────────────────────────────────────────
 function formatRp(n: number) {
   return "Rp " + n.toLocaleString("id-ID");
+}
+
+function getTimeOptions(training: TrainingItem | null) {
+  const options = (training?.sessions ?? [])
+    .flatMap((session) =>
+      (session.times ?? [])
+        .map((time) => time.trim())
+        .filter(Boolean)
+        .map((time) => [session.date, session.day, time].filter(Boolean).join(" · "))
+    )
+    .filter(Boolean);
+
+  return Array.from(new Set(options));
 }
 
 // ── Field wrapper with animated label ────────────────────────────────────────
@@ -292,6 +305,7 @@ export default function DaftarPage() {
     email: "", telepon: "", npwp: "",
   });
   const [customData, setCustomData] = useState<Record<string, string>>({});
+  const [selectedSession, setSelectedSession] = useState("");
   const [paymentFile, setPaymentFile] = useState<File | null>(null);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
@@ -328,14 +342,17 @@ export default function DaftarPage() {
 
   // Calculate progress
   useEffect(() => {
+    const timeOptions = getTimeOptions(training);
+    const requiresTimeChoice = timeOptions.length > 1;
     const fields = [
       form.nama_lengkap, form.instansi, form.jabatan,
       form.email, form.telepon, customData[INFO_SOURCE_KEY],
+      ...(requiresTimeChoice ? [selectedSession] : []),
     ];
     const filled = fields.filter(Boolean).length;
     const total = fields.length + 1; // +1 for payment file
     setProgress(Math.round(((filled + (paymentFile ? 1 : 0)) / total) * 100));
-  }, [form, customData, paymentFile]);
+  }, [form, customData, selectedSession, paymentFile, training]);
 
   const set = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     setForm(f => ({ ...f, [k]: e.target.value }));
@@ -352,6 +369,9 @@ export default function DaftarPage() {
     if (!form.telepon.trim()) e.telepon = "Nomor telepon wajib diisi";
     if (!customData[INFO_SOURCE_KEY]?.trim()) {
       e[INFO_SOURCE_KEY] = "Sumber informasi wajib dipilih";
+    }
+    if (getTimeOptions(training).length > 1 && !selectedSession) {
+      e.selected_session = "Pilihan waktu wajib dipilih";
     }
     if (!paymentFile) e.payment = "Bukti pembayaran wajib diunggah";
     // Custom required fields
@@ -439,6 +459,9 @@ export default function DaftarPage() {
 
       // 2. Insert registration
       const discountAmt = appliedPromo ? calcDiscount(appliedPromo) : null;
+      const normalizedCustomData = selectedSession
+        ? { ...customData, selected_session: selectedSession }
+        : customData;
       const { error: insertErr } = await supabase.from("registrations").insert({
         training_id: trainingId,
         nama_lengkap: form.nama_lengkap.trim(),
@@ -448,7 +471,7 @@ export default function DaftarPage() {
         telepon: form.telepon.trim(),
         npwp: form.npwp.trim() || null,
         bukti_pembayaran_url: buktiUrl,
-        custom_data: customData,
+        custom_data: normalizedCustomData,
         status: "pending",
         promo_code: appliedPromo?.code ?? null,
         original_price: basePrice || null,
@@ -483,7 +506,7 @@ export default function DaftarPage() {
           trainingDate: training?.date_start
             ? `${training.date_start}${training.date_end ? ` – ${training.date_end}` : ""}`
             : undefined,
-          trainingTime:     training?.time     ?? undefined,
+          trainingTime:     selectedSession || training?.time || undefined,
           trainingLocation: training?.location ?? undefined,
           trainingFormat:   training?.format   ?? undefined,
           trainingColor:    training?.color    ?? undefined,
@@ -517,6 +540,10 @@ export default function DaftarPage() {
 
   const accent = training.color || "#4F46E5";
   const customFields: CustomField[] = getPublicCustomFields(training.custom_fields);
+  const timeOptions = getTimeOptions(training);
+  const requiresTimeChoice = timeOptions.length > 1;
+  const baseSectionCount =
+    2 + (requiresTimeChoice ? 1 : 0) + (customFields.length > 0 ? 1 : 0);
 
   return (
     <>
@@ -660,10 +687,39 @@ export default function DaftarPage() {
                   </div>
                 </div>
 
+                {requiresTimeChoice && (
+                  <>
+                    <SectionHeader num="3" title="Pilihan Waktu" accent={accent} />
+                    <div className="mb-10">
+                      <FormField
+                        label="Pilih jadwal yang Anda ikuti"
+                        required
+                        error={errors.selected_session}
+                        icon={<Clock size={13} />}
+                      >
+                        <select
+                          data-error={errors.selected_session ? true : undefined}
+                          value={selectedSession}
+                          onChange={(e) => {
+                            setSelectedSession(e.target.value);
+                            setErrors((er) => ({ ...er, selected_session: "" }));
+                          }}
+                          className={inputCls(errors.selected_session)}
+                        >
+                          <option value="">Pilih salah satu waktu...</option>
+                          {timeOptions.map((option) => (
+                            <option key={option} value={option}>{option}</option>
+                          ))}
+                        </select>
+                      </FormField>
+                    </div>
+                  </>
+                )}
+
                 {/* ── Section 3: Custom Fields (from admin) ── */}
                 {customFields.length > 0 && (
                   <>
-                    <SectionHeader num="3" title="Informasi Tambahan" accent={accent} />
+                    <SectionHeader num={requiresTimeChoice ? "4" : "3"} title="Informasi Tambahan" accent={accent} />
                     <div className="grid sm:grid-cols-2 gap-5 mb-10">
                       {customFields.map((cf) => (
                         <div key={cf.id} className={cf.type === "textarea" ? "sm:col-span-2" : ""}>
@@ -720,7 +776,7 @@ export default function DaftarPage() {
                 {training.price && training.price > 0 && (
                   <div className="mb-10">
                     <SectionHeader
-                      num={customFields.length > 0 ? "4" : "3"}
+                      num={String(baseSectionCount + 1)}
                       title="Kode Promo"
                       accent={accent}
                     />
@@ -811,12 +867,7 @@ export default function DaftarPage() {
 
                 {/* ── Section: Bukti Pembayaran ── */}
                 <SectionHeader
-                  num={(() => {
-                    let n = 3;
-                    if (customFields.length > 0) n++;
-                    if (training.price && training.price > 0) n++;
-                    return String(n);
-                  })()}
+                  num={String(baseSectionCount + (training.price && training.price > 0 ? 1 : 0) + 1)}
                   title="Bukti Pembayaran"
                   accent={accent}
                 />
