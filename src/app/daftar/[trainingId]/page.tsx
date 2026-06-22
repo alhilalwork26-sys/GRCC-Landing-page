@@ -209,6 +209,38 @@ function SectionHeader({ num, title, accent }: { num: string; title: string; acc
   );
 }
 
+function InvoiceNotice({ trainingTitle, accent }: { trainingTitle: string; accent: string }) {
+  const message = `Halo Tim GRCC, saya membutuhkan Faktur Pajak untuk pendaftaran pelatihan "${trainingTitle}". Mohon informasi dokumen yang perlu disiapkan sebelum saya mengisi form dan melakukan pembayaran.`;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true }}
+      transition={{ duration: 0.4 }}
+      className="mb-5 rounded-2xl border border-amber-200 bg-amber-50 p-4 flex flex-col sm:flex-row sm:items-center gap-4"
+    >
+      <div className="flex items-start gap-3 flex-1">
+        <div className="w-9 h-9 rounded-xl bg-white border border-amber-200 flex items-center justify-center flex-shrink-0">
+          <FileText size={16} className="text-amber-600" />
+        </div>
+        <p className="text-[0.78rem] text-amber-800 leading-[1.7]">
+          <strong>Bagi perusahaan yang membutuhkan Faktur Pajak,</strong> bisa menghubungi Contact Person sebelum mengisi form dan melakukan pembayaran.
+        </p>
+      </div>
+      <a
+        href={whatsappHref(message)}
+        target="_blank"
+        rel="noreferrer"
+        className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-white text-[0.8rem] font-bold flex-shrink-0"
+        style={{ backgroundColor: accent }}
+      >
+        Minta Faktur <ChevronRight size={14} />
+      </a>
+    </motion.div>
+  );
+}
+
 // ── Success screen ────────────────────────────────────────────────────────────
 function SuccessScreen({ training, accent }: { training: TrainingItem; accent: string }) {
   return (
@@ -872,6 +904,7 @@ export default function DaftarPage() {
                   accent={accent}
                 />
                 <div className="mb-10">
+                  <InvoiceNotice trainingTitle={training.title} accent={accent} />
                   <FileUpload
                     value={paymentFile}
                     onChange={setPaymentFile}
