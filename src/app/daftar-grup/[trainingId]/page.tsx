@@ -480,6 +480,8 @@ export default function DaftarGrupPage() {
                   </div>
                 </div>
 
+                <InvoiceNotice trainingTitle={training.title} accent={accent} />
+
                 {/* ── Section 1: Data PIC ── */}
                 <SectionHeader num="1" title="Data PIC / Koordinator" accent={accent} />
                 <div className="grid sm:grid-cols-2 gap-5 mb-10">
@@ -673,7 +675,6 @@ export default function DaftarGrupPage() {
                 {/* ── Section: Bukti Pembayaran ── */}
                 <SectionHeader num={String(++sectionNum)} title="Bukti Pembayaran" accent={accent} />
                 <div className="mb-10">
-                  <InvoiceNotice trainingTitle={training.title} accent={accent} />
                   <FileUpload value={paymentFile} onChange={setPaymentFile} error={errors.payment} />
                   <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
                     className={`mt-4 flex items-start gap-3 p-4 rounded-xl ${training?.va_number ? "bg-indigo-50 border border-indigo-200" : "bg-amber-50 border border-amber-200"}`}>

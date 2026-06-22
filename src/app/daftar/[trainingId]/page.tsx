@@ -639,6 +639,8 @@ export default function DaftarPage() {
                   </p>
                 </div>
 
+                <InvoiceNotice trainingTitle={training.title} accent={accent} />
+
                 {/* ── Section 1: Data Peserta ── */}
                 <SectionHeader num="1" title="Data Peserta" accent={accent} />
                 <div className="grid sm:grid-cols-2 gap-5 mb-10">
@@ -904,7 +906,6 @@ export default function DaftarPage() {
                   accent={accent}
                 />
                 <div className="mb-10">
-                  <InvoiceNotice trainingTitle={training.title} accent={accent} />
                   <FileUpload
                     value={paymentFile}
                     onChange={setPaymentFile}
