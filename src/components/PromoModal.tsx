@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { supabase } from "@/lib/supabase";
 import { X, ArrowUpRight, Users, Award, Sparkles } from "lucide-react";
 
-const STORAGE_KEY = "grcc_promo_v2_dismissed";
+const STORAGE_KEY_PREFIX = "grcc_promo_v2_dismissed";
 const HIGHLIGHT_ICONS = [Users, Award, Sparkles];
 
 interface Facilitator { name: string; role: string; org: string; img?: string | null; main?: boolean; }
@@ -46,9 +46,6 @@ export default function PromoModal() {
   const [promo, setPromo] = useState<PromoData | null>(null);
 
   useEffect(() => {
-    const dismissed = sessionStorage.getItem(STORAGE_KEY);
-    if (dismissed) return;
-
     let timer: ReturnType<typeof setTimeout>;
     supabase
       .from("promo")
@@ -59,6 +56,8 @@ export default function PromoModal() {
       .maybeSingle()
       .then(({ data }) => {
         if (data) {
+          const dismissed = sessionStorage.getItem(`${STORAGE_KEY_PREFIX}_${data.id}`);
+          if (dismissed) return;
           setPromo(data as PromoData);
           timer = setTimeout(() => setShow(true), 900);
         }
@@ -68,7 +67,7 @@ export default function PromoModal() {
 
   const dismiss = () => {
     setShow(false);
-    sessionStorage.setItem(STORAGE_KEY, "1");
+    if (promo?.id) sessionStorage.setItem(`${STORAGE_KEY_PREFIX}_${promo.id}`, "1");
   };
 
   if (!promo) return null;

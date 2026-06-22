@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { supabase } from "@/lib/supabase";
-import { Check, Image as ImageIcon, Loader2, Plus, Trash2, Upload, X } from "lucide-react";
+import { Check, Copy, Image as ImageIcon, Loader2, Plus, Trash2, Upload, X } from "lucide-react";
 
 const COLORS = ["#4F46E5","#10B981","#EF4444","#F59E0B","#8B5CF6","#0EA5E9","#F97316"];
 const STATUSES = [
@@ -14,8 +14,29 @@ const STATUSES = [
 
 interface Facilitator { name: string; role: string; org: string; img: string; main?: boolean; }
 interface Highlight   { icon: string; text: string; }
+interface PromoRecord {
+  id: string;
+  active: boolean;
+  badge: string;
+  badge_color: string;
+  tag: string;
+  title: string;
+  subtitle: string | null;
+  accent_color: string;
+  description: string | null;
+  status: string;
+  cta_label: string;
+  cta_href: string;
+  facilitators: Facilitator[] | null;
+  highlights: Array<Highlight | string> | null;
+  created_at: string;
+  updated_at: string;
+}
+
+const EMPTY_FACILITATORS: Facilitator[] = [{ name:"", role:"", org:"", img:"" }];
 
 export default function AdminPromo() {
+  const [promos,      setPromos]      = useState<PromoRecord[]>([]);
   const [id,          setId]          = useState<string | null>(null);
   const [active,      setActive]      = useState(true);
   const [badge,       setBadge]       = useState("Coming Soon");
@@ -35,19 +56,52 @@ export default function AdminPromo() {
   const [msg,         setMsg]         = useState("");
   const [loading,     setLoading]     = useState(true);
 
+  const populateForm = (data: PromoRecord) => {
+    const normalizedHighlights = (data.highlights ?? [])
+      .map((item) => typeof item === "string" ? { icon: "✅", text: item } : item)
+      .filter((item) => item.text);
+    setId(data.id); setActive(data.active); setBadge(data.badge || "");
+    setBadgeColor(data.badge_color || "#EF4444"); setTag(data.tag || "");
+    setTitle(data.title || ""); setSubtitle(data.subtitle ?? "");
+    setAccentColor(data.accent_color || "#4F46E5"); setDesc(data.description ?? "");
+    setStatus(data.status || "coming_soon"); setCtaLabel(data.cta_label || "Daftar & Info Lengkap");
+    setCtaHref(data.cta_href || "mailto:grcc.ailg@gmail.com");
+    setFacilitators(data.facilitators?.length ? data.facilitators : EMPTY_FACILITATORS);
+    setHighlights(normalizedHighlights);
+  };
+
+  const resetForm = () => {
+    setId(null);
+    setActive(true);
+    setBadge("Promo Baru");
+    setBadgeColor("#EF4444");
+    setTag("GRCC × AILG · Universitas Airlangga");
+    setTitle("");
+    setSubtitle("");
+    setAccentColor("#4F46E5");
+    setDesc("");
+    setStatus("open");
+    setCtaLabel("Daftar & Info Lengkap");
+    setCtaHref("mailto:grcc.ailg@gmail.com");
+    setFacilitators(EMPTY_FACILITATORS);
+    setHighlights([]);
+  };
+
+  const loadPromos = async () => {
+    const { data } = await supabase
+      .from("promo")
+      .select("*")
+      .order("updated_at", { ascending: false });
+    const rows = (data ?? []) as PromoRecord[];
+    setPromos(rows);
+    return rows;
+  };
+
   useEffect(() => {
     (async () => {
       try {
-        const { data } = await supabase.from("promo").select("*").order("created_at",{ascending:false}).limit(1).single();
-        if (data) {
-          setId(data.id); setActive(data.active); setBadge(data.badge);
-          setBadgeColor(data.badge_color); setTag(data.tag); setTitle(data.title);
-          setSubtitle(data.subtitle ?? ""); setAccentColor(data.accent_color);
-          setDesc(data.description ?? ""); setStatus(data.status); setCtaLabel(data.cta_label);
-          setCtaHref(data.cta_href);
-          if (data.facilitators?.length) setFacilitators(data.facilitators);
-          if (data.highlights?.length)   setHighlights(data.highlights);
-        }
+        const rows = await loadPromos();
+        if (rows[0]) populateForm(rows[0]);
       } finally {
         setLoading(false);
       }
@@ -105,34 +159,78 @@ export default function AdminPromo() {
       cta_label: ctaLabel, cta_href: ctaHref,
       facilitators, highlights, updated_at: new Date().toISOString(),
     };
+    let savedId = id;
     if (id) {
       await supabase.from("promo").update(payload).eq("id", id);
     } else {
       const { data } = await supabase.from("promo").insert(payload).select().single();
-      if (data) setId(data.id);
+      if (data) {
+        savedId = data.id;
+        setId(data.id);
+      }
     }
+    const rows = await loadPromos();
+    const saved = rows.find((p) => p.id === savedId);
+    if (saved) populateForm(saved);
     setSaving(false);
     setMsg("Promo berhasil disimpan!");
+    setTimeout(() => setMsg(""), 2500);
+  };
+
+  const duplicatePromo = async () => {
+    if (!title.trim()) return;
+    setSaving(true);
+    const { data } = await supabase.from("promo").insert({
+      active: false,
+      badge,
+      badge_color: badgeColor,
+      tag,
+      title: `${title} (Copy)`,
+      subtitle,
+      accent_color: accentColor,
+      description,
+      status,
+      cta_label: ctaLabel,
+      cta_href: ctaHref,
+      facilitators,
+      highlights,
+      updated_at: new Date().toISOString(),
+    }).select().single();
+    const rows = await loadPromos();
+    if (data) {
+      const created = rows.find((p) => p.id === data.id);
+      if (created) populateForm(created);
+    }
+    setSaving(false);
+    setMsg("Promo berhasil diduplikasi. Status copy dibuat nonaktif.");
+    setTimeout(() => setMsg(""), 3000);
+  };
+
+  const deletePromo = async () => {
+    if (!id) return;
+    if (!confirm(`Hapus promo "${title || "tanpa judul"}"? Promo yang dihapus tidak bisa dikembalikan.`)) return;
+    setSaving(true);
+    await supabase.from("promo").delete().eq("id", id);
+    const rows = await loadPromos();
+    if (rows[0]) populateForm(rows[0]);
+    else resetForm();
+    setSaving(false);
+    setMsg("Promo berhasil dihapus.");
     setTimeout(() => setMsg(""), 2500);
   };
 
   if (loading) return <div className="flex justify-center py-20"><Loader2 size={24} className="animate-spin text-muted" /></div>;
 
   return (
-    <div className="max-w-[720px]">
+    <div className="max-w-[1180px]">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-[1.4rem] font-extrabold tracking-tight">Promo Modal</h1>
-          <p className="text-muted text-[0.83rem] mt-0.5">Banner yang muncul saat user pertama kali membuka website</p>
+          <p className="text-muted text-[0.83rem] mt-0.5">Kelola beberapa promo campaign. Promo aktif terbaru akan muncul ke user.</p>
         </div>
-        {/* Active toggle */}
-        <label className="flex items-center gap-2.5 cursor-pointer">
-          <span className="text-[0.8rem] font-semibold">{active ? "Aktif" : "Nonaktif"}</span>
-          <div onClick={() => setActive(v => !v)}
-            className={`w-11 h-6 rounded-full transition-colors relative ${active ? "bg-emerald-500" : "bg-dark/20"}`}>
-            <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all ${active ? "left-5" : "left-0.5"}`} />
-          </div>
-        </label>
+        <button onClick={resetForm} className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-dark text-white text-[0.82rem] font-bold hover:bg-dark/90 transition-colors">
+          <Plus size={15} /> Tambah Promo
+        </button>
       </div>
 
       {msg && (
@@ -142,7 +240,82 @@ export default function AdminPromo() {
         </motion.div>
       )}
 
+      <div className="grid lg:grid-cols-[320px_1fr] gap-5 items-start">
+        <div className="bg-white rounded-2xl border border-border p-4 lg:sticky lg:top-6">
+          <div className="flex items-center justify-between mb-3">
+            <p className="text-[0.72rem] font-bold tracking-[0.12em] uppercase text-muted">Daftar Promo</p>
+            <span className="text-[0.7rem] font-semibold text-muted">{promos.length} item</span>
+          </div>
+          {promos.length === 0 ? (
+            <div className="text-center py-10 text-muted">
+              <p className="text-[0.82rem] font-semibold">Belum ada promo</p>
+              <p className="text-[0.72rem] mt-1">Klik Tambah Promo untuk mulai.</p>
+            </div>
+          ) : (
+            <div className="flex flex-col gap-2 max-h-[70vh] overflow-y-auto pr-1">
+              {promos.map((promo) => (
+                <button
+                  key={promo.id}
+                  onClick={() => populateForm(promo)}
+                  className={`text-left rounded-xl border p-3 transition-all ${
+                    id === promo.id
+                      ? "border-dark bg-dark text-white"
+                      : "border-border bg-[#FAFAFA] hover:bg-dark/[0.04]"
+                  }`}
+                >
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: promo.active ? "#10B981" : "#D4D4D4" }} />
+                    <p className={`text-[0.78rem] font-extrabold line-clamp-1 ${id === promo.id ? "text-white" : "text-dark"}`}>
+                      {promo.title || "Promo tanpa judul"}
+                    </p>
+                  </div>
+                  <p className={`text-[0.68rem] line-clamp-1 ${id === promo.id ? "text-white/55" : "text-muted"}`}>
+                    {promo.badge || "Tanpa badge"} · {promo.active ? "Aktif" : "Nonaktif"}
+                  </p>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+
       <div className="bg-white rounded-2xl border border-border p-7 flex flex-col gap-5">
+        <div className="flex items-center justify-between gap-3 pb-4 border-b border-border">
+          <div>
+            <p className="text-[0.72rem] font-bold tracking-[0.12em] uppercase text-muted">
+              {id ? "Edit Promo" : "Promo Baru"}
+            </p>
+            <p className="text-[0.76rem] text-muted mt-1">
+              {id ? "Perubahan akan tersimpan ke promo yang sedang dipilih." : "Isi detail lalu simpan sebagai promo baru."}
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={duplicatePromo}
+              disabled={saving || !title.trim()}
+              className="p-2.5 rounded-xl border border-border text-muted hover:text-dark hover:bg-dark/[0.04] disabled:opacity-40 transition-colors"
+              title="Duplikat promo"
+            >
+              <Copy size={15} />
+            </button>
+            {id && (
+              <button
+                onClick={deletePromo}
+                disabled={saving}
+                className="p-2.5 rounded-xl border border-red-100 text-red-400 hover:text-red-600 hover:bg-red-50 disabled:opacity-40 transition-colors"
+                title="Hapus promo"
+              >
+                <Trash2 size={15} />
+              </button>
+            )}
+            <label className="flex items-center gap-2.5 cursor-pointer pl-1">
+              <span className="text-[0.8rem] font-semibold">{active ? "Aktif" : "Nonaktif"}</span>
+              <div onClick={() => setActive(v => !v)}
+                className={`w-11 h-6 rounded-full transition-colors relative ${active ? "bg-emerald-500" : "bg-dark/20"}`}>
+                <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white shadow transition-all ${active ? "left-5" : "left-0.5"}`} />
+              </div>
+            </label>
+          </div>
+        </div>
 
         {/* Badge */}
         <div className="grid grid-cols-2 gap-4">
@@ -332,8 +505,9 @@ export default function AdminPromo() {
           onClick={save} disabled={saving || !title}
           className="flex items-center justify-center gap-2 bg-dark text-white font-bold py-3.5 rounded-xl disabled:opacity-50 mt-2">
           {saving ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
-          Simpan Perubahan
+          {id ? "Simpan Perubahan" : "Simpan Promo Baru"}
         </motion.button>
+      </div>
       </div>
 
       <style jsx global>{`
