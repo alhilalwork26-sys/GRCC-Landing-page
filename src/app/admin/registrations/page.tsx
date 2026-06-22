@@ -8,7 +8,7 @@ import {
   Download, ExternalLink, X, ChevronDown, Users2,
   FileText, Phone, Mail, Building2, Briefcase,
   Receipt, Tag, RefreshCw, AlertCircle, Users,
-  Database, GraduationCap, CircleDollarSign,
+  Database, GraduationCap, CircleDollarSign, Trash2,
 } from "lucide-react";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -387,12 +387,14 @@ function DetailModal({
 
 // ── Row ───────────────────────────────────────────────────────────────────────
 function RegistrationRow({
-  reg, training, index, onSelect,
+  reg, training, index, onSelect, onDelete, deleting,
 }: {
   reg: Registration;
   training: TrainingItem | undefined;
   index: number;
   onSelect: () => void;
+  onDelete: () => void;
+  deleting: boolean;
 }) {
   return (
     <motion.tr
@@ -433,10 +435,27 @@ function RegistrationRow({
         <p className="text-[0.72rem] text-muted">{formatDate(reg.created_at)}</p>
       </td>
       <td className="py-4 pl-3 pr-6">
-        <div className="flex items-center justify-end">
+        <div className="flex items-center justify-end gap-1">
           <span className="p-1.5 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-dark/[0.08] transition-all text-muted">
             <Eye size={15} />
           </span>
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete();
+            }}
+            disabled={deleting}
+            title="Hapus registrasi"
+            aria-label={`Hapus registrasi ${reg.nama_lengkap}`}
+            className="p-1.5 rounded-lg opacity-0 group-hover:opacity-100 hover:bg-red-50 text-red-400 hover:text-red-600 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+          >
+            {deleting ? (
+              <span className="block w-[15px] h-[15px] rounded-full border-2 border-current border-t-transparent animate-spin" />
+            ) : (
+              <Trash2 size={15} />
+            )}
+          </button>
         </div>
       </td>
     </motion.tr>
@@ -454,6 +473,7 @@ export default function AdminRegistrations() {
   const [filterTraining, setFilterTraining] = useState<string>("all");
   const [filterType, setFilterType] = useState<"all" | "individu" | "grup">("all");
   const [showFilters, setShowFilters] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -474,6 +494,42 @@ export default function AdminRegistrations() {
       prev.map((r) => (r.id === id ? { ...r, status } : r))
     );
     setSelected((prev) => (prev?.id === id ? { ...prev, status } : prev));
+  };
+
+  const deleteRegistration = async (reg: Registration) => {
+    const confirmation = prompt(
+      `PERINGATAN: Data registrasi "${reg.nama_lengkap}" akan dihapus permanen dari database dan tidak bisa dikembalikan.\n\nKetik HAPUS untuk melanjutkan.`
+    );
+
+    if (confirmation !== "HAPUS") return;
+
+    setDeletingId(reg.id);
+    try {
+      if (reg.bukti_pembayaran_url && !/^https?:\/\//i.test(reg.bukti_pembayaran_url)) {
+        const { error: storageError } = await supabase.storage
+          .from("payment-proofs")
+          .remove([reg.bukti_pembayaran_url]);
+
+        if (storageError) {
+          console.warn("Gagal menghapus bukti pembayaran dari storage:", storageError.message);
+        }
+      }
+
+      const { error } = await supabase
+        .from("registrations")
+        .delete()
+        .eq("id", reg.id);
+
+      if (error) throw error;
+
+      setRegistrations((prev) => prev.filter((item) => item.id !== reg.id));
+      setSelected((prev) => (prev?.id === reg.id ? null : prev));
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "Terjadi kesalahan tidak diketahui.";
+      alert(`Gagal menghapus registrasi: ${message}`);
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   const trainingMap = Object.fromEntries(trainings.map((t) => [t.id, t]));
@@ -853,6 +909,8 @@ export default function AdminRegistrations() {
                     training={trainingMap[reg.training_id ?? ""]}
                     index={i}
                     onSelect={() => setSelected(reg)}
+                    onDelete={() => deleteRegistration(reg)}
+                    deleting={deletingId === reg.id}
                   />
                 ))}
               </tbody>
