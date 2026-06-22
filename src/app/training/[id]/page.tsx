@@ -16,13 +16,10 @@ import Footer from "@/components/Footer";
 import ShareTrainingButton from "@/components/ShareTrainingButton";
 import { supabase, TrainingItem, TrainingSession, TestimonialItem } from "@/lib/supabase";
 import { whatsappHref } from "@/lib/site-config";
+import { parseTrainingSection } from "@/lib/training-sections";
 import dynamic from "next/dynamic";
 
 const FlipBookModal = dynamic(() => import("@/components/FlipBookModal"), { ssr: false });
-
-function parseBullets(text: string) {
-  return text.split("\n").map(l => l.replace(/^[-•*]\s*/, "").trim()).filter(Boolean);
-}
 
 function FormatIcon({ format }: { format: string }) {
   const f = (format ?? "").toLowerCase();
@@ -121,8 +118,10 @@ export default function TrainingDetailPage() {
   );
 
   const c = training.color || "#4F46E5";
-  const objectives    = training.objectives     ? parseBullets(training.objectives)     : [];
-  const audience      = training.target_audience ? parseBullets(training.target_audience) : [];
+  const objectiveSection = parseTrainingSection(training.objectives, "Tujuan Program");
+  const audienceSection  = parseTrainingSection(training.target_audience, "Untuk Siapa Program Ini?");
+  const objectives    = objectiveSection.items;
+  const audience      = audienceSection.items;
   const speakers      = (SPEAKERS_BY_TRAINING[training.id] ?? []).map((speaker) => {
     const uploaded = promoFacilitators.find((f) => normalizeName(f.name) === normalizeName(speaker.name));
     return { ...speaker, img: uploaded?.img ?? speaker.img ?? null, main: uploaded?.main ?? speaker.main };
@@ -383,7 +382,7 @@ export default function TrainingDetailPage() {
                       <Target size={16} style={{ color: c }} />
                     </motion.div>
                     <div>
-                      <p className="font-extrabold text-[0.92rem] text-dark">Tujuan Program</p>
+                      <p className="font-extrabold text-[0.92rem] text-dark">{objectiveSection.title}</p>
                       <p className="text-[0.68rem] text-muted mt-0.5">Yang akan Anda capai setelah pelatihan</p>
                     </div>
                     <span className="ml-auto text-[0.68rem] font-bold px-2.5 py-1 rounded-full"
@@ -447,7 +446,7 @@ export default function TrainingDetailPage() {
                       <UserCheck size={16} style={{ color: c }} />
                     </motion.div>
                     <div>
-                      <p className="font-extrabold text-[0.92rem] text-dark">Untuk Siapa Program Ini?</p>
+                      <p className="font-extrabold text-[0.92rem] text-dark">{audienceSection.title}</p>
                       <p className="text-[0.68rem] text-muted mt-0.5">Program ini dirancang untuk</p>
                     </div>
                   </div>

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase, TrainingItem, TrainingSession, CustomField } from "@/lib/supabase";
+import { parseTrainingSection, serializeTrainingSection, serializeTrainingSectionDraft } from "@/lib/training-sections";
 import {
   Plus, Pencil, Trash2, Eye, EyeOff, X, Check, Loader2,
   GripVertical, Settings2, Upload, Image as ImageIcon, FileText,
@@ -24,6 +25,8 @@ const PROGRAMS = [
   { id: "08", label: "Penelitian (RES)" },
 ];
 const VA_BANKS = ["BNI","BRI","Mandiri","BTN","BCA","BSI","CIMB Niaga"];
+const OBJECTIVES_FALLBACK_TITLE = "Tujuan Program";
+const AUDIENCE_FALLBACK_TITLE = "Untuk Siapa Program Ini?";
 
 const EMPTY: Omit<TrainingItem,"id"|"created_at"> = {
   title:"", category:"", date_start:"", date_end: null, time:"Sabtu 08.00–17.00 WIB",
@@ -86,7 +89,21 @@ export default function AdminTraining() {
   const save = async () => {
     if (!form) return;
     setSaving(true);
-    const payload = { ...form };
+    const objectiveSection = parseTrainingSection(form.objectives, OBJECTIVES_FALLBACK_TITLE);
+    const audienceSection = parseTrainingSection(form.target_audience, AUDIENCE_FALLBACK_TITLE);
+    const payload = {
+      ...form,
+      objectives: serializeTrainingSection(
+        objectiveSection.title,
+        objectiveSection.itemsText,
+        OBJECTIVES_FALLBACK_TITLE
+      ),
+      target_audience: serializeTrainingSection(
+        audienceSection.title,
+        audienceSection.itemsText,
+        AUDIENCE_FALLBACK_TITLE
+      ),
+    };
 
     // VA logic: only set va_set_at when number is newly provided
     if (payload.va_number && !payload.va_set_at) {
@@ -206,6 +223,8 @@ export default function AdminTraining() {
   const published  = items.filter(i => i.published).length;
   const withVA     = items.filter(i => i.va_number).length;
   const withPoster = items.filter(i => i.poster_url).length;
+  const objectiveSection = form ? parseTrainingSection(form.objectives, OBJECTIVES_FALLBACK_TITLE) : null;
+  const audienceSection = form ? parseTrainingSection(form.target_audience, AUDIENCE_FALLBACK_TITLE) : null;
 
   const filtered = items.filter(i => {
     if (filterPublished === "published") return i.published;
@@ -509,17 +528,33 @@ export default function AdminTraining() {
                       <textarea rows={3} value={form.description}
                         onChange={e=>setForm({...form,description:e.target.value})} className="input resize-none"/>
                     </Field>
-                    <Field label="Tujuan Pelatihan" note="satu tujuan per baris">
-                      <textarea rows={4} value={form.objectives ?? ""}
-                        onChange={e=>setForm({...form,objectives:e.target.value||null})}
-                        placeholder={"Peserta mampu memahami kerangka GRC\nPeserta dapat menerapkan manajemen risiko\nPeserta mendapatkan sertifikat kelulusan"}
-                        className="input resize-none text-[0.82rem]"/>
+                    <Field label="Section Tujuan" note="judul bisa diganti, isi satu tujuan per baris">
+                      <div className="grid grid-cols-1 gap-2">
+                        <input
+                          value={objectiveSection?.title ?? OBJECTIVES_FALLBACK_TITLE}
+                          onChange={e=>setForm({...form,objectives:serializeTrainingSectionDraft(e.target.value, objectiveSection?.itemsText ?? "", OBJECTIVES_FALLBACK_TITLE)})}
+                          placeholder="Contoh: Tujuan Program / Kompetensi yang Didapat"
+                          className="input"
+                        />
+                        <textarea rows={4} value={objectiveSection?.itemsText ?? ""}
+                          onChange={e=>setForm({...form,objectives:serializeTrainingSectionDraft(objectiveSection?.title ?? OBJECTIVES_FALLBACK_TITLE,e.target.value,OBJECTIVES_FALLBACK_TITLE)})}
+                          placeholder={"Peserta mampu memahami kerangka GRC\nPeserta dapat menerapkan manajemen risiko\nPeserta mendapatkan sertifikat kelulusan"}
+                          className="input resize-none text-[0.82rem]"/>
+                      </div>
                     </Field>
-                    <Field label="Untuk Siapa?" note="satu target per baris">
-                      <textarea rows={3} value={form.target_audience ?? ""}
-                        onChange={e=>setForm({...form,target_audience:e.target.value||null})}
-                        placeholder={"Risk Manager & Compliance Officer\nDirektur & Manajer Senior\nAkuntan & Internal Auditor"}
-                        className="input resize-none text-[0.82rem]"/>
+                    <Field label="Section Target Peserta" note="judul bisa diganti, isi satu target per baris">
+                      <div className="grid grid-cols-1 gap-2">
+                        <input
+                          value={audienceSection?.title ?? AUDIENCE_FALLBACK_TITLE}
+                          onChange={e=>setForm({...form,target_audience:serializeTrainingSectionDraft(e.target.value, audienceSection?.itemsText ?? "", AUDIENCE_FALLBACK_TITLE)})}
+                          placeholder="Contoh: Untuk Siapa Program Ini? / Cocok Untuk"
+                          className="input"
+                        />
+                        <textarea rows={3} value={audienceSection?.itemsText ?? ""}
+                          onChange={e=>setForm({...form,target_audience:serializeTrainingSectionDraft(audienceSection?.title ?? AUDIENCE_FALLBACK_TITLE,e.target.value,AUDIENCE_FALLBACK_TITLE)})}
+                          placeholder={"Risk Manager & Compliance Officer\nDirektur & Manajer Senior\nAkuntan & Internal Auditor"}
+                          className="input resize-none text-[0.82rem]"/>
+                      </div>
                     </Field>
                   </Section>
 

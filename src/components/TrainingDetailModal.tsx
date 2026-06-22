@@ -8,20 +8,13 @@ import {
   Target, CheckCircle2, UserCheck, CreditCard, BookOpen,
 } from "lucide-react";
 import { TrainingItem } from "@/lib/supabase";
+import { parseTrainingSection } from "@/lib/training-sections";
 import ShareTrainingButton from "@/components/ShareTrainingButton";
 
 interface Props {
   training: TrainingItem | null;
   accent?: string;
   onClose: () => void;
-}
-
-// Parse bullet lines from a multiline string
-function parseBullets(text: string): string[] {
-  return text
-    .split("\n")
-    .map(l => l.replace(/^[-•*]\s*/, "").trim())
-    .filter(Boolean);
 }
 
 export default function TrainingDetailModal({ training, accent = "#4F46E5", onClose }: Props) {
@@ -38,8 +31,10 @@ export default function TrainingDetailModal({ training, accent = "#4F46E5", onCl
     return () => { document.body.style.overflow = ""; };
   }, [training]);
 
-  const objectiveLines   = training?.objectives     ? parseBullets(training.objectives)     : [];
-  const audienceLines    = training?.target_audience ? parseBullets(training.target_audience) : [];
+  const objectiveSection = parseTrainingSection(training?.objectives, "Tujuan Pelatihan");
+  const audienceSection  = parseTrainingSection(training?.target_audience, "Untuk Siapa?");
+  const objectiveLines   = objectiveSection.items;
+  const audienceLines    = audienceSection.items;
   const daftarHref       = training ? `/daftar/${training.id}` : "#";
   const daftarGrupHref   = training ? `/daftar-grup/${training.id}` : "#";
 
@@ -175,7 +170,7 @@ export default function TrainingDetailModal({ training, accent = "#4F46E5", onCl
 
                   {/* Objectives */}
                   {objectiveLines.length > 0 && (
-                    <Section icon={<Target size={14} />} label="Tujuan Pelatihan" accent={training.color}>
+                    <Section icon={<Target size={14} />} label={objectiveSection.title} accent={training.color}>
                       <ul className="flex flex-col gap-2">
                         {objectiveLines.map((obj, i) => (
                           <motion.li
@@ -199,7 +194,7 @@ export default function TrainingDetailModal({ training, accent = "#4F46E5", onCl
 
                   {/* Target Audience */}
                   {audienceLines.length > 0 && (
-                    <Section icon={<UserCheck size={14} />} label="Untuk Siapa?" accent={training.color}>
+                    <Section icon={<UserCheck size={14} />} label={audienceSection.title} accent={training.color}>
                       <div className="flex flex-wrap gap-2">
                         {audienceLines.map((aud, i) => (
                           <motion.span
