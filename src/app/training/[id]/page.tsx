@@ -17,6 +17,7 @@ import ShareTrainingButton from "@/components/ShareTrainingButton";
 import { supabase, TrainingItem, TrainingSession, TestimonialItem } from "@/lib/supabase";
 import { whatsappHref } from "@/lib/site-config";
 import { parseTrainingSection } from "@/lib/training-sections";
+import { getTrainingFacilitators } from "@/lib/training-facilitators";
 import dynamic from "next/dynamic";
 
 const FlipBookModal = dynamic(() => import("@/components/FlipBookModal"), { ssr: false });
@@ -33,9 +34,9 @@ type SpeakerProfile = {
   name: string;
   role: string;
   org: string;
-  summary: string;
-  focus: string[];
-  cvHighlights: string[];
+  summary?: string;
+  focus?: string[];
+  cvHighlights?: string[];
   img?: string | null;
   main?: boolean;
 };
@@ -122,7 +123,15 @@ export default function TrainingDetailPage() {
   const audienceSection  = parseTrainingSection(training.target_audience, "Untuk Siapa Program Ini?");
   const objectives    = objectiveSection.items;
   const audience      = audienceSection.items;
-  const speakers      = (SPEAKERS_BY_TRAINING[training.id] ?? []).map((speaker) => {
+  const trainingFacilitators = getTrainingFacilitators(training.custom_fields).map((facilitator) => ({
+    ...facilitator,
+    summary: facilitator.org
+      ? `${facilitator.name} merupakan bagian dari tim fasilitator ${facilitator.org}.`
+      : `${facilitator.name} merupakan bagian dari tim fasilitator program ini.`,
+    focus: [],
+    cvHighlights: [],
+  }));
+  const speakers      = (trainingFacilitators.length > 0 ? trainingFacilitators : (SPEAKERS_BY_TRAINING[training.id] ?? [])).map((speaker) => {
     const uploaded = promoFacilitators.find((f) => normalizeName(f.name) === normalizeName(speaker.name));
     return { ...speaker, img: uploaded?.img ?? speaker.img ?? null, main: uploaded?.main ?? speaker.main };
   });
@@ -348,9 +357,11 @@ export default function TrainingDetailPage() {
                           </div>
                         </div>
 
-                        <p className="text-[0.73rem] leading-[1.65] text-dark/60 mt-4 flex-1">
-                          {speaker.summary}
-                        </p>
+                        {speaker.summary && (
+                          <p className="text-[0.73rem] leading-[1.65] text-dark/60 mt-4 flex-1">
+                            {speaker.summary}
+                          </p>
+                        )}
 
                         <button
                           onClick={() => setSelectedSpeaker(speaker)}
@@ -949,35 +960,43 @@ function SpeakerCvModal({ speaker, color, onClose }: { speaker: SpeakerProfile; 
         </div>
 
         <div className="p-6 flex flex-col gap-5">
-          <div>
-            <p className="text-[0.68rem] font-extrabold tracking-[0.14em] uppercase text-muted mb-2">Ringkasan CV</p>
-            <p className="text-[0.86rem] leading-[1.8] text-dark/65">{speaker.summary}</p>
-          </div>
+          {speaker.summary && (
+            <div>
+              <p className="text-[0.68rem] font-extrabold tracking-[0.14em] uppercase text-muted mb-2">Ringkasan CV</p>
+              <p className="text-[0.86rem] leading-[1.8] text-dark/65">{speaker.summary}</p>
+            </div>
+          )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="rounded-2xl border border-border bg-[#FAFAFA] p-4">
-              <p className="text-[0.68rem] font-extrabold tracking-[0.14em] uppercase text-muted mb-3">Fokus Keahlian</p>
-              <div className="flex flex-col gap-2">
-                {speaker.focus.map((item) => (
-                  <p key={item} className="flex items-start gap-2 text-[0.76rem] leading-snug text-dark/65">
-                    <CheckCircle2 size={13} className="mt-0.5 flex-shrink-0" style={{ color }} />
-                    {item}
-                  </p>
-                ))}
-              </div>
+          {((speaker.focus?.length ?? 0) > 0 || (speaker.cvHighlights?.length ?? 0) > 0) && (
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              {(speaker.focus?.length ?? 0) > 0 && (
+                <div className="rounded-2xl border border-border bg-[#FAFAFA] p-4">
+                  <p className="text-[0.68rem] font-extrabold tracking-[0.14em] uppercase text-muted mb-3">Fokus Keahlian</p>
+                  <div className="flex flex-col gap-2">
+                    {(speaker.focus ?? []).map((item) => (
+                      <p key={item} className="flex items-start gap-2 text-[0.76rem] leading-snug text-dark/65">
+                        <CheckCircle2 size={13} className="mt-0.5 flex-shrink-0" style={{ color }} />
+                        {item}
+                      </p>
+                    ))}
+                  </div>
+                </div>
+              )}
+              {(speaker.cvHighlights?.length ?? 0) > 0 && (
+                <div className="rounded-2xl border border-border bg-[#FAFAFA] p-4">
+                  <p className="text-[0.68rem] font-extrabold tracking-[0.14em] uppercase text-muted mb-3">Highlight Profil</p>
+                  <div className="flex flex-col gap-2">
+                    {(speaker.cvHighlights ?? []).map((item) => (
+                      <p key={item} className="flex items-start gap-2 text-[0.76rem] leading-snug text-dark/65">
+                        <Award size={13} className="mt-0.5 flex-shrink-0" style={{ color }} />
+                        {item}
+                      </p>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
-            <div className="rounded-2xl border border-border bg-[#FAFAFA] p-4">
-              <p className="text-[0.68rem] font-extrabold tracking-[0.14em] uppercase text-muted mb-3">Highlight Profil</p>
-              <div className="flex flex-col gap-2">
-                {speaker.cvHighlights.map((item) => (
-                  <p key={item} className="flex items-start gap-2 text-[0.76rem] leading-snug text-dark/65">
-                    <Award size={13} className="mt-0.5 flex-shrink-0" style={{ color }} />
-                    {item}
-                  </p>
-                ))}
-              </div>
-            </div>
-          </div>
+          )}
         </div>
       </motion.div>
     </motion.div>

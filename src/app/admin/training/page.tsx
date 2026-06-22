@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase, TrainingItem, TrainingSession, CustomField } from "@/lib/supabase";
 import { parseTrainingSection, serializeTrainingSection, serializeTrainingSectionDraft } from "@/lib/training-sections";
+import { getPublicCustomFields, getTrainingFacilitators, setTrainingFacilitators, TrainingFacilitator } from "@/lib/training-facilitators";
 import {
   Plus, Pencil, Trash2, Eye, EyeOff, X, Check, Loader2,
   GripVertical, Settings2, Upload, Image as ImageIcon, FileText,
@@ -93,6 +94,7 @@ export default function AdminTraining() {
     const audienceSection = parseTrainingSection(form.target_audience, AUDIENCE_FALLBACK_TITLE);
     const payload = {
       ...form,
+      custom_fields: setTrainingFacilitators(form.custom_fields, getTrainingFacilitators(form.custom_fields)),
       objectives: serializeTrainingSection(
         objectiveSection.title,
         objectiveSection.itemsText,
@@ -219,12 +221,51 @@ export default function AdminTraining() {
     showMsg("Brosur berhasil diupload!");
   };
 
+  const updateFacilitators = (facilitators: TrainingFacilitator[]) => {
+    if (!form) return;
+    setForm({
+      ...form,
+      custom_fields: setTrainingFacilitators(form.custom_fields, facilitators),
+    });
+  };
+
+  const updatePublicCustomFields = (fields: CustomField[]) => {
+    if (!form) return;
+    setForm({
+      ...form,
+      custom_fields: setTrainingFacilitators(fields, getTrainingFacilitators(form.custom_fields)),
+    });
+  };
+
+  const uploadFacilitatorPhoto = async (file: File, index: number) => {
+    if (!form) return;
+    const allowed = ["image/jpeg","image/png","image/webp"];
+    if (!allowed.includes(file.type)) { showMsg("Format foto fasilitator harus JPG, PNG, atau WebP.", false); return; }
+    if (file.size > 8 * 1024 * 1024) { showMsg("Foto fasilitator maksimal 8MB.", false); return; }
+
+    const ext = file.name.split(".").pop();
+    const filename = `training-facilitators/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const { data, error } = await supabase.storage
+      .from("team-photos")
+      .upload(filename, file, { contentType: file.type, upsert: false });
+
+    if (error) { showMsg(`Gagal upload foto fasilitator: ${error.message}`, false); return; }
+
+    const { data: pub } = supabase.storage.from("team-photos").getPublicUrl(data.path);
+    const facilitators = [...getTrainingFacilitators(form.custom_fields)];
+    facilitators[index] = { ...(facilitators[index] ?? { name: "", role: "", org: "", img: null }), img: pub.publicUrl };
+    updateFacilitators(facilitators);
+    showMsg("Foto fasilitator berhasil diupload!");
+  };
+
   // ── derived stats ─────────────────────────────────────────────────────────
   const published  = items.filter(i => i.published).length;
   const withVA     = items.filter(i => i.va_number).length;
   const withPoster = items.filter(i => i.poster_url).length;
   const objectiveSection = form ? parseTrainingSection(form.objectives, OBJECTIVES_FALLBACK_TITLE) : null;
   const audienceSection = form ? parseTrainingSection(form.target_audience, AUDIENCE_FALLBACK_TITLE) : null;
+  const facilitators = form ? getTrainingFacilitators(form.custom_fields) : [];
+  const publicCustomFields = form ? getPublicCustomFields(form.custom_fields) : [];
 
   const filtered = items.filter(i => {
     if (filterPublished === "published") return i.published;
@@ -774,6 +815,135 @@ export default function AdminTraining() {
                     </div>
                   </Section>
 
+                  {/* ── Section: Fasilitator ── */}
+                  <Section icon={<Users size={14}/>} label="Tim Fasilitator">
+                    <div className="flex items-center justify-between">
+                      <p className="text-[0.72rem] text-muted">
+                        Tampil di halaman masing-masing pelatihan.
+                      </p>
+                      <button
+                        type="button"
+                        onClick={() => updateFacilitators([...facilitators, { name: "", role: "", org: "", img: null }])}
+                        className="flex items-center gap-1.5 text-[0.72rem] font-semibold text-dark/60 hover:text-dark border border-dashed border-dark/20 hover:border-dark/40 px-3 py-1.5 rounded-lg transition-all"
+                      >
+                        <Plus size={11}/> Tambah
+                      </button>
+                    </div>
+
+                    {facilitators.length === 0 && (
+                      <p className="text-[0.75rem] text-muted text-center py-4 border border-dashed border-border rounded-xl">
+                        Belum ada fasilitator untuk training ini
+                      </p>
+                    )}
+
+                    <div className="flex flex-col gap-3">
+                      {facilitators.map((facilitator, idx) => (
+                        <div key={idx} className="relative rounded-2xl border border-border bg-[#FAFAFA] p-3">
+                          <button
+                            type="button"
+                            onClick={() => updateFacilitators(facilitators.filter((_, i) => i !== idx))}
+                            className="absolute right-2 top-2 w-7 h-7 rounded-lg bg-red-50 hover:bg-red-100 flex items-center justify-center transition-colors"
+                            title="Hapus fasilitator"
+                          >
+                            <Trash2 size={13} className="text-red-400"/>
+                          </button>
+
+                          <div className="grid grid-cols-2 gap-2 pr-8">
+                            <input
+                              value={facilitator.name}
+                              onChange={e => {
+                                const next = [...facilitators];
+                                next[idx] = { ...facilitator, name: e.target.value };
+                                updateFacilitators(next);
+                              }}
+                              placeholder="Nama fasilitator"
+                              className="input"
+                            />
+                            <input
+                              value={facilitator.role}
+                              onChange={e => {
+                                const next = [...facilitators];
+                                next[idx] = { ...facilitator, role: e.target.value };
+                                updateFacilitators(next);
+                              }}
+                              placeholder="Role / jabatan"
+                              className="input"
+                            />
+                            <input
+                              value={facilitator.org}
+                              onChange={e => {
+                                const next = [...facilitators];
+                                next[idx] = { ...facilitator, org: e.target.value };
+                                updateFacilitators(next);
+                              }}
+                              placeholder="Organisasi / institusi"
+                              className="input"
+                            />
+                            <div className="flex items-center gap-2 rounded-xl border border-border bg-white px-2 py-2">
+                              {facilitator.img ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img src={facilitator.img} alt="" className="w-10 h-10 rounded-lg object-cover border border-border"/>
+                              ) : (
+                                <div className="w-10 h-10 rounded-lg bg-dark/[0.06] flex items-center justify-center">
+                                  <ImageIcon size={14} className="text-muted"/>
+                                </div>
+                              )}
+                              <div className="min-w-0 flex-1">
+                                <p className={`text-[0.72rem] font-bold ${facilitator.img ? "text-emerald-700" : "text-muted"}`}>
+                                  {facilitator.img ? "Foto aktif" : "Belum ada foto"}
+                                </p>
+                                {facilitator.img && (
+                                  <p className="text-[0.65rem] text-muted truncate">{facilitator.img.split("/").pop()}</p>
+                                )}
+                              </div>
+                              <label className="w-8 h-8 rounded-lg bg-dark text-white flex items-center justify-center cursor-pointer hover:bg-dark/85 transition-colors">
+                                <Upload size={13}/>
+                                <input
+                                  type="file"
+                                  accept="image/jpeg,image/png,image/webp"
+                                  className="hidden"
+                                  onChange={e => {
+                                    const file = e.target.files?.[0];
+                                    if (file) uploadFacilitatorPhoto(file, idx);
+                                    e.currentTarget.value = "";
+                                  }}
+                                />
+                              </label>
+                              {facilitator.img && (
+                                <button
+                                  type="button"
+                                  onClick={() => {
+                                    const next = [...facilitators];
+                                    next[idx] = { ...facilitator, img: null };
+                                    updateFacilitators(next);
+                                  }}
+                                  className="w-8 h-8 rounded-lg border border-border bg-white flex items-center justify-center hover:bg-dark/[0.04] transition-colors"
+                                  title="Hapus foto"
+                                >
+                                  <X size={13} className="text-muted"/>
+                                </button>
+                              )}
+                            </div>
+                          </div>
+
+                          <label className="mt-3 flex items-center gap-2 text-[0.75rem] font-semibold text-muted cursor-pointer">
+                            <input
+                              type="checkbox"
+                              checked={Boolean(facilitator.main)}
+                              onChange={e => {
+                                const next = [...facilitators];
+                                next[idx] = { ...facilitator, main: e.target.checked };
+                                updateFacilitators(next);
+                              }}
+                              className="w-3.5 h-3.5 rounded"
+                            />
+                            Koordinator utama
+                          </label>
+                        </div>
+                      ))}
+                    </div>
+                  </Section>
+
                   {/* ── Section: VA ── */}
                   <div className="rounded-2xl border-2 border-dashed border-amber-200 bg-amber-50/40 p-4">
                     <div className="flex items-center gap-2 mb-2">
@@ -835,31 +1005,31 @@ export default function AdminTraining() {
                       <button type="button"
                         onClick={()=>{
                           const nf: CustomField = { id: Math.random().toString(36).slice(2), label:"", type:"text", required:false, placeholder:"" };
-                          setForm({...form, custom_fields:[...(form.custom_fields||[]), nf]});
+                          updatePublicCustomFields([...publicCustomFields, nf]);
                         }}
                         className="flex items-center gap-1.5 text-[0.72rem] font-semibold text-dark/60 hover:text-dark border border-dashed border-dark/20 hover:border-dark/40 px-3 py-1.5 rounded-lg transition-all">
                         <Plus size={11}/> Tambah Kolom
                       </button>
                     </div>
-                    {(form.custom_fields||[]).length === 0 && (
+                    {publicCustomFields.length === 0 && (
                       <p className="text-[0.75rem] text-muted text-center py-4 border border-dashed border-border rounded-xl">
                         Belum ada kolom tambahan
                       </p>
                     )}
                     <div className="flex flex-col gap-3">
-                      {(form.custom_fields||[]).map((cf, idx)=>(
+                      {publicCustomFields.map((cf, idx)=>(
                         <div key={cf.id} className="flex flex-col gap-2 p-3 rounded-xl border border-border bg-dark/[0.02]">
                           <div className="flex items-center gap-2">
                             <GripVertical size={13} className="text-muted flex-shrink-0"/>
                             <input value={cf.label}
                               onChange={e=>{
-                                const u=[...(form.custom_fields||[])];
+                                const u=[...publicCustomFields];
                                 u[idx]={...cf,label:e.target.value};
-                                setForm({...form,custom_fields:u});
+                                updatePublicCustomFields(u);
                               }}
                               placeholder="Nama kolom (contoh: Ukuran Baju)" className="input flex-1 text-[0.78rem] py-2"/>
                             <button type="button"
-                              onClick={()=>setForm({...form,custom_fields:(form.custom_fields||[]).filter((_,i)=>i!==idx)})}
+                              onClick={()=>updatePublicCustomFields(publicCustomFields.filter((_,i)=>i!==idx))}
                               className="w-6 h-6 rounded-lg bg-red-50 hover:bg-red-100 flex items-center justify-center flex-shrink-0 transition-colors">
                               <X size={11} className="text-red-500"/>
                             </button>
@@ -867,26 +1037,26 @@ export default function AdminTraining() {
                           <div className="flex items-center gap-2 ml-5">
                             <select value={cf.type}
                               onChange={e=>{
-                                const u=[...(form.custom_fields||[])];
+                                const u=[...publicCustomFields];
                                 u[idx]={...cf,type:e.target.value as CustomField["type"]};
-                                setForm({...form,custom_fields:u});
+                                updatePublicCustomFields(u);
                               }}
                               className="input text-[0.75rem] py-1.5 flex-1">
                               {FIELD_TYPES.map(t=><option key={t} value={t}>{t}</option>)}
                             </select>
                             <input value={cf.placeholder||""}
                               onChange={e=>{
-                                const u=[...(form.custom_fields||[])];
+                                const u=[...publicCustomFields];
                                 u[idx]={...cf,placeholder:e.target.value};
-                                setForm({...form,custom_fields:u});
+                                updatePublicCustomFields(u);
                               }}
                               placeholder="Placeholder (opsional)" className="input flex-1 text-[0.75rem] py-1.5"/>
                             <label className="flex items-center gap-1.5 text-[0.72rem] font-semibold text-muted whitespace-nowrap cursor-pointer">
                               <input type="checkbox" checked={cf.required}
                                 onChange={e=>{
-                                  const u=[...(form.custom_fields||[])];
+                                  const u=[...publicCustomFields];
                                   u[idx]={...cf,required:e.target.checked};
-                                  setForm({...form,custom_fields:u});
+                                  updatePublicCustomFields(u);
                                 }}
                                 className="w-3.5 h-3.5 rounded"/>
                               Wajib
@@ -896,9 +1066,9 @@ export default function AdminTraining() {
                             <div className="ml-5">
                               <input value={(cf.options||[]).join(",")}
                                 onChange={e=>{
-                                  const u=[...(form.custom_fields||[])];
+                                  const u=[...publicCustomFields];
                                   u[idx]={...cf,options:e.target.value.split(",").map(s=>s.trim()).filter(Boolean)};
-                                  setForm({...form,custom_fields:u});
+                                  updatePublicCustomFields(u);
                                 }}
                                 placeholder="Opsi: Pilihan A, Pilihan B" className="input w-full text-[0.75rem] py-1.5"/>
                             </div>

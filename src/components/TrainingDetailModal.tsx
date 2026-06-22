@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 import { TrainingItem } from "@/lib/supabase";
 import { parseTrainingSection } from "@/lib/training-sections";
+import { getTrainingFacilitators } from "@/lib/training-facilitators";
 import ShareTrainingButton from "@/components/ShareTrainingButton";
 
 interface Props {
@@ -35,6 +36,7 @@ export default function TrainingDetailModal({ training, accent = "#4F46E5", onCl
   const audienceSection  = parseTrainingSection(training?.target_audience, "Untuk Siapa?");
   const objectiveLines   = objectiveSection.items;
   const audienceLines    = audienceSection.items;
+  const facilitators     = getTrainingFacilitators(training?.custom_fields);
   const daftarHref       = training ? `/daftar/${training.id}` : "#";
   const daftarGrupHref   = training ? `/daftar-grup/${training.id}` : "#";
 
@@ -165,6 +167,38 @@ export default function TrainingDetailModal({ training, accent = "#4F46E5", onCl
                       <p className="text-[0.85rem] leading-[1.85] text-dark/65 whitespace-pre-line">
                         {training.description}
                       </p>
+                    </Section>
+                  )}
+
+                  {facilitators.length > 0 && (
+                    <Section icon={<Users size={14} />} label="Tim Fasilitator" accent={training.color}>
+                      <div className="grid grid-cols-1 gap-2">
+                        {facilitators.map((facilitator) => (
+                          <div key={`${facilitator.name}-${facilitator.role}`} className="flex items-center gap-3 rounded-xl border border-border bg-[#FAFAFA] p-3">
+                            <div className="w-11 h-11 rounded-xl overflow-hidden border border-border bg-white flex-shrink-0">
+                              {facilitator.img ? (
+                                // eslint-disable-next-line @next/next/no-img-element
+                                <img src={facilitator.img} alt={facilitator.name} className="w-full h-full object-cover" />
+                              ) : (
+                                <div className="w-full h-full flex items-center justify-center text-[0.72rem] font-black" style={{ color: training.color, backgroundColor: training.color + "12" }}>
+                                  {facilitator.name.split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase() || "GR"}
+                                </div>
+                              )}
+                            </div>
+                            <div className="min-w-0">
+                              {facilitator.main && (
+                                <span className="inline-block text-[0.55rem] font-extrabold tracking-[0.12em] uppercase px-2 py-0.5 rounded-full mb-1"
+                                  style={{ backgroundColor: training.color + "18", color: training.color }}>
+                                  Koordinator
+                                </span>
+                              )}
+                              <p className="text-[0.82rem] font-extrabold text-dark leading-tight">{facilitator.name}</p>
+                              <p className="text-[0.68rem] text-muted mt-0.5">{facilitator.role}</p>
+                              {facilitator.org && <p className="text-[0.64rem] text-muted mt-0.5">{facilitator.org}</p>}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
                     </Section>
                   )}
 

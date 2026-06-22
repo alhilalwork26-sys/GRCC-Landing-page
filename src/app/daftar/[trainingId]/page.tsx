@@ -13,6 +13,7 @@ import {
 import Navbar from "@/components/Navbar";
 import { supabase, TrainingItem, CustomField, PromoCode } from "@/lib/supabase";
 import { paymentInstruction, siteConfig, whatsappHref } from "@/lib/site-config";
+import { getPublicCustomFields } from "@/lib/training-facilitators";
 
 const INFO_SOURCE_KEY = "sumber_informasi";
 const INFO_SOURCE_OPTIONS = [
@@ -354,7 +355,7 @@ export default function DaftarPage() {
     }
     if (!paymentFile) e.payment = "Bukti pembayaran wajib diunggah";
     // Custom required fields
-    training?.custom_fields?.forEach(cf => {
+    getPublicCustomFields(training?.custom_fields).forEach(cf => {
       if (cf.required && !customData[cf.id]?.trim()) {
         e[`custom_${cf.id}`] = `${cf.label} wajib diisi`;
       }
@@ -515,7 +516,7 @@ export default function DaftarPage() {
   );
 
   const accent = training.color || "#4F46E5";
-  const customFields: CustomField[] = training.custom_fields ?? [];
+  const customFields: CustomField[] = getPublicCustomFields(training.custom_fields);
 
   return (
     <>

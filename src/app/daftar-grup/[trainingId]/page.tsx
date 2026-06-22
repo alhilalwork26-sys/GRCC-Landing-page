@@ -13,6 +13,7 @@ import {
 import Navbar from "@/components/Navbar";
 import { supabase, TrainingItem, CustomField, PromoCode, Participant } from "@/lib/supabase";
 import { paymentInstruction, siteConfig, whatsappHref } from "@/lib/site-config";
+import { getPublicCustomFields } from "@/lib/training-facilitators";
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 function formatRp(n: number) { return "Rp " + n.toLocaleString("id-ID"); }
@@ -282,7 +283,7 @@ export default function DaftarGrupPage() {
       if (!p.email.trim())  e[`p_${i}_email`]   = "Wajib diisi";
       else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(p.email)) e[`p_${i}_email`] = "Format email tidak valid";
     });
-    training?.custom_fields?.forEach(cf => {
+    getPublicCustomFields(training?.custom_fields).forEach(cf => {
       if (cf.required && !customData[cf.id]?.trim()) e[`custom_${cf.id}`] = `${cf.label} wajib diisi`;
     });
     if (!paymentFile) e.payment = "Bukti pembayaran wajib diunggah";
@@ -375,7 +376,7 @@ export default function DaftarGrupPage() {
   if (!training) return <div className="min-h-screen flex flex-col items-center justify-center gap-4 text-muted"><p>Program tidak ditemukan.</p><Link href="/programs" className="text-dark underline text-sm">← Kembali</Link></div>;
 
   const accent = training.color || "#4F46E5";
-  const customFields: CustomField[] = training.custom_fields ?? [];
+  const customFields: CustomField[] = getPublicCustomFields(training.custom_fields);
   let sectionNum = 3;
 
   return (
