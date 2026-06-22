@@ -24,16 +24,22 @@ export function getPublicCustomFields(fields: CustomField[] | null | undefined) 
   return (fields ?? []).filter((field) => field.id !== TRAINING_FACILITATORS_FIELD_ID);
 }
 
-export function getTrainingFacilitators(fields: CustomField[] | null | undefined): TrainingFacilitator[] {
+function hasFacilitatorContent(item: TrainingFacilitator) {
+  return item.name.trim() || item.role.trim() || item.org.trim() || item.img;
+}
+
+export function getTrainingFacilitators(
+  fields: CustomField[] | null | undefined,
+  options?: { keepEmpty?: boolean }
+): TrainingFacilitator[] {
   const field = (fields ?? []).find((item) => item.id === TRAINING_FACILITATORS_FIELD_ID);
   if (!field?.placeholder) return [];
 
   try {
     const parsed = JSON.parse(field.placeholder) as Partial<TrainingFacilitator>[];
     if (!Array.isArray(parsed)) return [];
-    return parsed
-      .map(normalizeFacilitator)
-      .filter((item) => item.name.trim() || item.role.trim() || item.org.trim() || item.img);
+    const normalized = parsed.map(normalizeFacilitator);
+    return options?.keepEmpty ? normalized : normalized.filter(hasFacilitatorContent);
   } catch {
     return [];
   }
@@ -41,12 +47,14 @@ export function getTrainingFacilitators(fields: CustomField[] | null | undefined
 
 export function setTrainingFacilitators(
   fields: CustomField[] | null | undefined,
-  facilitators: TrainingFacilitator[]
+  facilitators: TrainingFacilitator[],
+  options?: { keepEmpty?: boolean }
 ): CustomField[] {
   const publicFields = getPublicCustomFields(fields);
-  const cleanFacilitators = facilitators
-    .map(normalizeFacilitator)
-    .filter((item) => item.name.trim() || item.role.trim() || item.org.trim() || item.img);
+  const normalized = facilitators.map(normalizeFacilitator);
+  const cleanFacilitators = options?.keepEmpty
+    ? normalized
+    : normalized.filter(hasFacilitatorContent);
 
   if (cleanFacilitators.length === 0) return publicFields;
 

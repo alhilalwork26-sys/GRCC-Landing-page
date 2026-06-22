@@ -94,7 +94,7 @@ export default function AdminTraining() {
     const audienceSection = parseTrainingSection(form.target_audience, AUDIENCE_FALLBACK_TITLE);
     const payload = {
       ...form,
-      custom_fields: setTrainingFacilitators(form.custom_fields, getTrainingFacilitators(form.custom_fields)),
+      custom_fields: setTrainingFacilitators(form.custom_fields, getTrainingFacilitators(form.custom_fields, { keepEmpty: true })),
       objectives: serializeTrainingSection(
         objectiveSection.title,
         objectiveSection.itemsText,
@@ -225,7 +225,7 @@ export default function AdminTraining() {
     if (!form) return;
     setForm({
       ...form,
-      custom_fields: setTrainingFacilitators(form.custom_fields, facilitators),
+      custom_fields: setTrainingFacilitators(form.custom_fields, facilitators, { keepEmpty: true }),
     });
   };
 
@@ -233,7 +233,7 @@ export default function AdminTraining() {
     if (!form) return;
     setForm({
       ...form,
-      custom_fields: setTrainingFacilitators(fields, getTrainingFacilitators(form.custom_fields)),
+      custom_fields: setTrainingFacilitators(fields, getTrainingFacilitators(form.custom_fields, { keepEmpty: true }), { keepEmpty: true }),
     });
   };
 
@@ -252,7 +252,7 @@ export default function AdminTraining() {
     if (error) { showMsg(`Gagal upload foto fasilitator: ${error.message}`, false); return; }
 
     const { data: pub } = supabase.storage.from("team-photos").getPublicUrl(data.path);
-    const facilitators = [...getTrainingFacilitators(form.custom_fields)];
+    const facilitators = [...getTrainingFacilitators(form.custom_fields, { keepEmpty: true })];
     facilitators[index] = { ...(facilitators[index] ?? { name: "", role: "", org: "", img: null }), img: pub.publicUrl };
     updateFacilitators(facilitators);
     showMsg("Foto fasilitator berhasil diupload!");
@@ -264,7 +264,7 @@ export default function AdminTraining() {
   const withPoster = items.filter(i => i.poster_url).length;
   const objectiveSection = form ? parseTrainingSection(form.objectives, OBJECTIVES_FALLBACK_TITLE) : null;
   const audienceSection = form ? parseTrainingSection(form.target_audience, AUDIENCE_FALLBACK_TITLE) : null;
-  const facilitators = form ? getTrainingFacilitators(form.custom_fields) : [];
+  const facilitators = form ? getTrainingFacilitators(form.custom_fields, { keepEmpty: true }) : [];
   const publicCustomFields = form ? getPublicCustomFields(form.custom_fields) : [];
 
   const filtered = items.filter(i => {
