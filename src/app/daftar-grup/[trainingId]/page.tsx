@@ -5,7 +5,7 @@ import { useParams, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import {
-  ArrowLeft, Calendar, MapPin, User, Building2, Briefcase, Clock,
+  ArrowLeft, Calendar, MapPin, User, Building2, Briefcase,
   Mail, Phone, CreditCard, Upload, Check, ChevronRight,
   AlertCircle, Loader2, FileText, X, Sparkles,
   Tag, BadgePercent, CheckCircle2, Users, Plus, Trash2,
@@ -17,19 +17,6 @@ import { getPublicCustomFields } from "@/lib/training-facilitators";
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 function formatRp(n: number) { return "Rp " + n.toLocaleString("id-ID"); }
-
-function getTimeOptions(training: TrainingItem | null) {
-  const options = (training?.sessions ?? [])
-    .flatMap((session) =>
-      (session.times ?? [])
-        .map((time) => time.trim())
-        .filter(Boolean)
-        .map((time) => [session.date, session.day, time].filter(Boolean).join(" · "))
-    )
-    .filter(Boolean);
-
-  return Array.from(new Set(options));
-}
 
 const inputCls = (err?: string) =>
   `w-full px-4 py-3 rounded-xl border text-[0.88rem] bg-white outline-none transition-all duration-200
@@ -239,7 +226,6 @@ export default function DaftarGrupPage() {
 
   // Custom fields
   const [customData, setCustomData] = useState<Record<string, string>>({});
-  const [selectedSession, setSelectedSession] = useState("");
 
   // Payment
   const [paymentFile, setPaymentFile] = useState<File | null>(null);
@@ -292,13 +278,10 @@ export default function DaftarGrupPage() {
   const finalTotal = subtotal - discountAmt;
 
   // Progress
-  const timeOptions = getTimeOptions(training);
-  const requiresTimeChoice = timeOptions.length > 1;
-  const totalFields = 5 + participants.length * 3 + 1 + (requiresTimeChoice ? 1 : 0);
+  const totalFields = 5 + participants.length * 3 + 1;
   const filled = [pic.nama_lengkap, pic.instansi, pic.jabatan, pic.email, pic.telepon].filter(Boolean).length
     + participants.reduce((acc, p) => acc + [p.nama, p.jabatan, p.email].filter(Boolean).length, 0)
-    + (paymentFile ? 1 : 0)
-    + (requiresTimeChoice && selectedSession ? 1 : 0);
+    + (paymentFile ? 1 : 0);
   const progress = Math.round((filled / totalFields) * 100);
 
   // Promo apply
@@ -335,7 +318,6 @@ export default function DaftarGrupPage() {
     getPublicCustomFields(training?.custom_fields).forEach(cf => {
       if (cf.required && !customData[cf.id]?.trim()) e[`custom_${cf.id}`] = `${cf.label} wajib diisi`;
     });
-    if (getTimeOptions(training).length > 1 && !selectedSession) e.selected_session = "Pilihan waktu wajib dipilih";
     if (!paymentFile) e.payment = "Bukti pembayaran wajib diunggah";
     setErrors(e);
     return Object.keys(e).length === 0;
@@ -358,9 +340,6 @@ export default function DaftarGrupPage() {
       }
 
       // Insert registration
-      const normalizedCustomData = selectedSession
-        ? { ...customData, selected_session: selectedSession }
-        : customData;
       const { error: insertErr } = await supabase.from("registrations").insert({
         training_id:         trainingId,
         nama_lengkap:        pic.nama_lengkap.trim(),
@@ -370,7 +349,7 @@ export default function DaftarGrupPage() {
         telepon:             pic.telepon.trim(),
         npwp:                pic.npwp.trim() || null,
         bukti_pembayaran_url: buktiUrl,
-        custom_data:         normalizedCustomData,
+        custom_data:         customData,
         status:              "pending",
         is_group:            true,
         participant_count:   participants.length,
@@ -406,7 +385,7 @@ export default function DaftarGrupPage() {
           trainingDate: training?.date_start
             ? `${training.date_start}${training.date_end ? ` – ${training.date_end}` : ""}`
             : undefined,
-          trainingTime:     selectedSession || training?.time || undefined,
+          trainingTime:     training?.time     ?? undefined,
           trainingLocation: training?.location ?? undefined,
           trainingFormat:   training?.format   ?? undefined,
           trainingColor:    training?.color    ?? undefined,
@@ -430,7 +409,7 @@ export default function DaftarGrupPage() {
 
   const accent = training.color || "#4F46E5";
   const customFields: CustomField[] = getPublicCustomFields(training.custom_fields);
-  let sectionNum = 2;
+  let sectionNum = 3;
 
   return (
     <>
@@ -560,35 +539,6 @@ export default function DaftarGrupPage() {
                   className="w-full flex items-center justify-center gap-2 py-3 rounded-xl border-2 border-dashed text-[0.82rem] font-semibold text-dark/50 hover:text-dark hover:border-dark/30 transition-all mb-10">
                   <Plus size={15} /> Tambah Peserta
                 </motion.button>
-
-                {requiresTimeChoice && (
-                  <>
-                    <SectionHeader num={String(++sectionNum)} title="Pilihan Waktu" accent={accent} />
-                    <div className="mb-10">
-                      <FormField
-                        label="Pilih jadwal yang diikuti grup"
-                        required
-                        error={errors.selected_session}
-                        icon={<Clock size={13} />}
-                      >
-                        <select
-                          data-error={errors.selected_session ? true : undefined}
-                          value={selectedSession}
-                          onChange={(e) => {
-                            setSelectedSession(e.target.value);
-                            setErrors((er) => ({ ...er, selected_session: "" }));
-                          }}
-                          className={inputCls(errors.selected_session)}
-                        >
-                          <option value="">Pilih salah satu waktu...</option>
-                          {timeOptions.map((option) => (
-                            <option key={option} value={option}>{option}</option>
-                          ))}
-                        </select>
-                      </FormField>
-                    </div>
-                  </>
-                )}
 
                 {/* ── Section 3: Custom Fields ── */}
                 {customFields.length > 0 && (

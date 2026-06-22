@@ -84,7 +84,6 @@ alter table registrations add column if not exists promo_code text;
 alter table registrations add column if not exists original_price integer;
 alter table registrations add column if not exists discount_amount integer;
 alter table registrations add column if not exists final_price integer;
-alter table registrations add column if not exists selected_session text;
 alter table registrations add column if not exists participant_count integer default 1;
 alter table registrations add column if not exists is_group boolean default false;
 alter table registrations add column if not exists participants jsonb default '[]';
