@@ -39,6 +39,7 @@ type SpeakerProfile = {
   cvHighlights?: string[];
   img?: string | null;
   main?: boolean;
+  showCv?: boolean;
 };
 
 const ICOFR_TRAINING_ID = "3b2f7f0a-665c-46fc-b8ae-3359abaa47ec";
@@ -130,6 +131,7 @@ export default function TrainingDetailPage() {
       : `${facilitator.name} merupakan bagian dari tim fasilitator program ini.`,
     focus: [],
     cvHighlights: [],
+    showCv: facilitator.showCv !== false,
   }));
   const speakers      = (trainingFacilitators.length > 0 ? trainingFacilitators : (SPEAKERS_BY_TRAINING[training.id] ?? [])).map((speaker) => {
     const uploaded = promoFacilitators.find((f) => normalizeName(f.name) === normalizeName(speaker.name));
@@ -346,12 +348,6 @@ export default function TrainingDetailPage() {
                             )}
                           </div>
                           <div className="min-w-0">
-                            {speaker.main && (
-                              <span className="inline-block text-[0.55rem] font-extrabold tracking-[0.12em] uppercase px-2 py-0.5 rounded-full mb-1"
-                                style={{ backgroundColor: c + "18", color: c }}>
-                                Koordinator
-                              </span>
-                            )}
                             <p className="font-extrabold text-[0.82rem] leading-snug text-dark">{speaker.name}</p>
                             <p className="text-[0.66rem] text-muted leading-snug mt-1">{speaker.role}</p>
                           </div>
@@ -363,12 +359,14 @@ export default function TrainingDetailPage() {
                           </p>
                         )}
 
-                        <button
-                          onClick={() => setSelectedSpeaker(speaker)}
-                          className="mt-4 flex items-center justify-center gap-2 rounded-xl border border-border bg-white px-3 py-2.5 text-[0.74rem] font-extrabold text-dark/70 hover:text-dark hover:border-dark/20 transition-colors"
-                        >
-                          <Eye size={13} /> Preview CV
-                        </button>
+                        {speaker.showCv !== false && (
+                          <button
+                            onClick={() => setSelectedSpeaker(speaker)}
+                            className="mt-4 flex items-center justify-center gap-2 rounded-xl border border-border bg-white px-3 py-2.5 text-[0.74rem] font-extrabold text-dark/70 hover:text-dark hover:border-dark/20 transition-colors"
+                          >
+                            <Eye size={13} /> Preview CV
+                          </button>
+                        )}
                       </motion.div>
                     ))}
                   </div>
@@ -940,12 +938,6 @@ function SpeakerCvModal({ speaker, color, onClose }: { speaker: SpeakerProfile; 
             )}
           </div>
           <div className="min-w-0 flex-1">
-            {speaker.main && (
-              <span className="inline-block text-[0.58rem] font-extrabold tracking-[0.12em] uppercase px-2 py-0.5 rounded-full mb-2"
-                style={{ backgroundColor: color + "18", color }}>
-                Koordinator Program
-              </span>
-            )}
             <p className="font-extrabold text-[1.05rem] leading-tight text-dark">{speaker.name}</p>
             <p className="text-[0.78rem] font-semibold text-dark/55 mt-1">{speaker.role}</p>
             <p className="text-[0.72rem] text-muted mt-1">{speaker.org}</p>

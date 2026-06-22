@@ -186,12 +186,6 @@ export default function TrainingDetailModal({ training, accent = "#4F46E5", onCl
                               )}
                             </div>
                             <div className="min-w-0">
-                              {facilitator.main && (
-                                <span className="inline-block text-[0.55rem] font-extrabold tracking-[0.12em] uppercase px-2 py-0.5 rounded-full mb-1"
-                                  style={{ backgroundColor: training.color + "18", color: training.color }}>
-                                  Koordinator
-                                </span>
-                              )}
                               <p className="text-[0.82rem] font-extrabold text-dark leading-tight">{facilitator.name}</p>
                               <p className="text-[0.68rem] text-muted mt-0.5">{facilitator.role}</p>
                               {facilitator.org && <p className="text-[0.64rem] text-muted mt-0.5">{facilitator.org}</p>}

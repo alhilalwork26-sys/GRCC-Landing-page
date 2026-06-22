@@ -8,6 +8,7 @@ export interface TrainingFacilitator {
   org: string;
   img: string | null;
   main?: boolean;
+  showCv?: boolean;
 }
 
 function normalizeFacilitator(item: Partial<TrainingFacilitator>): TrainingFacilitator {
@@ -17,6 +18,7 @@ function normalizeFacilitator(item: Partial<TrainingFacilitator>): TrainingFacil
     org: String(item.org ?? ""),
     img: item.img ? String(item.img) : null,
     main: Boolean(item.main),
+    showCv: item.showCv !== false,
   };
 }
 

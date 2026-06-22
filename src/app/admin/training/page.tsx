@@ -823,7 +823,7 @@ export default function AdminTraining() {
                       </p>
                       <button
                         type="button"
-                        onClick={() => updateFacilitators([...facilitators, { name: "", role: "", org: "", img: null }])}
+                        onClick={() => updateFacilitators([...facilitators, { name: "", role: "", org: "", img: null, showCv: true }])}
                         className="flex items-center gap-1.5 text-[0.72rem] font-semibold text-dark/60 hover:text-dark border border-dashed border-dark/20 hover:border-dark/40 px-3 py-1.5 rounded-lg transition-all"
                       >
                         <Plus size={11}/> Tambah
@@ -929,15 +929,15 @@ export default function AdminTraining() {
                           <label className="mt-3 flex items-center gap-2 text-[0.75rem] font-semibold text-muted cursor-pointer">
                             <input
                               type="checkbox"
-                              checked={Boolean(facilitator.main)}
+                              checked={facilitator.showCv !== false}
                               onChange={e => {
                                 const next = [...facilitators];
-                                next[idx] = { ...facilitator, main: e.target.checked };
+                                next[idx] = { ...facilitator, showCv: e.target.checked };
                                 updateFacilitators(next);
                               }}
                               className="w-3.5 h-3.5 rounded"
                             />
-                            Koordinator utama
+                            Tampilkan tombol Preview CV di web
                           </label>
                         </div>
                       ))}
