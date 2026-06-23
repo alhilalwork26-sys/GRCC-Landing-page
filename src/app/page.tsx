@@ -7,7 +7,6 @@ import Services from "@/components/Services";
 import UseCases from "@/components/UseCases";
 import Stats from "@/components/Stats";
 import Process from "@/components/Process";
-import VideoProfile from "@/components/VideoProfile";
 import Insights from "@/components/Insights";
 import Testimonials from "@/components/Testimonials";
 import CTABand from "@/components/CTABand";
@@ -29,7 +28,6 @@ export default function Home() {
         <Services />
         <UseCases />
         <Stats />
-        <VideoProfile />
         <Process />
         <Insights />
         <Testimonials />
