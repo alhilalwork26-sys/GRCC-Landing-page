@@ -36,6 +36,7 @@ interface PromoRecord {
 
 const EMPTY_FACILITATORS: Facilitator[] = [{ name:"", role:"", org:"", img:"" }];
 const PLACEMENT_META_ICON = "__placement";
+const PROMO_CODE_META_ICON = "__promo_code";
 
 function getPromoPlacement(highlights: PromoRecord["highlights"]): PromoPlacement {
   const placement = (highlights ?? []).find((item) =>
@@ -47,11 +48,25 @@ function getPromoPlacement(highlights: PromoRecord["highlights"]): PromoPlacemen
 function withoutPlacementMeta(highlights: PromoRecord["highlights"]): Highlight[] {
   return (highlights ?? [])
     .map((item) => typeof item === "string" ? { icon: "✅", text: item } : item)
-    .filter((item) => item.text && item.icon !== PLACEMENT_META_ICON);
+    .filter((item) => item.text && item.icon !== PLACEMENT_META_ICON && item.icon !== PROMO_CODE_META_ICON);
 }
 
-function withPlacementMeta(highlights: Highlight[], placement: PromoPlacement): Highlight[] {
-  return [{ icon: PLACEMENT_META_ICON, text: placement }, ...highlights.filter((item) => item.icon !== PLACEMENT_META_ICON)];
+function getPromoCode(highlights: PromoRecord["highlights"]) {
+  const code = (highlights ?? []).find((item) =>
+    typeof item !== "string" && item.icon === PROMO_CODE_META_ICON
+  );
+  return code && typeof code !== "string" ? code.text : "";
+}
+
+function withMeta(highlights: Highlight[], placement: PromoPlacement, promoCode: string): Highlight[] {
+  const meta: Highlight[] = [{ icon: PLACEMENT_META_ICON, text: placement }];
+  if (placement === "banner" && promoCode.trim()) {
+    meta.push({ icon: PROMO_CODE_META_ICON, text: promoCode.trim().toUpperCase() });
+  }
+  return [
+    ...meta,
+    ...highlights.filter((item) => item.icon !== PLACEMENT_META_ICON && item.icon !== PROMO_CODE_META_ICON),
+  ];
 }
 
 export default function AdminPromo() {
@@ -71,6 +86,7 @@ export default function AdminPromo() {
   const [facilitators,setFacilitators]= useState<Facilitator[]>([{ name:"", role:"", org:"", img:"" }]);
   const [highlights,  setHighlights]  = useState<Highlight[]>([]);
   const [placement,   setPlacement]   = useState<PromoPlacement>("banner");
+  const [promoCode,   setPromoCode]   = useState("");
   const [choosingPlacement, setChoosingPlacement] = useState(false);
   const [saving,      setSaving]      = useState(false);
   const [uploadingFacilitatorPhoto, setUploadingFacilitatorPhoto] = useState<number | null>(null);
@@ -81,6 +97,7 @@ export default function AdminPromo() {
     const normalizedHighlights = withoutPlacementMeta(data.highlights);
     setId(data.id); setActive(data.active); setBadge(data.badge || "");
     setPlacement(getPromoPlacement(data.highlights));
+    setPromoCode(getPromoCode(data.highlights));
     setBadgeColor(data.badge_color || "#EF4444"); setTag(data.tag || "");
     setTitle(data.title || ""); setSubtitle(data.subtitle ?? "");
     setAccentColor(data.accent_color || "#4F46E5"); setDesc(data.description ?? "");
@@ -94,6 +111,7 @@ export default function AdminPromo() {
     setId(null);
     setActive(true);
     setPlacement(nextPlacement);
+    setPromoCode("");
     setBadge("Promo Baru");
     setBadgeColor("#EF4444");
     setTag("GRCC × AILG · Universitas Airlangga");
@@ -112,6 +130,7 @@ export default function AdminPromo() {
     setId(null);
     setActive(true);
     setPlacement("banner");
+    setPromoCode("CSSL25");
     setBadge("CSSL Batch 5");
     setBadgeColor("#EF4444");
     setTag("GRCC × AILG · Universitas Airlangga");
@@ -200,7 +219,7 @@ export default function AdminPromo() {
       active, badge, badge_color: badgeColor, tag, title, subtitle,
       accent_color: accentColor, description, status,
       cta_label: ctaLabel, cta_href: ctaHref,
-      facilitators, highlights: withPlacementMeta(highlights, placement), updated_at: new Date().toISOString(),
+      facilitators, highlights: withMeta(highlights, placement, promoCode), updated_at: new Date().toISOString(),
     };
     let savedId = id;
     if (id) {
@@ -236,7 +255,7 @@ export default function AdminPromo() {
       cta_label: ctaLabel,
       cta_href: ctaHref,
       facilitators,
-      highlights: withPlacementMeta(highlights, placement),
+      highlights: withMeta(highlights, placement, promoCode),
       updated_at: new Date().toISOString(),
     }).select().single();
     const rows = await loadPromos();
@@ -446,10 +465,25 @@ export default function AdminPromo() {
           <p className="font-extrabold">{placement === "banner" ? "Yang tampil di banner atas:" : "Yang tampil di popup:"}</p>
           <p className="mt-1 opacity-75">
             {placement === "banner"
-              ? "Teks badge, judul program, subjudul, status aktif, teks tombol, dan link tombol."
+              ? "Teks badge, judul program, subjudul, kode promo, teks tombol, dan link tombol."
               : "Badge, tag penyelenggara, judul, subjudul, deskripsi, highlights, fasilitator, dan tombol CTA."}
           </p>
         </div>
+
+        {placement === "banner" && (
+          <div>
+            <label className="label">Kode Promo</label>
+            <input
+              value={promoCode}
+              onChange={e => setPromoCode(e.target.value.toUpperCase())}
+              className="input"
+              placeholder="Contoh: CSSL25"
+            />
+            <p className="text-[0.68rem] text-muted mt-1">
+              Jika diisi, kode ini tampil di banner dan bisa disalin oleh user.
+            </p>
+          </div>
+        )}
 
         {/* Badge */}
         <div className="grid grid-cols-2 gap-4">

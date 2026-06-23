@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowUpRight, Megaphone, X } from "lucide-react";
+import { ArrowUpRight, Check, Copy, Megaphone, X } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 
 const STORAGE_KEY_PREFIX = "grcc_promo_banner_dismissed";
@@ -27,6 +27,7 @@ interface PromoTopBannerProps {
 export default function PromoTopBanner({ onVisibleChange }: PromoTopBannerProps) {
   const [promo, setPromo] = useState<PromoBannerData | null>(null);
   const [dismissed, setDismissed] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
     let active = true;
@@ -71,6 +72,15 @@ export default function PromoTopBanner({ onVisibleChange }: PromoTopBannerProps)
 
   if (!promo) return null;
 
+  const promoCode = getPromoCode(promo.highlights);
+
+  const copyPromoCode = async () => {
+    if (!promoCode) return;
+    await navigator.clipboard.writeText(promoCode);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1800);
+  };
+
   return (
     <AnimatePresence initial={false}>
       {visible && (
@@ -103,6 +113,19 @@ export default function PromoTopBanner({ onVisibleChange }: PromoTopBannerProps)
               ) : null}
             </p>
 
+            {promoCode ? (
+              <button
+                type="button"
+                onClick={copyPromoCode}
+                className="hidden md:inline-flex items-center gap-1.5 rounded-full border border-red-200 bg-white/85 px-3 py-1.5 text-[0.72rem] font-extrabold text-red-700 hover:bg-white transition-colors"
+                title="Salin kode promo"
+              >
+                <span className="tracking-[0.08em]">{promoCode}</span>
+                {copied ? <Check size={12} /> : <Copy size={12} />}
+                <span className="hidden lg:inline text-red-700/70">{copied ? "Disalin" : "Salin"}</span>
+              </button>
+            ) : null}
+
             {promo.cta_href ? (
               <a
                 href={promo.cta_href}
@@ -133,4 +156,11 @@ function getPlacement(highlights: PromoBannerData["highlights"]) {
     typeof item !== "string" && item.icon === "__placement"
   );
   return placement && typeof placement !== "string" && placement.text === "popup" ? "popup" : "banner";
+}
+
+function getPromoCode(highlights: PromoBannerData["highlights"]) {
+  const code = (highlights ?? []).find((item) =>
+    typeof item !== "string" && item.icon === "__promo_code"
+  );
+  return code && typeof code !== "string" ? code.text?.trim().toUpperCase() : "";
 }
