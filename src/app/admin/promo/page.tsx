@@ -14,6 +14,7 @@ const STATUSES = [
 
 interface Facilitator { name: string; role: string; org: string; img: string; main?: boolean; }
 interface Highlight   { icon: string; text: string; }
+type PromoPlacement = "banner" | "popup";
 interface PromoRecord {
   id: string;
   active: boolean;
@@ -34,6 +35,24 @@ interface PromoRecord {
 }
 
 const EMPTY_FACILITATORS: Facilitator[] = [{ name:"", role:"", org:"", img:"" }];
+const PLACEMENT_META_ICON = "__placement";
+
+function getPromoPlacement(highlights: PromoRecord["highlights"]): PromoPlacement {
+  const placement = (highlights ?? []).find((item) =>
+    typeof item !== "string" && item.icon === PLACEMENT_META_ICON
+  );
+  return placement && typeof placement !== "string" && placement.text === "popup" ? "popup" : "banner";
+}
+
+function withoutPlacementMeta(highlights: PromoRecord["highlights"]): Highlight[] {
+  return (highlights ?? [])
+    .map((item) => typeof item === "string" ? { icon: "✅", text: item } : item)
+    .filter((item) => item.text && item.icon !== PLACEMENT_META_ICON);
+}
+
+function withPlacementMeta(highlights: Highlight[], placement: PromoPlacement): Highlight[] {
+  return [{ icon: PLACEMENT_META_ICON, text: placement }, ...highlights.filter((item) => item.icon !== PLACEMENT_META_ICON)];
+}
 
 export default function AdminPromo() {
   const [promos,      setPromos]      = useState<PromoRecord[]>([]);
@@ -51,16 +70,17 @@ export default function AdminPromo() {
   const [ctaHref,     setCtaHref]     = useState("mailto:grcc.ailg@gmail.com");
   const [facilitators,setFacilitators]= useState<Facilitator[]>([{ name:"", role:"", org:"", img:"" }]);
   const [highlights,  setHighlights]  = useState<Highlight[]>([]);
+  const [placement,   setPlacement]   = useState<PromoPlacement>("banner");
+  const [choosingPlacement, setChoosingPlacement] = useState(false);
   const [saving,      setSaving]      = useState(false);
   const [uploadingFacilitatorPhoto, setUploadingFacilitatorPhoto] = useState<number | null>(null);
   const [msg,         setMsg]         = useState("");
   const [loading,     setLoading]     = useState(true);
 
   const populateForm = (data: PromoRecord) => {
-    const normalizedHighlights = (data.highlights ?? [])
-      .map((item) => typeof item === "string" ? { icon: "✅", text: item } : item)
-      .filter((item) => item.text);
+    const normalizedHighlights = withoutPlacementMeta(data.highlights);
     setId(data.id); setActive(data.active); setBadge(data.badge || "");
+    setPlacement(getPromoPlacement(data.highlights));
     setBadgeColor(data.badge_color || "#EF4444"); setTag(data.tag || "");
     setTitle(data.title || ""); setSubtitle(data.subtitle ?? "");
     setAccentColor(data.accent_color || "#4F46E5"); setDesc(data.description ?? "");
@@ -70,18 +90,19 @@ export default function AdminPromo() {
     setHighlights(normalizedHighlights);
   };
 
-  const resetForm = () => {
+  const resetForm = (nextPlacement: PromoPlacement = "banner") => {
     setId(null);
     setActive(true);
+    setPlacement(nextPlacement);
     setBadge("Promo Baru");
     setBadgeColor("#EF4444");
     setTag("GRCC × AILG · Universitas Airlangga");
     setTitle("");
     setSubtitle("");
     setAccentColor("#4F46E5");
-    setDesc("");
+    setDesc(nextPlacement === "banner" ? "" : "Tuliskan informasi promo yang ingin ditampilkan di popup.");
     setStatus("open");
-    setCtaLabel("Daftar & Info Lengkap");
+    setCtaLabel(nextPlacement === "banner" ? "Lihat Info" : "Daftar & Info Lengkap");
     setCtaHref("mailto:grcc.ailg@gmail.com");
     setFacilitators(EMPTY_FACILITATORS);
     setHighlights([]);
@@ -90,6 +111,7 @@ export default function AdminPromo() {
   const applyCsslBatchTemplate = () => {
     setId(null);
     setActive(true);
+    setPlacement("banner");
     setBadge("CSSL Batch 5");
     setBadgeColor("#EF4444");
     setTag("GRCC × AILG · Universitas Airlangga");
@@ -178,7 +200,7 @@ export default function AdminPromo() {
       active, badge, badge_color: badgeColor, tag, title, subtitle,
       accent_color: accentColor, description, status,
       cta_label: ctaLabel, cta_href: ctaHref,
-      facilitators, highlights, updated_at: new Date().toISOString(),
+      facilitators, highlights: withPlacementMeta(highlights, placement), updated_at: new Date().toISOString(),
     };
     let savedId = id;
     if (id) {
@@ -214,7 +236,7 @@ export default function AdminPromo() {
       cta_label: ctaLabel,
       cta_href: ctaHref,
       facilitators,
-      highlights,
+      highlights: withPlacementMeta(highlights, placement),
       updated_at: new Date().toISOString(),
     }).select().single();
     const rows = await loadPromos();
@@ -246,18 +268,73 @@ export default function AdminPromo() {
     <div className="max-w-[1180px]">
       <div className="flex items-center justify-between gap-3 flex-wrap mb-6">
         <div>
-          <h1 className="text-[1.4rem] font-extrabold tracking-tight">Banner Promo</h1>
-          <p className="text-muted text-[0.83rem] mt-0.5">Kelola banner merah di atas navbar. Promo aktif terbaru akan tampil di bagian paling atas website.</p>
+          <h1 className="text-[1.4rem] font-extrabold tracking-tight">Promo Website</h1>
+          <p className="text-muted text-[0.83rem] mt-0.5">Kelola iklan popup dan banner atas dalam satu tempat.</p>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={applyCsslBatchTemplate} className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-red-50 text-red-700 border border-red-100 text-[0.82rem] font-bold hover:bg-red-100 transition-colors">
             <Megaphone size={15} /> Isi Cepat CSSL Batch 5
           </button>
-          <button onClick={resetForm} className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-dark text-white text-[0.82rem] font-bold hover:bg-dark/90 transition-colors">
+          <button onClick={() => setChoosingPlacement(true)} className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-dark text-white text-[0.82rem] font-bold hover:bg-dark/90 transition-colors">
             <Plus size={15} /> Tambah Promo
           </button>
         </div>
       </div>
+
+      {choosingPlacement && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          className="fixed inset-0 z-[100] bg-black/45 backdrop-blur-sm flex items-center justify-center p-4"
+          onClick={() => setChoosingPlacement(false)}
+        >
+          <motion.div
+            initial={{ opacity: 0, scale: 0.96, y: 12 }}
+            animate={{ opacity: 1, scale: 1, y: 0 }}
+            className="w-full max-w-[680px] rounded-3xl bg-white border border-border p-6 shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="flex items-start justify-between gap-4 mb-5">
+              <div>
+                <p className="text-[0.72rem] font-bold tracking-[0.14em] uppercase text-muted">Pilih Jenis Iklan</p>
+                <h2 className="text-[1.35rem] font-extrabold tracking-tight mt-1">Promo ini mau tampil di mana?</h2>
+                <p className="text-muted text-[0.82rem] mt-1">Pilihan ini bisa diganti lagi saat mengedit promo.</p>
+              </div>
+              <button onClick={() => setChoosingPlacement(false)} className="p-2 rounded-xl border border-border text-muted hover:text-dark">
+                <X size={16} />
+              </button>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-4">
+              <button
+                onClick={() => { resetForm("banner"); setChoosingPlacement(false); }}
+                className="text-left rounded-2xl border border-red-100 bg-red-50/70 p-5 hover:bg-red-50 hover:border-red-200 transition-colors"
+              >
+                <span className="inline-flex w-10 h-10 rounded-2xl bg-red-600 text-white items-center justify-center mb-4">
+                  <Megaphone size={18} />
+                </span>
+                <p className="font-extrabold text-[1rem]">Banner Atas</p>
+                <p className="text-[0.78rem] text-muted leading-relaxed mt-2">
+                  Untuk pengumuman singkat, kode promo, atau info cepat satu pelatihan. Tampil tipis di atas navbar.
+                </p>
+              </button>
+
+              <button
+                onClick={() => { resetForm("popup"); setChoosingPlacement(false); }}
+                className="text-left rounded-2xl border border-border bg-[#FAFAFA] p-5 hover:bg-white hover:border-dark/20 transition-colors"
+              >
+                <span className="inline-flex w-10 h-10 rounded-2xl bg-dark text-white items-center justify-center mb-4">
+                  <Megaphone size={18} />
+                </span>
+                <p className="font-extrabold text-[1rem]">Popup Iklan</p>
+                <p className="text-[0.78rem] text-muted leading-relaxed mt-2">
+                  Untuk promo yang butuh penjelasan lebih lengkap, highlight program, dan tampilan visual di tengah layar.
+                </p>
+              </button>
+            </div>
+          </motion.div>
+        </motion.div>
+      )}
 
       {msg && (
         <motion.div initial={{ opacity:0, y:-8 }} animate={{ opacity:1, y:0 }}
@@ -296,7 +373,7 @@ export default function AdminPromo() {
                     </p>
                   </div>
                   <p className={`text-[0.68rem] line-clamp-1 ${id === promo.id ? "text-white/55" : "text-muted"}`}>
-                    {promo.badge || "Tanpa badge"} · {promo.active ? "Aktif" : "Nonaktif"}
+                    {getPromoPlacement(promo.highlights) === "popup" ? "Popup Iklan" : "Banner Atas"} · {promo.badge || "Tanpa badge"} · {promo.active ? "Aktif" : "Nonaktif"}
                   </p>
                 </button>
               ))}
@@ -311,7 +388,7 @@ export default function AdminPromo() {
               {id ? "Edit Promo" : "Promo Baru"}
             </p>
             <p className="text-[0.76rem] text-muted mt-1">
-              {id ? "Perubahan akan tersimpan ke banner yang sedang dipilih." : "Isi detail lalu simpan sebagai banner baru."}
+              {id ? "Perubahan akan tersimpan ke promo yang sedang dipilih." : "Isi detail lalu simpan sebagai promo baru."}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -343,9 +420,35 @@ export default function AdminPromo() {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-red-100 bg-red-50/70 px-4 py-3 text-[0.78rem] text-red-900">
-          <p className="font-extrabold">Yang tampil di banner atas:</p>
-          <p className="mt-1 text-red-900/75">Teks badge, judul program, subjudul, status aktif, teks tombol, dan link tombol. Popup promo sudah tidak ditampilkan di website.</p>
+        <div>
+          <label className="label">Jenis Iklan</label>
+          <div className="grid sm:grid-cols-2 gap-3">
+            <button
+              type="button"
+              onClick={() => setPlacement("banner")}
+              className={`text-left rounded-2xl border px-4 py-3 transition-all ${placement === "banner" ? "border-red-200 bg-red-50 text-red-800" : "border-border bg-[#FAFAFA] text-dark/70 hover:border-dark/20"}`}
+            >
+              <p className="text-[0.82rem] font-extrabold">Banner Atas</p>
+              <p className="text-[0.7rem] mt-1 opacity-75">Pengumuman singkat atau kode promo pelatihan.</p>
+            </button>
+            <button
+              type="button"
+              onClick={() => setPlacement("popup")}
+              className={`text-left rounded-2xl border px-4 py-3 transition-all ${placement === "popup" ? "border-dark bg-dark text-white" : "border-border bg-[#FAFAFA] text-dark/70 hover:border-dark/20"}`}
+            >
+              <p className="text-[0.82rem] font-extrabold">Popup Iklan</p>
+              <p className="text-[0.7rem] mt-1 opacity-75">Promo lengkap yang muncul di tengah layar.</p>
+            </button>
+          </div>
+        </div>
+
+        <div className={`rounded-2xl border px-4 py-3 text-[0.78rem] ${placement === "banner" ? "border-red-100 bg-red-50/70 text-red-900" : "border-indigo-100 bg-indigo-50/70 text-indigo-900"}`}>
+          <p className="font-extrabold">{placement === "banner" ? "Yang tampil di banner atas:" : "Yang tampil di popup:"}</p>
+          <p className="mt-1 opacity-75">
+            {placement === "banner"
+              ? "Teks badge, judul program, subjudul, status aktif, teks tombol, dan link tombol."
+              : "Badge, tag penyelenggara, judul, subjudul, deskripsi, highlights, fasilitator, dan tombol CTA."}
+          </p>
         </div>
 
         {/* Badge */}

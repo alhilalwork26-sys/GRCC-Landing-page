@@ -16,6 +16,7 @@ interface PromoBannerData {
   status?: string | null;
   cta_label?: string | null;
   cta_href?: string | null;
+  highlights?: Array<string | { icon?: string; text?: string }> | null;
   updated_at?: string | null;
 }
 
@@ -32,15 +33,16 @@ export default function PromoTopBanner({ onVisibleChange }: PromoTopBannerProps)
 
     supabase
       .from("promo")
-      .select("id, active, badge, title, subtitle, status, cta_label, cta_href, updated_at")
+      .select("id, active, badge, title, subtitle, status, cta_label, cta_href, highlights, updated_at")
       .eq("active", true)
       .order("updated_at", { ascending: false })
-      .limit(1)
-      .maybeSingle()
+      .limit(20)
       .then(({ data }) => {
-        if (!active || !data) return;
-        const hidden = sessionStorage.getItem(`${STORAGE_KEY_PREFIX}_${data.id}`) === "1";
-        setPromo(data as PromoBannerData);
+        if (!active) return;
+        const bannerPromo = ((data ?? []) as PromoBannerData[]).find((item) => getPlacement(item.highlights) === "banner");
+        if (!bannerPromo) return;
+        const hidden = sessionStorage.getItem(`${STORAGE_KEY_PREFIX}_${bannerPromo.id}`) === "1";
+        setPromo(bannerPromo);
         setDismissed(hidden);
       });
 
@@ -124,4 +126,11 @@ export default function PromoTopBanner({ onVisibleChange }: PromoTopBannerProps)
       )}
     </AnimatePresence>
   );
+}
+
+function getPlacement(highlights: PromoBannerData["highlights"]) {
+  const placement = (highlights ?? []).find((item) =>
+    typeof item !== "string" && item.icon === "__placement"
+  );
+  return placement && typeof placement !== "string" && placement.text === "popup" ? "popup" : "banner";
 }

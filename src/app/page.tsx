@@ -12,6 +12,7 @@ import Insights from "@/components/Insights";
 import Testimonials from "@/components/Testimonials";
 import CTABand from "@/components/CTABand";
 import Footer from "@/components/Footer";
+import PromoModal from "@/components/PromoModal";
 
 export default function Home() {
   return (
@@ -34,6 +35,7 @@ export default function Home() {
         <Testimonials />
         <CTABand />
         <Footer />
+        <PromoModal />
       </main>
     </>
   );

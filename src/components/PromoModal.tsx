@@ -20,7 +20,7 @@ interface PromoData {
   accent_color: string;
   description?: string;
   status: string;
-  highlights?: string[] | null;
+  highlights?: Array<string | { icon?: string; text?: string }> | null;
   facilitators: Facilitator[];
   cta_label: string;
   cta_href: string;
@@ -52,13 +52,13 @@ export default function PromoModal() {
       .select("*")
       .eq("active", true)
       .order("updated_at", { ascending: false })
-      .limit(1)
-      .maybeSingle()
+      .limit(20)
       .then(({ data }) => {
-        if (data) {
-          const dismissed = sessionStorage.getItem(`${STORAGE_KEY_PREFIX}_${data.id}`);
+        const popupPromo = ((data ?? []) as PromoData[]).find((item) => getPlacement(item.highlights) === "popup");
+        if (popupPromo) {
+          const dismissed = sessionStorage.getItem(`${STORAGE_KEY_PREFIX}_${popupPromo.id}`);
           if (dismissed) return;
-          setPromo(data as PromoData);
+          setPromo(popupPromo);
           timer = setTimeout(() => setShow(true), 900);
         }
       });
@@ -76,7 +76,7 @@ export default function PromoModal() {
   const rawHighlights = promo.highlights as Array<string | { icon?: string; text?: string }> | null | undefined;
   const highlights = rawHighlights?.map((h) =>
     typeof h === "string" ? h : (h?.text ?? "")
-  ).filter(Boolean);
+  ).filter((text) => Boolean(text) && text !== "popup" && text !== "banner");
 
   return (
     <AnimatePresence>
@@ -316,4 +316,11 @@ export default function PromoModal() {
       )}
     </AnimatePresence>
   );
+}
+
+function getPlacement(highlights: PromoData["highlights"]) {
+  const placement = (highlights ?? []).find((item) =>
+    typeof item !== "string" && item.icon === "__placement"
+  );
+  return placement && typeof placement !== "string" && placement.text === "popup" ? "popup" : "banner";
 }
