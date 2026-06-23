@@ -158,12 +158,12 @@ values (
   'payment-proofs',
   'payment-proofs',
   false,
-  5242880,
+  15728640,
   array['image/jpeg','image/png','image/webp','application/pdf']
 )
 on conflict (id) do update set
   public = false,
-  file_size_limit = 5242880,
+  file_size_limit = 15728640,
   allowed_mime_types = array['image/jpeg','image/png','image/webp','application/pdf'];
 
 drop policy if exists "Public upload payment proofs" on storage.objects;

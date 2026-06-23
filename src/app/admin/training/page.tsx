@@ -193,7 +193,7 @@ export default function AdminTraining() {
     if (!form) return;
     const allowed = ["image/jpeg","image/png","image/webp"];
     if (!allowed.includes(file.type)) { showMsg("Format poster harus JPG, PNG, atau WebP.", false); return; }
-    if (file.size > 5 * 1024 * 1024) { showMsg("Poster maksimal 5MB.", false); return; }
+    if (file.size > 15 * 1024 * 1024) { showMsg("Poster maksimal 15MB.", false); return; }
     setUploadingPoster(true);
     const ext = file.name.split(".").pop();
     const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
@@ -767,7 +767,7 @@ export default function AdminTraining() {
                           </span>
                           <span className="text-left">
                             <span className="block text-[0.8rem] font-bold text-dark">Upload poster (JPG / PNG / WebP)</span>
-                            <span className="block text-[0.7rem] text-muted">Maks. 5MB. Tampil di kartu training.</span>
+                            <span className="block text-[0.7rem] text-muted">Maks. 15MB. Tampil di kartu training.</span>
                           </span>
                         </button>
                       )}
