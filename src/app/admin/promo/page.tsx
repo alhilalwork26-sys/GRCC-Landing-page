@@ -246,8 +246,8 @@ export default function AdminPromo() {
     <div className="max-w-[1180px]">
       <div className="flex items-center justify-between gap-3 flex-wrap mb-6">
         <div>
-          <h1 className="text-[1.4rem] font-extrabold tracking-tight">Promo Modal</h1>
-          <p className="text-muted text-[0.83rem] mt-0.5">Kelola beberapa kampanye promo. Promo aktif terbaru tampil sebagai popup dan banner atas.</p>
+          <h1 className="text-[1.4rem] font-extrabold tracking-tight">Banner Promo</h1>
+          <p className="text-muted text-[0.83rem] mt-0.5">Kelola banner merah di atas navbar. Promo aktif terbaru akan tampil di bagian paling atas website.</p>
         </div>
         <div className="flex items-center gap-2">
           <button onClick={applyCsslBatchTemplate} className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-red-50 text-red-700 border border-red-100 text-[0.82rem] font-bold hover:bg-red-100 transition-colors">
@@ -311,7 +311,7 @@ export default function AdminPromo() {
               {id ? "Edit Promo" : "Promo Baru"}
             </p>
             <p className="text-[0.76rem] text-muted mt-1">
-              {id ? "Perubahan akan tersimpan ke promo yang sedang dipilih." : "Isi detail lalu simpan sebagai promo baru."} Banner atas memakai judul, badge, subjudul, dan link tombol dari promo ini.
+              {id ? "Perubahan akan tersimpan ke banner yang sedang dipilih." : "Isi detail lalu simpan sebagai banner baru."}
             </p>
           </div>
           <div className="flex items-center gap-2">
@@ -341,6 +341,11 @@ export default function AdminPromo() {
               </div>
             </label>
           </div>
+        </div>
+
+        <div className="rounded-2xl border border-red-100 bg-red-50/70 px-4 py-3 text-[0.78rem] text-red-900">
+          <p className="font-extrabold">Yang tampil di banner atas:</p>
+          <p className="mt-1 text-red-900/75">Teks badge, judul program, subjudul, status aktif, teks tombol, dan link tombol. Popup promo sudah tidak ditampilkan di website.</p>
         </div>
 
         {/* Badge */}
@@ -410,7 +415,7 @@ export default function AdminPromo() {
           <div className="flex items-center justify-between mb-3">
             <div>
               <label className="label mb-0">Highlights Program</label>
-              <p className="text-[0.68rem] text-muted mt-0.5">Poin-poin unggulan yang ditampilkan di promo modal</p>
+              <p className="text-[0.68rem] text-muted mt-0.5">Poin-poin unggulan untuk data promosi internal</p>
             </div>
             <button onClick={addHighlight} className="flex items-center gap-1.5 text-[0.75rem] font-bold text-dark/60 hover:text-dark">
               <Plus size={13} /> Tambah

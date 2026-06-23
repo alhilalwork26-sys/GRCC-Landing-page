@@ -10,7 +10,7 @@ import {
 
 const nav = [
   { href: "/admin",                 icon: LayoutDashboard, label: "Dashboard"      },
-  { href: "/admin/promo",           icon: Megaphone,        label: "Promo Modal"   },
+  { href: "/admin/promo",           icon: Megaphone,        label: "Banner Promo"  },
   { href: "/admin/programs",        icon: Layers,           label: "Program"        },
   { href: "/admin/insights",        icon: Newspaper,        label: "Insights"      },
   { href: "/admin/training",        icon: CalendarDays,     label: "Training"      },
