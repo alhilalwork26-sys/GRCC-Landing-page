@@ -185,12 +185,12 @@ values (
   'training-posters',
   'training-posters',
   true,
-  5242880,
+  15728640,
   array['image/jpeg','image/png','image/webp']
 )
 on conflict (id) do update set
   public = true,
-  file_size_limit = 5242880,
+  file_size_limit = 15728640,
   allowed_mime_types = array['image/jpeg','image/png','image/webp'];
 
 drop policy if exists "Admin upload training posters" on storage.objects;

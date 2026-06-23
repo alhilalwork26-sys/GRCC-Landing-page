@@ -196,12 +196,12 @@ export default function AdminTraining() {
     if (file.size > 15 * 1024 * 1024) { showMsg("Poster maksimal 15MB.", false); return; }
     setUploadingPoster(true);
     const ext = file.name.split(".").pop();
-    const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const filename = `training-posters/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
     const { data, error } = await supabase.storage
-      .from("training-posters").upload(filename, file, { contentType: file.type, upsert: false });
+      .from("insight-images").upload(filename, file, { contentType: file.type, upsert: false });
     setUploadingPoster(false);
     if (error) { showMsg(`Gagal upload poster: ${error.message}`, false); return; }
-    const { data: pub } = supabase.storage.from("training-posters").getPublicUrl(data.path);
+    const { data: pub } = supabase.storage.from("insight-images").getPublicUrl(data.path);
     setForm(cur => cur ? { ...cur, poster_url: pub.publicUrl } : cur);
     showMsg("Poster berhasil diupload!");
   };
