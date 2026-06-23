@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { supabase } from "@/lib/supabase";
-import { Check, Copy, Image as ImageIcon, Loader2, Plus, Trash2, Upload, X } from "lucide-react";
+import { Check, Copy, Image as ImageIcon, Loader2, Megaphone, Plus, Trash2, Upload, X } from "lucide-react";
 
 const COLORS = ["#4F46E5","#10B981","#EF4444","#F59E0B","#8B5CF6","#0EA5E9","#F97316"];
 const STATUSES = [
@@ -85,6 +85,27 @@ export default function AdminPromo() {
     setCtaHref("mailto:grcc.ailg@gmail.com");
     setFacilitators(EMPTY_FACILITATORS);
     setHighlights([]);
+  };
+
+  const applyCsslBatchTemplate = () => {
+    setId(null);
+    setActive(true);
+    setBadge("CSSL Batch 5");
+    setBadgeColor("#EF4444");
+    setTag("GRCC × AILG · Universitas Airlangga");
+    setTitle("Certified Sustainability Strategist & Leader (CSSL) Batch 5");
+    setSubtitle("Promo pendaftaran terbatas");
+    setAccentColor("#EF4444");
+    setDesc("Program sertifikasi untuk memperkuat kompetensi strategi, tata kelola, inovasi, pelaporan, dan kepemimpinan keberlanjutan.");
+    setStatus("open");
+    setCtaLabel("Daftar CSSL Batch 5");
+    setCtaHref("/training");
+    setFacilitators(EMPTY_FACILITATORS);
+    setHighlights([
+      { icon: "✓", text: "Sertifikasi profesional keberlanjutan" },
+      { icon: "✓", text: "Materi strategi ESG dan leadership" },
+      { icon: "✓", text: "Kuota peserta terbatas" },
+    ]);
   };
 
   const loadPromos = async () => {
@@ -223,14 +244,19 @@ export default function AdminPromo() {
 
   return (
     <div className="max-w-[1180px]">
-      <div className="flex items-center justify-between mb-6">
+      <div className="flex items-center justify-between gap-3 flex-wrap mb-6">
         <div>
           <h1 className="text-[1.4rem] font-extrabold tracking-tight">Promo Modal</h1>
-          <p className="text-muted text-[0.83rem] mt-0.5">Kelola beberapa promo campaign. Promo aktif terbaru akan muncul ke user.</p>
+          <p className="text-muted text-[0.83rem] mt-0.5">Kelola beberapa kampanye promo. Promo aktif terbaru tampil sebagai popup dan banner atas.</p>
         </div>
-        <button onClick={resetForm} className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-dark text-white text-[0.82rem] font-bold hover:bg-dark/90 transition-colors">
-          <Plus size={15} /> Tambah Promo
-        </button>
+        <div className="flex items-center gap-2">
+          <button onClick={applyCsslBatchTemplate} className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-red-50 text-red-700 border border-red-100 text-[0.82rem] font-bold hover:bg-red-100 transition-colors">
+            <Megaphone size={15} /> Isi Cepat CSSL Batch 5
+          </button>
+          <button onClick={resetForm} className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-dark text-white text-[0.82rem] font-bold hover:bg-dark/90 transition-colors">
+            <Plus size={15} /> Tambah Promo
+          </button>
+        </div>
       </div>
 
       {msg && (
@@ -285,7 +311,7 @@ export default function AdminPromo() {
               {id ? "Edit Promo" : "Promo Baru"}
             </p>
             <p className="text-[0.76rem] text-muted mt-1">
-              {id ? "Perubahan akan tersimpan ke promo yang sedang dipilih." : "Isi detail lalu simpan sebagai promo baru."}
+              {id ? "Perubahan akan tersimpan ke promo yang sedang dipilih." : "Isi detail lalu simpan sebagai promo baru."} Banner atas memakai judul, badge, subjudul, dan link tombol dari promo ini.
             </p>
           </div>
           <div className="flex items-center gap-2">

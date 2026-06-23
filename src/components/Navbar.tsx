@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import { ArrowUpRight, Menu, X, Search } from "lucide-react";
 import { usePathname } from "next/navigation";
 import { usePageTransition } from "./TransitionProvider";
+import PromoTopBanner from "./PromoTopBanner";
 
 const links = [
   { label: "Layanan",   href: "#services",  page: false },
@@ -18,6 +19,7 @@ const links = [
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
+  const [promoBannerVisible, setPromoBannerVisible] = useState(false);
   const pathname = usePathname();
   const { navigate } = usePageTransition();
 
@@ -26,6 +28,13 @@ export default function Navbar() {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
+
+  useEffect(() => {
+    document.body.style.paddingTop = promoBannerVisible ? "40px" : "";
+    return () => {
+      document.body.style.paddingTop = "";
+    };
+  }, [promoBannerVisible]);
 
   const handleAnchor = (href: string) => {
     setOpen(false);
@@ -47,7 +56,7 @@ export default function Navbar() {
 
   return (
     <motion.header
-      initial={{ y: -80, opacity: 0 }}
+      initial={{ y: -96, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
       className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
@@ -56,6 +65,7 @@ export default function Navbar() {
           : "bg-bg border-b border-transparent"
       }`}
     >
+      <PromoTopBanner onVisibleChange={setPromoBannerVisible} />
       <div className="max-w-[1280px] mx-auto px-6 lg:px-16 h-[72px] flex items-center gap-8">
         {/* Logo */}
         <button onClick={() => handlePage("/")} className="flex items-center flex-shrink-0">
