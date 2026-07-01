@@ -9,6 +9,7 @@ import {
 import {
   ArrowLeft, Calendar, MapPin, Tag, ChevronRight,
   ArrowUpRight, Eye, List, X, ZoomIn, ChevronLeft, ChevronRight as ChevronRightIcon,
+  Copy, Check,
 } from "lucide-react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
@@ -206,6 +207,7 @@ export default function InsightDetailPage() {
   const [loading, setLoading] = useState(true);
   const [activeHeading, setActiveHeading] = useState("");
   const [sel, setSel] = useState({ text: "", x: 0, y: 0, show: false });
+  const [copiedLink, setCopiedLink] = useState(false);
   const [lightbox, setLightbox] = useState<{ open: boolean; idx: number }>({ open: false, idx: 0 });
   const articleRef = useRef<HTMLDivElement>(null);
 
@@ -299,6 +301,13 @@ export default function InsightDetailPage() {
 
   const readingTime = item.content ? Math.max(1, Math.ceil(item.content.split(/\s+/).length / 200)) : null;
   const pageUrl     = typeof window !== "undefined" ? window.location.href : "";
+
+  const copyArticleLink = async () => {
+    if (!pageUrl) return;
+    await navigator.clipboard.writeText(pageUrl);
+    setCopiedLink(true);
+    setTimeout(() => setCopiedLink(false), 1800);
+  };
 
   return (
     <>
@@ -587,9 +596,17 @@ export default function InsightDetailPage() {
               <div className="mt-14 pt-8 border-t border-dark/[0.07] flex items-center justify-between flex-wrap gap-4">
                 <div>
                   <p className="text-[0.75rem] font-semibold text-dark/35 mb-0.5">Bagikan artikel ini</p>
-                  <p className="text-[0.68rem] text-muted">Sorot teks untuk share kutipan</p>
+                  <p className="text-[0.68rem] text-muted">Salin link atau sorot teks untuk share kutipan</p>
                 </div>
                 <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={copyArticleLink}
+                    className="inline-flex items-center gap-1.5 text-[0.72rem] font-bold px-3.5 py-2 rounded-lg border border-dark/10 hover:border-dark/25 hover:bg-dark/[0.04] transition-all"
+                  >
+                    {copiedLink ? <Check size={13} /> : <Copy size={13} />}
+                    {copiedLink ? "Disalin" : "Salin Link"}
+                  </button>
                   {[
                     { label: "Twitter / X", href: `https://twitter.com/intent/tweet?text=${encodeURIComponent(item.title)}&url=${encodeURIComponent(pageUrl)}` },
                     { label: "LinkedIn",    href: `https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(pageUrl)}` },
