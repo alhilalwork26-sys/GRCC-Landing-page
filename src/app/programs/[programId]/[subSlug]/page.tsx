@@ -31,12 +31,14 @@ function BookingWidget({
   subName,
   programTitle,
   onOpenBrochure,
+  subBrochureUrl,
 }: {
   trainings: TrainingItem[];
   accent: string;
   subName: string;
   programTitle: string;
   onOpenBrochure: (url: string) => void;
+  subBrochureUrl: string | null;
 }) {
   const [selected, setSelected] = useState<TrainingItem | null>(null);
   const [qty, setQty] = useState(1);
@@ -349,20 +351,15 @@ function BookingWidget({
           {selected ? "Individu atau grup? Pilih sesuai kebutuhan" : "Pilih sesi pelatihan terlebih dahulu"}
         </p>
 
-        {/* Brochure button — show for selected training, or any training with brochure */}
-        {(() => {
-          const brochureUrl = selected?.brochure_url
-            ?? trainings.find(t => t.brochure_url)?.brochure_url
-            ?? null;
-          return brochureUrl ? (
-            <button
-              onClick={() => onOpenBrochure(brochureUrl)}
-              className="flex items-center justify-center gap-2 font-semibold text-[0.82rem] py-2.5 rounded-xl border border-border text-muted hover:text-dark hover:border-dark/30 transition-all w-full"
-            >
-              <BookOpen size={14} /> Lihat Brosur PDF
-            </button>
-          ) : null;
-        })()}
+        {/* Brochure button — uses sub-program brochure */}
+        {subBrochureUrl && (
+          <button
+            onClick={() => onOpenBrochure(subBrochureUrl)}
+            className="flex items-center justify-center gap-2 font-semibold text-[0.82rem] py-2.5 rounded-xl border border-border text-muted hover:text-dark hover:border-dark/30 transition-all w-full"
+          >
+            <BookOpen size={14} /> Lihat Brosur PDF
+          </button>
+        )}
       </div>
     </div>
   );
@@ -752,6 +749,7 @@ export default function SubProgramPage() {
                     subName={sub.name}
                     programTitle={program.title}
                     onOpenBrochure={(url) => setFlipBookUrl(url)}
+                    subBrochureUrl={sub.brochure_url ?? null}
                   />
                 )}
               </motion.div>
