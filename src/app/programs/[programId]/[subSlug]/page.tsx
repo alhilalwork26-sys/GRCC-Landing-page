@@ -30,11 +30,13 @@ function BookingWidget({
   accent,
   subName,
   programTitle,
+  onOpenBrochure,
 }: {
   trainings: TrainingItem[];
   accent: string;
   subName: string;
   programTitle: string;
+  onOpenBrochure: (url: string) => void;
 }) {
   const [selected, setSelected] = useState<TrainingItem | null>(null);
   const [qty, setQty] = useState(1);
@@ -346,6 +348,21 @@ function BookingWidget({
         <p className="text-center text-[0.7rem] text-muted">
           {selected ? "Individu atau grup? Pilih sesuai kebutuhan" : "Pilih sesi pelatihan terlebih dahulu"}
         </p>
+
+        {/* Brochure button — show for selected training, or any training with brochure */}
+        {(() => {
+          const brochureUrl = selected?.brochure_url
+            ?? trainings.find(t => t.brochure_url)?.brochure_url
+            ?? null;
+          return brochureUrl ? (
+            <button
+              onClick={() => onOpenBrochure(brochureUrl)}
+              className="flex items-center justify-center gap-2 font-semibold text-[0.82rem] py-2.5 rounded-xl border border-border text-muted hover:text-dark hover:border-dark/30 transition-all w-full"
+            >
+              <BookOpen size={14} /> Lihat Brosur PDF
+            </button>
+          ) : null;
+        })()}
       </div>
     </div>
   );
@@ -512,30 +529,6 @@ export default function SubProgramPage() {
             {sub.name}
           </motion.h1>
 
-          {/* Brochure buttons */}
-          {trainings.some(t => t.brochure_url) && (
-            <motion.div
-              initial={{ opacity: 0, y: 14 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.55, delay: 0.4 }}
-              className="flex flex-wrap gap-3"
-            >
-              {trainings.filter(t => t.brochure_url).map((t) => (
-                <motion.button
-                  key={t.id}
-                  whileHover={{ scale: 1.03, y: -2 }}
-                  whileTap={{ scale: 0.97 }}
-                  onClick={() => setFlipBookUrl(t.brochure_url!)}
-                  className="flex items-center gap-2.5 px-5 py-2.5 rounded-xl font-bold text-[0.82rem] transition-all group"
-                  style={{ backgroundColor: program.accent, color: "#fff" }}
-                >
-                  <BookOpen size={15} />
-                  Brosur: {t.title.length > 28 ? t.title.slice(0, 28) + "…" : t.title}
-                  <span className="text-white/60 text-[0.65rem] font-normal">PDF</span>
-                </motion.button>
-              ))}
-            </motion.div>
-          )}
         </motion.div>
       </section>
 
@@ -758,6 +751,7 @@ export default function SubProgramPage() {
                     accent={program.accent}
                     subName={sub.name}
                     programTitle={program.title}
+                    onOpenBrochure={(url) => setFlipBookUrl(url)}
                   />
                 )}
               </motion.div>
