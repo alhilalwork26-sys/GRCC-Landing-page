@@ -605,7 +605,9 @@ export default function AdminPromoCodes() {
                         <div className="flex items-center gap-1.5 text-[0.75rem] text-amber-600 bg-amber-50 border border-amber-200 rounded-full px-2 py-0.5">
                           <BookOpen size={10} />
                           {item.training_ids.length === 1
-                            ? trainings.find((t) => t.id === item.training_ids![0])?.title ?? "1 pelatihan"
+                            ? (trainings.find((t) => t.id === item.training_ids![0])?.title
+                                ?? comingSoon.find((t) => t.id === item.training_ids![0])?.title
+                                ?? "1 pelatihan")
                             : `${item.training_ids.length} pelatihan`}
                         </div>
                       )}

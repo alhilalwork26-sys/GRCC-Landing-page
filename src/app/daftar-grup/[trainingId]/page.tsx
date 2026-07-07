@@ -253,6 +253,7 @@ export default function DaftarGrupPage() {
         .then(({ data }) => {
           if (data &&
               (data.promo_type ?? "semua") !== "individu" &&
+              !(data.training_ids && data.training_ids.length > 0 && !data.training_ids.includes(trainingId)) &&
               !(data.expires_at && new Date(data.expires_at) < new Date()) &&
               !(data.max_uses !== null && data.used_count >= data.max_uses)) {
             setAppliedPromo(data);
