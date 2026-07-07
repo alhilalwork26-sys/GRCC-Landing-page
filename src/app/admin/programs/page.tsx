@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { supabase, ProgramItem, SubProgramItem } from "@/lib/supabase";
 import {
   Plus, Pencil, Trash2, X, Check, Loader2, ChevronDown, ChevronUp,
-  GripVertical, Eye, EyeOff, ArrowUpRight,
+  GripVertical, Eye, EyeOff, ArrowUpRight, Upload, BookOpen,
 } from "lucide-react";
 
 // ── Icon options (maps to Lucide names used in public pages) ──────────────────
@@ -34,7 +34,7 @@ const EMPTY_PROGRAM: Omit<ProgramItem,"id"|"created_at"|"updated_at"> = {
 };
 
 const EMPTY_SUB: Omit<SubProgramItem,"id"|"program_id"|"created_at"|"updated_at"> = {
-  name: "", slug: "", description: "", order_index: 0, active: true,
+  name: "", slug: "", description: "", order_index: 0, active: true, brochure_url: null,
 };
 
 function toSlug(s: string) {
@@ -52,9 +52,26 @@ function SubModal({
 }) {
   const [form, setForm] = useState(sub);
   const [slugManual, setSlugManual] = useState(!!sub.slug);
+  const [uploadingBrochure, setUploadingBrochure] = useState(false);
+  const [brochureMsg, setBrochureMsg] = useState("");
+  const brochureRef = useRef<HTMLInputElement>(null);
 
   const handleNameChange = (v: string) => {
     setForm(f => ({ ...f, name: v, slug: slugManual ? f.slug : toSlug(v) }));
+  };
+
+  const uploadBrochure = async (file: File) => {
+    if (file.type !== "application/pdf") { setBrochureMsg("File harus berformat PDF."); return; }
+    setUploadingBrochure(true);
+    setBrochureMsg("");
+    const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.pdf`;
+    const { data, error } = await supabase.storage
+      .from("program-brochures").upload(filename, file, { contentType: "application/pdf", upsert: false });
+    if (error) { setBrochureMsg(`Gagal upload: ${error.message}`); setUploadingBrochure(false); return; }
+    const { data: pub } = supabase.storage.from("program-brochures").getPublicUrl(data.path);
+    setForm(f => ({ ...f, brochure_url: pub.publicUrl }));
+    setBrochureMsg("Brosur berhasil diupload!");
+    setUploadingBrochure(false);
   };
 
   return (
@@ -91,6 +108,51 @@ function SubModal({
                 placeholder="Deskripsi lengkap sub-program&#10;&#10;Paragraf baru dipisah baris kosong"
                 className="input resize-y font-[inherit]" style={{ minHeight: 180 }} />
             </div>
+
+            {/* Brosur PDF */}
+            <div>
+              <label className="label">Brosur PDF</label>
+              {form.brochure_url ? (
+                <div className="flex items-center gap-3 p-3 rounded-xl bg-indigo-50 border border-indigo-200">
+                  <BookOpen size={16} className="text-indigo-500 flex-shrink-0" />
+                  <div className="flex-1 min-w-0">
+                    <p className="text-[0.78rem] font-semibold text-indigo-700">Brosur tersimpan</p>
+                    <a href={form.brochure_url} target="_blank" rel="noreferrer"
+                      className="text-[0.68rem] text-indigo-400 hover:underline truncate block">
+                      {form.brochure_url.split("/").pop()}
+                    </a>
+                  </div>
+                  <div className="flex gap-1.5">
+                    <button type="button" onClick={() => brochureRef.current?.click()}
+                      className="text-[0.72rem] font-bold text-indigo-600 hover:text-indigo-800 px-2 py-1 rounded-lg hover:bg-indigo-100 transition-colors">
+                      Ganti
+                    </button>
+                    <button type="button" onClick={() => setForm(f => ({ ...f, brochure_url: null }))}
+                      className="text-[0.72rem] font-bold text-red-400 hover:text-red-600 px-2 py-1 rounded-lg hover:bg-red-50 transition-colors">
+                      Hapus
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <button type="button" onClick={() => brochureRef.current?.click()}
+                  disabled={uploadingBrochure}
+                  className="w-full flex items-center justify-center gap-2 p-4 rounded-xl border-2 border-dashed border-border hover:border-dark/30 hover:bg-[#F7F7F5] transition-all text-muted disabled:opacity-50">
+                  {uploadingBrochure
+                    ? <><Loader2 size={15} className="animate-spin" /> Mengupload…</>
+                    : <><Upload size={15} /> Upload Brosur PDF</>
+                  }
+                </button>
+              )}
+              <input ref={brochureRef} type="file" accept="application/pdf" className="hidden"
+                onChange={e => { const f = e.target.files?.[0]; if (f) uploadBrochure(f); e.target.value = ""; }} />
+              {brochureMsg && (
+                <p className={`text-[0.7rem] mt-1 ${brochureMsg.includes("Gagal") || brochureMsg.includes("harus") ? "text-red-500" : "text-emerald-600"}`}>
+                  {brochureMsg}
+                </p>
+              )}
+              <p className="text-[0.68rem] text-muted mt-1">PDF akan tampil sebagai flipbook di halaman program</p>
+            </div>
+
             <label className="flex items-center gap-2 cursor-pointer select-none">
               <div onClick={() => setForm(f => ({ ...f, active: !f.active }))}
                 className={`w-10 h-5 rounded-full relative transition-colors ${form.active ? "bg-dark" : "bg-dark/20"}`}>
@@ -102,7 +164,7 @@ function SubModal({
           <div className="flex justify-end gap-3 px-7 py-5 border-t border-border">
             <button onClick={onClose} className="text-[0.82rem] font-semibold px-4 py-2.5 rounded-xl hover:bg-dark/[0.06]">Batal</button>
             <motion.button whileHover={{ scale:1.01 }} whileTap={{ scale:0.98 }}
-              onClick={() => onSave(form)} disabled={saving || !form.name || !form.slug}
+              onClick={() => onSave(form)} disabled={saving || !form.name || !form.slug || uploadingBrochure}
               className="flex items-center gap-2 bg-dark text-white text-[0.82rem] font-bold px-5 py-2.5 rounded-xl disabled:opacity-50">
               {saving ? <Loader2 size={14} className="animate-spin" /> : <Check size={14} />} Simpan
             </motion.button>
@@ -185,13 +247,14 @@ export default function AdminPrograms() {
     if (data.id) {
       await supabase.from("sub_programs").update({
         name: data.name, slug: data.slug, description: data.description,
-        active: data.active,
+        active: data.active, brochure_url: data.brochure_url ?? null,
       }).eq("id", data.id);
     } else {
       const maxOrder = selectedSubs.length > 0 ? Math.max(...selectedSubs.map(s => s.order_index)) + 1 : 0;
       await supabase.from("sub_programs").insert({
         program_id: selected, name: data.name, slug: data.slug,
         description: data.description, active: data.active, order_index: maxOrder,
+        brochure_url: data.brochure_url ?? null,
       });
     }
     setSavingSub(false);
@@ -414,7 +477,14 @@ export default function AdminPrograms() {
                     <div key={sub.id} className="flex items-center gap-3 px-5 py-3.5 hover:bg-dark/[0.02] transition-colors group">
                       <GripVertical size={14} className="text-muted/40 flex-shrink-0" />
                       <div className="flex-1 min-w-0">
-                        <p className="text-[0.85rem] font-semibold truncate">{sub.name}</p>
+                        <div className="flex items-center gap-2">
+                          <p className="text-[0.85rem] font-semibold truncate">{sub.name}</p>
+                          {sub.brochure_url && (
+                            <span className="flex-shrink-0 inline-flex items-center gap-1 text-[0.6rem] font-bold px-1.5 py-0.5 rounded-full bg-indigo-100 text-indigo-600">
+                              <BookOpen size={9} /> PDF
+                            </span>
+                          )}
+                        </div>
                         <p className="text-[0.68rem] text-muted font-mono">/programs/{selectedProg.id}/{sub.slug}</p>
                       </div>
                       <p className="text-[0.72rem] text-muted/50 hidden md:block line-clamp-1 max-w-[200px] flex-shrink-0">

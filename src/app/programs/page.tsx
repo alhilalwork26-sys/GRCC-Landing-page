@@ -2,12 +2,14 @@
 
 import { useRef, useState, useEffect } from "react";
 import { motion, useScroll, useTransform, AnimatePresence } from "framer-motion";
-import { ArrowUpRight, ChevronRight, Building2, CheckCircle2, Users, Lightbulb, Target, Calendar, MapPin, Clock } from "lucide-react";
+import { ArrowUpRight, ChevronRight, Building2, CheckCircle2, Users, Lightbulb, Target, Calendar, MapPin, Clock, BookOpen } from "lucide-react";
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { supabase, ProgramItem, SubProgramItem, TrainingItem, ComingSoonPost } from "@/lib/supabase";
 import { renderIcon } from "@/lib/iconMap";
+import dynamic from "next/dynamic";
+const FlipBookModal = dynamic(() => import("@/components/FlipBookModal"), { ssr: false });
 
 // ── variants ──────────────────────────────────────────────────────────────────
 const fadeUp = {
@@ -20,29 +22,38 @@ const fadeUp = {
 const stagger = { hidden: {}, visible: { transition: { staggerChildren: 0.07 } } };
 
 // ── sub-program card ──────────────────────────────────────────────────────────
-function SubCard({ sub, accent, index, programId }: {
+function SubCard({ sub, accent, index, programId, onOpenBrochure }: {
   sub: SubProgramItem; accent: string; index: number; programId: string;
+  onOpenBrochure: (sub: SubProgramItem) => void;
 }) {
   return (
-    <Link href={`/programs/${programId}/${sub.slug}`}>
-      <motion.div
-        custom={index} variants={fadeUp}
-        whileHover={{ y: -3, boxShadow: `0 8px 24px ${accent}18` }}
-        transition={{ type: "spring", stiffness: 320, damping: 22 }}
-        className="group flex flex-col gap-2.5 p-5 rounded-xl border border-border hover:shadow-md bg-white hover:border-transparent transition-all duration-300 cursor-pointer"
-        style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}
-      >
-        <div className="flex items-start gap-3">
-          <span className="mt-[5px] w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: accent }} />
-          <div className="flex-1 min-w-0">
-            <h4 className="text-dark text-[0.9rem] font-bold leading-snug mb-1">{sub.name}</h4>
-            <p className="text-muted text-[0.78rem] leading-[1.65] line-clamp-2">{sub.description}</p>
-          </div>
-          <ChevronRight size={14} className="flex-shrink-0 mt-1 text-muted/40 opacity-0 group-hover:opacity-100 transition-opacity"
-            style={{ color: accent }} />
+    <motion.div
+      custom={index} variants={fadeUp}
+      whileHover={{ y: -3, boxShadow: `0 8px 24px ${accent}18` }}
+      transition={{ type: "spring", stiffness: 320, damping: 22 }}
+      className="group flex flex-col gap-2.5 p-5 rounded-xl border border-border hover:shadow-md bg-white hover:border-transparent transition-all duration-300"
+      style={{ boxShadow: "0 1px 3px rgba(0,0,0,0.04)" }}
+    >
+      <Link href={`/programs/${programId}/${sub.slug}`} className="flex items-start gap-3">
+        <span className="mt-[5px] w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: accent }} />
+        <div className="flex-1 min-w-0">
+          <h4 className="text-dark text-[0.9rem] font-bold leading-snug mb-1">{sub.name}</h4>
+          <p className="text-muted text-[0.78rem] leading-[1.65] line-clamp-2">{sub.description}</p>
         </div>
-      </motion.div>
-    </Link>
+        <ChevronRight size={14} className="flex-shrink-0 mt-1 text-muted/40 opacity-0 group-hover:opacity-100 transition-opacity"
+          style={{ color: accent }} />
+      </Link>
+      {sub.brochure_url && (
+        <button
+          onClick={() => onOpenBrochure(sub)}
+          className="flex items-center gap-2 w-full mt-1 px-3 py-2 rounded-lg text-[0.75rem] font-semibold border border-dashed transition-all hover:opacity-80"
+          style={{ borderColor: accent + "50", color: accent, backgroundColor: accent + "08" }}
+        >
+          <BookOpen size={13} />
+          Lihat Brosur
+        </button>
+      )}
+    </motion.div>
   );
 }
 
@@ -55,6 +66,7 @@ export default function ProgramsPage() {
   const [trainings, setTrainings] = useState<TrainingItem[]>([]);
   const [comingSoon, setComingSoon] = useState<ComingSoonPost[]>([]);
   const [loading,  setLoading]  = useState(true);
+  const [flipbook, setFlipbook] = useState<{ pdfUrl: string; title: string; accent: string } | null>(null);
 
   const heroRef = useRef<HTMLDivElement>(null);
   const { scrollYProgress } = useScroll({ target: heroRef, offset: ["start start", "end start"] });
@@ -378,7 +390,8 @@ export default function ProgramsPage() {
                         <p className="text-[0.72rem] font-bold tracking-[0.14em] uppercase text-muted mb-4">Sub-Program</p>
                         <motion.div variants={stagger} initial="hidden" animate="visible" className="grid sm:grid-cols-2 gap-3">
                           {subs.map((sub, i) => (
-                            <SubCard key={sub.id} sub={sub} accent={prog.accent} index={i} programId={prog.id} />
+                            <SubCard key={sub.id} sub={sub} accent={prog.accent} index={i} programId={prog.id}
+                              onOpenBrochure={(s) => setFlipbook({ pdfUrl: s.brochure_url!, title: s.name, accent: prog.accent })} />
                           ))}
                         </motion.div>
                       </div>
@@ -594,6 +607,15 @@ export default function ProgramsPage() {
       </section>
 
       <Footer />
+
+      {flipbook && (
+        <FlipBookModal
+          pdfUrl={flipbook.pdfUrl}
+          title={flipbook.title}
+          accent={flipbook.accent}
+          onClose={() => setFlipbook(null)}
+        />
+      )}
     </>
   );
 }
