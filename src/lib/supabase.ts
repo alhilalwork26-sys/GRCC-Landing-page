@@ -159,6 +159,8 @@ export interface SubProgramItem {
   order_index: number;
   active: boolean;
   brochure_url: string | null;
+  hide_price: boolean;
+  hide_schedule: boolean;
   created_at: string;
   updated_at: string;
 }

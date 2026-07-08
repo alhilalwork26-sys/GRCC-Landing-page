@@ -32,6 +32,8 @@ function BookingWidget({
   programTitle,
   onOpenBrochure,
   subBrochureUrl,
+  hidePrice,
+  hideSchedule,
 }: {
   trainings: TrainingItem[];
   accent: string;
@@ -39,6 +41,8 @@ function BookingWidget({
   programTitle: string;
   onOpenBrochure: (url: string) => void;
   subBrochureUrl: string | null;
+  hidePrice: boolean;
+  hideSchedule: boolean;
 }) {
   const [selected, setSelected] = useState<TrainingItem | null>(null);
   const [qty, setQty] = useState(1);
@@ -135,7 +139,7 @@ function BookingWidget({
 
       <div className="p-6 flex flex-col gap-5">
         {/* Session picker */}
-        <div>
+        {!hideSchedule && <div>
           <label className="block text-[0.7rem] font-bold tracking-[0.1em] uppercase text-muted mb-2">Pilih Jadwal</label>
           <div className="flex flex-col gap-2">
             {trainings.map((t) => {
@@ -189,7 +193,7 @@ function BookingWidget({
               );
             })}
           </div>
-        </div>
+        </div>}
 
         {/* Qty */}
         <div>
@@ -283,7 +287,7 @@ function BookingWidget({
         </div>
 
         {/* Price summary */}
-        <div className="rounded-xl bg-[#F7F7F5] px-4 py-3 flex flex-col gap-1.5">
+        {!hidePrice && <div className="rounded-xl bg-[#F7F7F5] px-4 py-3 flex flex-col gap-1.5">
           <div className="flex items-center justify-between text-[0.78rem] text-muted">
             <span>Harga per peserta</span>
             <span>{selected?.price_label || (price > 0 ? formatRupiah(price) : "—")}</span>
@@ -321,7 +325,7 @@ function BookingWidget({
               Hemat {formatRupiah(discountAmt)} dari harga normal {formatRupiah(subtotal)}
             </p>
           )}
-        </div>
+        </div>}
 
         {/* CTA */}
         {selected ? (
@@ -750,6 +754,8 @@ export default function SubProgramPage() {
                     programTitle={program.title}
                     onOpenBrochure={(url) => setFlipBookUrl(url)}
                     subBrochureUrl={sub.brochure_url ?? null}
+                    hidePrice={sub.hide_price}
+                    hideSchedule={sub.hide_schedule}
                   />
                 )}
               </motion.div>

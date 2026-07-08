@@ -35,6 +35,7 @@ const EMPTY_PROGRAM: Omit<ProgramItem,"id"|"created_at"|"updated_at"> = {
 
 const EMPTY_SUB: Omit<SubProgramItem,"id"|"program_id"|"created_at"|"updated_at"> = {
   name: "", slug: "", description: "", order_index: 0, active: true, brochure_url: null,
+  hide_price: false, hide_schedule: false,
 };
 
 function toSlug(s: string) {
@@ -160,6 +161,24 @@ function SubModal({
               </div>
               <span className="text-[0.82rem] font-semibold">Aktif (tampil di website)</span>
             </label>
+
+            <div className="flex flex-col gap-2 pt-1 border-t border-border">
+              <p className="text-[0.68rem] font-bold tracking-wider uppercase text-muted">Pengaturan Tampilan</p>
+              <label className="flex items-center gap-2 cursor-pointer select-none">
+                <div onClick={() => setForm(f => ({ ...f, hide_price: !f.hide_price }))}
+                  className={`w-10 h-5 rounded-full relative transition-colors ${form.hide_price ? "bg-amber-500" : "bg-dark/20"}`}>
+                  <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${form.hide_price ? "left-5" : "left-0.5"}`} />
+                </div>
+                <span className="text-[0.82rem] font-semibold">Sembunyikan Harga</span>
+              </label>
+              <label className="flex items-center gap-2 cursor-pointer select-none">
+                <div onClick={() => setForm(f => ({ ...f, hide_schedule: !f.hide_schedule }))}
+                  className={`w-10 h-5 rounded-full relative transition-colors ${form.hide_schedule ? "bg-amber-500" : "bg-dark/20"}`}>
+                  <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${form.hide_schedule ? "left-5" : "left-0.5"}`} />
+                </div>
+                <span className="text-[0.82rem] font-semibold">Sembunyikan Jadwal / Waktu</span>
+              </label>
+            </div>
           </div>
           <div className="flex justify-end gap-3 px-7 py-5 border-t border-border">
             <button onClick={onClose} className="text-[0.82rem] font-semibold px-4 py-2.5 rounded-xl hover:bg-dark/[0.06]">Batal</button>
@@ -248,6 +267,7 @@ export default function AdminPrograms() {
       await supabase.from("sub_programs").update({
         name: data.name, slug: data.slug, description: data.description,
         active: data.active, brochure_url: data.brochure_url ?? null,
+        hide_price: data.hide_price, hide_schedule: data.hide_schedule,
       }).eq("id", data.id);
     } else {
       const maxOrder = selectedSubs.length > 0 ? Math.max(...selectedSubs.map(s => s.order_index)) + 1 : 0;
@@ -255,6 +275,7 @@ export default function AdminPrograms() {
         program_id: selected, name: data.name, slug: data.slug,
         description: data.description, active: data.active, order_index: maxOrder,
         brochure_url: data.brochure_url ?? null,
+        hide_price: data.hide_price, hide_schedule: data.hide_schedule,
       });
     }
     setSavingSub(false);
