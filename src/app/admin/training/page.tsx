@@ -91,6 +91,7 @@ export default function AdminTraining() {
 
   const save = async () => {
     if (!form) return;
+    if (!form.poster_portrait_url) { showMsg("Poster portrait wajib diupload sebelum menyimpan.", false); return; }
     setSaving(true);
     const objectiveSection = parseTrainingSection(form.objectives, OBJECTIVES_FALLBACK_TITLE);
     const audienceSection = parseTrainingSection(form.target_audience, AUDIENCE_FALLBACK_TITLE);
