@@ -77,7 +77,8 @@ function TrainingCard({ t, index }: { t: TrainingItem; index: number }) {
   const c = t.color || "#4F46E5";
   const router = useRouter();
   const [imgError, setImgError] = useState(false);
-  const hasPoster = !!t.poster_url && !imgError;
+  const posterSrc = t.poster_portrait_url ?? t.poster_url ?? null;
+  const hasPoster = !!posterSrc && !imgError;
 
   return (
     <motion.article
@@ -95,7 +96,7 @@ function TrainingCard({ t, index }: { t: TrainingItem; index: number }) {
         {hasPoster ? (
           <>
             <motion.img
-              src={t.poster_url!}
+              src={posterSrc!}
               alt={t.title}
               onError={() => setImgError(true)}
               className="absolute inset-0 w-full h-full object-cover"

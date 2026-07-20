@@ -69,10 +69,10 @@ export default function TrainingDetailModal({ training, accent = "#4F46E5", onCl
             >
               {/* ── Hero ── */}
               <div className="relative flex-shrink-0 h-[180px] sm:h-[220px] overflow-hidden">
-                {training.poster_url ? (
+                {(training.poster_portrait_url || training.poster_url) ? (
                   // eslint-disable-next-line @next/next/no-img-element
                   <img
-                    src={training.poster_url}
+                    src={training.poster_portrait_url ?? training.poster_url!}
                     alt={training.title}
                     className="absolute inset-0 w-full h-full object-cover"
                   />

@@ -69,6 +69,7 @@ export interface TrainingItem {
   description: string;
   published: boolean;
   poster_url: string | null;
+  poster_portrait_url: string | null;
   brochure_url: string | null;
   custom_fields: CustomField[] | null;
   program_id: string | null;

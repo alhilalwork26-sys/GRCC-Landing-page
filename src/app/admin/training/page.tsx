@@ -33,7 +33,7 @@ const EMPTY: Omit<TrainingItem,"id"|"created_at"> = {
   title:"", category:"", date_start:"", date_end: null, time:"Sabtu 08.00–17.00 WIB",
   format:"Online", location:"Zoom Meeting", price: null, price_label:"",
   max_participants: null, color:"#4F46E5", description:"", published: true,
-  poster_url: null, brochure_url: null, custom_fields: [], program_id: null,
+  poster_url: null, poster_portrait_url: null, brochure_url: null, custom_fields: [], program_id: null,
   va_bank: null, va_number: null, va_set_at: null,
   objectives: null, target_audience: null, sessions: null,
 };
@@ -55,14 +55,16 @@ export default function AdminTraining() {
   const [form,    setForm]    = useState<typeof EMPTY | null>(null);
   const [editId,  setEditId]  = useState<string | null>(null);
   const [saving,  setSaving]  = useState(false);
-  const [uploadingPoster,   setUploadingPoster]   = useState(false);
-  const [uploadingBrochure, setUploadingBrochure] = useState(false);
+  const [uploadingPoster,         setUploadingPoster]         = useState(false);
+  const [uploadingPosterPortrait, setUploadingPosterPortrait] = useState(false);
+  const [uploadingBrochure,       setUploadingBrochure]       = useState(false);
   const [broadcasting, setBroadcasting] = useState<string | null>(null);
   const [broadcastingZoom, setBroadcastingZoom] = useState<string | null>(null);
   const [msg,     setMsg]     = useState<{ text: string; ok: boolean } | null>(null);
   const [filterPublished, setFilterPublished] = useState<"all"|"published"|"draft">("all");
-  const posterInputRef   = useRef<HTMLInputElement>(null);
-  const brochureInputRef = useRef<HTMLInputElement>(null);
+  const posterInputRef         = useRef<HTMLInputElement>(null);
+  const posterPortraitInputRef = useRef<HTMLInputElement>(null);
+  const brochureInputRef       = useRef<HTMLInputElement>(null);
 
   const showMsg = (text: string, ok = true) => {
     setMsg({ text, ok });
@@ -204,6 +206,23 @@ export default function AdminTraining() {
     const { data: pub } = supabase.storage.from("insight-images").getPublicUrl(data.path);
     setForm(cur => cur ? { ...cur, poster_url: pub.publicUrl } : cur);
     showMsg("Poster berhasil diupload!");
+  };
+
+  const uploadPosterPortrait = async (file: File) => {
+    if (!form) return;
+    const allowed = ["image/jpeg","image/png","image/webp"];
+    if (!allowed.includes(file.type)) { showMsg("Format poster harus JPG, PNG, atau WebP.", false); return; }
+    if (file.size > 15 * 1024 * 1024) { showMsg("Poster maksimal 15MB.", false); return; }
+    setUploadingPosterPortrait(true);
+    const ext = file.name.split(".").pop();
+    const filename = `training-posters/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const { data, error } = await supabase.storage
+      .from("insight-images").upload(filename, file, { contentType: file.type, upsert: false });
+    setUploadingPosterPortrait(false);
+    if (error) { showMsg(`Gagal upload poster portrait: ${error.message}`, false); return; }
+    const { data: pub } = supabase.storage.from("insight-images").getPublicUrl(data.path);
+    setForm(cur => cur ? { ...cur, poster_portrait_url: pub.publicUrl } : cur);
+    showMsg("Poster portrait berhasil diupload!");
   };
 
   const uploadBrochure = async (file: File) => {
@@ -768,6 +787,49 @@ export default function AdminTraining() {
                           <span className="text-left">
                             <span className="block text-[0.8rem] font-bold text-dark">Upload poster (JPG / PNG / WebP)</span>
                             <span className="block text-[0.7rem] text-muted">Maks. 15MB. Tampil di kartu training.</span>
+                          </span>
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Poster Portrait */}
+                    <input ref={posterPortraitInputRef} type="file" accept="image/jpeg,image/png,image/webp" className="hidden"
+                      onChange={e=>{ const f=e.target.files?.[0]; if(f) uploadPosterPortrait(f); e.currentTarget.value=""; }}/>
+                    <div>
+                      <p className="label mb-1">Poster Portrait <span className="text-[0.65rem] font-normal text-muted">(card & mobile)</span></p>
+                      <p className="text-[0.68rem] text-muted mb-2">Format vertikal — tampil di kartu list dan modal. Rasio ideal 3:4 atau 2:3.</p>
+                      {form.poster_portrait_url ? (
+                        <div className="flex gap-3 p-3 rounded-2xl border border-border bg-[#FAFAFA]">
+                          {/* eslint-disable-next-line @next/next/no-img-element */}
+                          <img src={form.poster_portrait_url} alt="poster portrait" className="h-24 w-16 rounded-xl object-cover border border-border bg-white flex-shrink-0"/>
+                          <div className="flex flex-col justify-between flex-1 min-w-0">
+                            <div>
+                              <p className="text-[0.78rem] font-bold text-emerald-700 flex items-center gap-1.5 mb-0.5">
+                                <CheckCircle2 size={12}/> Poster portrait aktif
+                              </p>
+                              <p className="text-[0.68rem] text-muted truncate">{form.poster_portrait_url.split("/").pop()}</p>
+                            </div>
+                            <div className="flex gap-2">
+                              <button type="button" onClick={()=>posterPortraitInputRef.current?.click()} disabled={uploadingPosterPortrait}
+                                className="flex items-center gap-1.5 bg-dark text-white text-[0.7rem] font-bold px-3 py-1.5 rounded-lg disabled:opacity-50">
+                                {uploadingPosterPortrait?<Loader2 size={11} className="animate-spin"/>:<Upload size={11}/>} Ganti
+                              </button>
+                              <button type="button" onClick={()=>setForm({...form,poster_portrait_url:null})}
+                                className="flex items-center gap-1.5 border border-border text-muted text-[0.7rem] font-bold px-3 py-1.5 rounded-lg hover:text-dark">
+                                <X size={11}/> Hapus
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ) : (
+                        <button type="button" onClick={()=>posterPortraitInputRef.current?.click()} disabled={uploadingPosterPortrait}
+                          className="flex w-full items-center gap-3 p-4 rounded-2xl border border-dashed border-border bg-[#FAFAFA] hover:bg-dark/[0.03] transition-colors disabled:opacity-50">
+                          <span className="w-10 h-10 rounded-xl bg-dark/[0.06] flex items-center justify-center flex-shrink-0">
+                            {uploadingPosterPortrait?<Loader2 size={16} className="animate-spin text-muted"/>:<ImageIcon size={16} className="text-muted"/>}
+                          </span>
+                          <span className="text-left">
+                            <span className="block text-[0.8rem] font-bold text-dark">Upload poster portrait (JPG / PNG / WebP)</span>
+                            <span className="block text-[0.7rem] text-muted">Maks. 15MB. Rasio ideal 3:4 atau 2:3.</span>
                           </span>
                         </button>
                       )}

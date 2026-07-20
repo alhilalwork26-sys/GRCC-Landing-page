@@ -29,9 +29,9 @@ function TrainingCard({ t, index }: { t: TrainingItem; index: number }) {
     >
       {/* Poster / color top */}
       <div className="relative h-[180px] overflow-hidden flex-shrink-0" style={{ backgroundColor: t.color + "12" }}>
-        {t.poster_url ? (
+        {(t.poster_portrait_url || t.poster_url) ? (
           // eslint-disable-next-line @next/next/no-img-element
-          <img src={t.poster_url} alt={t.title}
+          <img src={t.poster_portrait_url ?? t.poster_url!} alt={t.title}
             className="w-full h-full object-cover object-top group-hover:scale-105 transition-transform duration-700" />
         ) : (
           <div className="w-full h-full flex items-center justify-center">
