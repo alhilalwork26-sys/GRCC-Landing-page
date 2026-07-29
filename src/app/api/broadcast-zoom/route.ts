@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { trainingDateLabel, trainingTimeLabel } from "@/lib/training-schedule";
 
 const ADMIN_EMAIL = "grcc.ailg@gmail.com";
 
@@ -170,9 +171,8 @@ export async function POST(req: NextRequest) {
     }
 
     const apiKey = process.env.RESEND_API_KEY;
-    const dateLabel = training.date_start
-      ? `${training.date_start}${training.date_end ? ` – ${training.date_end}` : ""}`
-      : "Segera";
+    const dateLabel = trainingDateLabel(training) ?? "Segera";
+    const timeLabel = trainingTimeLabel(training) ?? "";
 
     let emailSent = 0;
     let whatsappSent = 0;
@@ -184,7 +184,7 @@ export async function POST(req: NextRequest) {
         nama,
         trainingTitle: training.title,
         trainingDate: dateLabel,
-        trainingTime: training.time ?? "",
+        trainingTime: timeLabel,
         zoomLink,
         notes,
       });
@@ -213,7 +213,7 @@ export async function POST(req: NextRequest) {
             nama,
             trainingTitle: training.title,
             trainingDate: dateLabel,
-            trainingTime: training.time ?? "",
+            trainingTime: timeLabel,
             zoomLink,
             notes,
           }),

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { trainingDateLabel } from "@/lib/training-schedule";
 
 const ADMIN_EMAIL = "grcc.ailg@gmail.com";
 
@@ -148,9 +149,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: true, sent: 0, message: "RESEND_API_KEY belum dikonfigurasi" });
     }
 
-    const dateLabel = training.date_start
-      ? `${training.date_start}${training.date_end ? ` – ${training.date_end}` : ""}`
-      : "Segera";
+    const dateLabel = trainingDateLabel(training) ?? "Segera";
 
     let sent = 0;
     for (const reg of regs) {

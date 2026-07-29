@@ -14,6 +14,7 @@ import Navbar from "@/components/Navbar";
 import { supabase, TrainingItem, CustomField, PromoCode, Participant } from "@/lib/supabase";
 import { paymentInstruction, siteConfig, whatsappHref } from "@/lib/site-config";
 import { getPublicCustomFields } from "@/lib/training-facilitators";
+import { hasTrainingSessions, trainingDateLabel, trainingTimeLabel } from "@/lib/training-schedule";
 
 // ── helpers ───────────────────────────────────────────────────────────────────
 function formatRp(n: number) { return "Rp " + n.toLocaleString("id-ID"); }
@@ -383,10 +384,8 @@ export default function DaftarGrupPage() {
           promoCode: appliedPromo?.code ?? undefined,
           finalPrice: subtotal ? finalTotal : undefined,
           // Training details for confirmation email
-          trainingDate: training?.date_start
-            ? `${training.date_start}${training.date_end ? ` – ${training.date_end}` : ""}`
-            : undefined,
-          trainingTime:     training?.time     ?? undefined,
+          trainingDate: trainingDateLabel(training),
+          trainingTime: trainingTimeLabel(training),
           trainingLocation: training?.location ?? undefined,
           trainingFormat:   training?.format   ?? undefined,
           trainingColor:    training?.color    ?? undefined,
@@ -678,7 +677,19 @@ export default function DaftarGrupPage() {
                     </span>
                     <h2 className="font-extrabold text-[1rem] leading-snug text-dark mb-4">{training.title}</h2>
                     <div className="flex flex-col gap-2.5 border-t border-black/[0.06] pt-4">
-                      {training.date_start && (
+                      {hasTrainingSessions(training) ? (
+                        <div className="flex items-start gap-2.5 text-[0.78rem] text-muted">
+                          <Calendar size={13} className="flex-shrink-0 text-dark/40 mt-0.5" />
+                          <div className="flex flex-col gap-1">
+                            {training.sessions!.map((session, index) => (
+                              <span key={`${session.date}-${index}`}>
+                                <strong className="font-semibold text-dark/70">{session.date}</strong>
+                                {session.times.length > 0 && ` · ${session.times.join(", ")}`}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+                      ) : training.date_start && (
                         <div className="flex items-center gap-2.5 text-[0.78rem] text-muted">
                           <Calendar size={13} className="flex-shrink-0 text-dark/40" />
                           <span>{training.date_start}{training.date_end ? ` – ${training.date_end}` : ""}</span>

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { trainingDateLabel, trainingTimeLabel } from "@/lib/training-schedule";
 
 const ADMIN_EMAIL = "grcc.ailg@gmail.com";
 const WA_NUMBER   = "6288298989171";
@@ -213,7 +214,7 @@ export async function POST(req: NextRequest) {
 
     if (!reg?.email) return NextResponse.json({ success: false, message: "Registrasi tidak ditemukan" });
 
-    const t       = reg.training as Record<string, string | number> | null;
+    const t = reg.training;
     const fromAddress = process.env.RESEND_FROM_EMAIL
       ? `GRCC <${process.env.RESEND_FROM_EMAIL}>`
       : "GRCC <onboarding@resend.dev>";
@@ -226,8 +227,8 @@ export async function POST(req: NextRequest) {
       html = buildConfirmedEmail({
         nama:             reg.nama_lengkap,
         trainingTitle:    String(t?.title ?? "Program GRCC"),
-        trainingDate:     t?.date_start ? `${t.date_start}${t.date_end ? ` – ${t.date_end}` : ""}` : undefined,
-        trainingTime:     String(t?.time ?? ""),
+        trainingDate:     trainingDateLabel(t),
+        trainingTime:     trainingTimeLabel(t),
         trainingLocation: String(t?.location ?? ""),
         trainingFormat:   String(t?.format ?? ""),
         vaBank:           String(t?.va_bank ?? ""),
