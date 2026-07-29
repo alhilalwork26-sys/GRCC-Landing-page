@@ -1,5 +1,6 @@
 import { MetadataRoute } from "next";
 import { createClient } from "@supabase/supabase-js";
+import { seoLandingPages } from "@/lib/seo-landing-pages";
 
 const BASE_URL = "https://grcc-landing-page.vercel.app";
 
@@ -22,8 +23,15 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE_URL}/contact`,   lastModified: new Date(), changeFrequency: "monthly", priority: 0.6 },
   ];
 
+  const seoPages: MetadataRoute.Sitemap = seoLandingPages.map((page) => ({
+    url: `${BASE_URL}/pelatihan/${page.slug}`,
+    lastModified: new Date(),
+    changeFrequency: "monthly" as const,
+    priority: 0.82,
+  }));
+
   const supabaseServer = createSupabaseServerClient();
-  if (!supabaseServer) return statics;
+  if (!supabaseServer) return [...statics, ...seoPages];
 
   // Dynamic training pages
   const { data: trainings } = await supabaseServer
@@ -64,5 +72,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.75,
   }));
 
-  return [...statics, ...trainingPages, ...insightPages, ...programPages];
+  return [...statics, ...seoPages, ...trainingPages, ...insightPages, ...programPages];
 }

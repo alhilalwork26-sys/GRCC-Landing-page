@@ -8,6 +8,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { supabase, ProgramItem, SubProgramItem, TrainingItem, ComingSoonPost } from "@/lib/supabase";
 import { renderIcon } from "@/lib/iconMap";
+import { seoLandingPages } from "@/lib/seo-landing-pages";
 import dynamic from "next/dynamic";
 const FlipBookModal = dynamic(() => import("@/components/FlipBookModal"), { ssr: false });
 
@@ -401,6 +402,25 @@ export default function ProgramsPage() {
               </AnimatePresence>
             </div>
           )}
+        </div>
+      </section>
+
+      {/* ── SEO KEYWORD HUBS ───────────────────────────────── */}
+      <section className="bg-[#F7F7F5] py-12 border-t border-border">
+        <div className="max-w-[1280px] mx-auto px-6 lg:px-16">
+          <p className="text-[0.72rem] font-bold tracking-[0.14em] uppercase text-muted mb-4">Topik Pelatihan Populer</p>
+          <div className="flex flex-wrap gap-2.5">
+            {seoLandingPages.map((page) => (
+              <Link
+                key={page.slug}
+                href={`/pelatihan/${page.slug}`}
+                className="inline-flex items-center gap-2 rounded-full border border-border bg-white px-4 py-2 text-[0.78rem] font-bold text-dark/72 transition hover:border-dark/25 hover:text-dark"
+              >
+                {page.title}
+                <ArrowUpRight size={12} />
+              </Link>
+            ))}
+          </div>
         </div>
       </section>
 
