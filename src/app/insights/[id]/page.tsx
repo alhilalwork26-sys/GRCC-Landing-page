@@ -14,9 +14,7 @@ import {
 import Link from "next/link";
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
-import JsonLd from "@/components/JsonLd";
 import { supabase, InsightItem } from "@/lib/supabase";
-import { breadcrumbJsonLd, insightArticleJsonLd } from "@/lib/seo";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 function slugify(t: string) {
@@ -303,14 +301,6 @@ export default function InsightDetailPage() {
 
   const readingTime = item.content ? Math.max(1, Math.ceil(item.content.split(/\s+/).length / 200)) : null;
   const pageUrl     = typeof window !== "undefined" ? window.location.href : "";
-  const structuredData = [
-    insightArticleJsonLd(item),
-    breadcrumbJsonLd([
-      { name: "Beranda", url: "/" },
-      { name: "Artikel", url: "/insights" },
-      { name: item.title, url: `/insights/${item.id}` },
-    ]),
-  ];
 
   const copyArticleLink = async () => {
     if (!pageUrl) return;
@@ -321,7 +311,6 @@ export default function InsightDetailPage() {
 
   return (
     <>
-      <JsonLd data={structuredData} />
       {/* ── Reading progress bar ── */}
       <motion.div
         style={{ scaleX, transformOrigin: "0%", backgroundColor: item.color }}

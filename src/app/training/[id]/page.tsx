@@ -14,10 +14,8 @@ import {
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ShareTrainingButton from "@/components/ShareTrainingButton";
-import JsonLd from "@/components/JsonLd";
 import { supabase, TrainingItem, TrainingSession, TestimonialItem } from "@/lib/supabase";
 import { whatsappHref } from "@/lib/site-config";
-import { breadcrumbJsonLd, trainingJsonLd } from "@/lib/seo";
 import { parseTrainingSection } from "@/lib/training-sections";
 import { getTrainingFacilitators } from "@/lib/training-facilitators";
 import dynamic from "next/dynamic";
@@ -142,18 +140,9 @@ export default function TrainingDetailPage() {
   const daftarHref    = `/daftar/${training.id}`;
   const daftarGrpHref = `/daftar-grup/${training.id}`;
   const waMsg = `Halo, saya ingin informasi lebih lanjut tentang program pelatihan:\n\n*${training.title}*\n\nTerima kasih.`;
-  const structuredData = [
-    ...trainingJsonLd(training),
-    breadcrumbJsonLd([
-      { name: "Beranda", url: "/" },
-      { name: "Training", url: "/training" },
-      { name: training.title, url: `/training/${training.id}` },
-    ]),
-  ];
 
   return (
     <>
-      <JsonLd data={structuredData} />
       <Navbar />
 
       {/* FlipBook */}
