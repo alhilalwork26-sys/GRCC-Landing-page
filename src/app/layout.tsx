@@ -3,6 +3,8 @@ import "./globals.css";
 import { TransitionProvider } from "@/components/TransitionProvider";
 import ChatWidget from "@/components/ChatWidget";
 import { GoogleAnalytics } from "@next/third-parties/google";
+import JsonLd from "@/components/JsonLd";
+import { organizationJsonLd, websiteJsonLd } from "@/lib/seo";
 
 const BASE_URL = "https://grcc-landing-page.vercel.app";
 
@@ -66,6 +68,7 @@ export default function RootLayout({
         <link rel="icon" href="/favicon.ico" sizes="any" />
         <link rel="icon" href="/icon.svg" type="image/svg+xml" />
         <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+        <JsonLd data={[organizationJsonLd(), websiteJsonLd()]} />
       </head>
       <body className="font-sans">
         <TransitionProvider>{children}</TransitionProvider>

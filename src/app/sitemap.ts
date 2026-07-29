@@ -51,5 +51,18 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     priority: 0.7,
   }));
 
-  return [...statics, ...trainingPages, ...insightPages];
+  // Dynamic program detail pages
+  const { data: subPrograms } = await supabaseServer
+    .from("sub_programs")
+    .select("program_id, slug, updated_at, created_at, active")
+    .eq("active", true);
+
+  const programPages: MetadataRoute.Sitemap = (subPrograms ?? []).map((p) => ({
+    url: `${BASE_URL}/programs/${p.program_id}/${p.slug}`,
+    lastModified: new Date(p.updated_at ?? p.created_at ?? Date.now()),
+    changeFrequency: "monthly" as const,
+    priority: 0.75,
+  }));
+
+  return [...statics, ...trainingPages, ...insightPages, ...programPages];
 }

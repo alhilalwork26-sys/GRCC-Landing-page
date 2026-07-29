@@ -13,9 +13,11 @@ import {
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ShareTrainingButton from "@/components/ShareTrainingButton";
+import JsonLd from "@/components/JsonLd";
 import { supabase, TrainingItem, PromoCode, ProgramItem, SubProgramItem } from "@/lib/supabase";
 import { siteConfig, telHref, whatsappHref } from "@/lib/site-config";
 import { renderIcon } from "@/lib/iconMap";
+import { breadcrumbJsonLd, subProgramCourseJsonLd } from "@/lib/seo";
 import { trainingDateLabel, trainingTimeLabel } from "@/lib/training-schedule";
 import dynamic from "next/dynamic";
 
@@ -489,9 +491,19 @@ export default function SubProgramPage() {
   const nextSub  = subIndex < allSubs.length - 1 ? allSubs[subIndex + 1] : null;
 
   const waMsg = `Halo, saya ingin informasi lebih lanjut mengenai program:\n\n*${sub.name}*\n(${program.title})\n\nTerima kasih.`;
+  const structuredData = [
+    subProgramCourseJsonLd(program, sub),
+    breadcrumbJsonLd([
+      { name: "Beranda", url: "/" },
+      { name: "Program", url: "/programs" },
+      { name: program.title, url: `/programs` },
+      { name: sub.name, url: `/programs/${program.id}/${sub.slug}` },
+    ]),
+  ];
 
   return (
     <>
+      <JsonLd data={structuredData} />
       <Navbar />
 
       {/* FlipBook Modal */}
