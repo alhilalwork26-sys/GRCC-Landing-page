@@ -16,12 +16,56 @@ import ShareTrainingButton from "@/components/ShareTrainingButton";
 import { supabase, TrainingItem, PromoCode, ProgramItem, SubProgramItem } from "@/lib/supabase";
 import { siteConfig, telHref, whatsappHref } from "@/lib/site-config";
 import { renderIcon } from "@/lib/iconMap";
+import { trainingDateLabel, trainingTimeLabel } from "@/lib/training-schedule";
 import dynamic from "next/dynamic";
 
 const FlipBookModal = dynamic(() => import("@/components/FlipBookModal"), { ssr: false });
 
 function formatRupiah(n: number) {
   return "Rp " + n.toLocaleString("id-ID");
+}
+
+function normalizeMatchText(value: string) {
+  return value
+    .toLowerCase()
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim()
+    .replace(/\s+/g, " ");
+}
+
+function extractProgramAliases(name: string) {
+  const aliases = new Set<string>();
+  const parenMatches = name.matchAll(/\(([^)]+)\)/g);
+
+  for (const match of parenMatches) {
+    const alias = normalizeMatchText(match[1] ?? "");
+    if (alias.length >= 2) aliases.add(alias);
+  }
+
+  for (const token of name.split(/\s+/)) {
+    const clean = token.replace(/[^A-Za-z0-9]/g, "");
+    if (clean.length >= 3 && /[A-Z]/.test(clean) && clean === clean.toUpperCase()) {
+      aliases.add(normalizeMatchText(clean));
+    }
+  }
+
+  return [...aliases];
+}
+
+function trainingMatchesSubProgram(training: TrainingItem, sub: SubProgramItem) {
+  const haystack = normalizeMatchText([
+    training.title,
+    training.category,
+    training.description,
+  ].filter(Boolean).join(" "));
+  const subName = normalizeMatchText(sub.name);
+
+  if (!haystack || !subName) return false;
+  if (haystack.includes(subName)) return true;
+
+  return extractProgramAliases(sub.name).some((alias) => haystack.includes(alias));
 }
 
 // ── Booking Widget ─────────────────────────────────────────────────────────────
@@ -116,14 +160,14 @@ function BookingWidget({
         <div className="w-12 h-12 rounded-full bg-dark/[0.05] flex items-center justify-center mx-auto mb-4">
           <Calendar size={20} className="text-muted" />
         </div>
-        <p className="font-bold text-[0.95rem] mb-1">Jadwal Segera Hadir</p>
-        <p className="text-muted text-[0.82rem] mb-5">Belum ada jadwal yang dipublikasikan untuk program ini.</p>
+        <p className="font-bold text-[0.95rem] mb-1">Request Jadwal</p>
+        <p className="text-muted text-[0.82rem] mb-5">Belum ada jadwal khusus untuk program ini. Tim GRCC bisa membantu cek jadwal terdekat atau kelas khusus.</p>
         <a
-          href={whatsappHref(`Halo, saya ingin info jadwal program *${subName}*. Terima kasih.`)}
+          href={whatsappHref(`Halo Tim GRCC, saya ingin request jadwal untuk program *${subName}* (${programTitle}). Mohon informasi jadwal terdekat atau opsi kelas khusus. Terima kasih.`)}
           target="_blank" rel="noopener noreferrer"
           className="inline-flex items-center gap-2 bg-[#25D366] text-white text-[0.82rem] font-bold px-5 py-2.5 rounded-xl"
         >
-          <MessageCircle size={14} /> Tanya Jadwal via WhatsApp
+          <MessageCircle size={14} /> Request Jadwal
         </a>
       </div>
     );
@@ -159,7 +203,7 @@ function BookingWidget({
                         {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
                       </div>
                       <span className="text-[0.82rem] font-semibold line-clamp-1">
-                        {t.date_start}{t.date_end ? ` – ${t.date_end}` : ""} | {t.format}
+                        {trainingDateLabel(t) ?? "Jadwal menyusul"} | {t.format}
                         {t.title !== t.format && ` | ${t.title.length > 30 ? t.title.slice(0, 30) + "…" : t.title}`}
                       </span>
                     </div>
@@ -172,8 +216,8 @@ function BookingWidget({
                         <div className="px-4 pb-4 border-t border-border bg-[#FAFAF8]">
                           <p className="font-bold text-[0.85rem] pt-3 mb-2">{t.title}</p>
                           <div className="flex flex-col gap-1.5 text-[0.75rem] text-muted mb-3">
-                            <span className="flex items-center gap-2"><Calendar size={12} /> {t.date_start}{t.date_end ? ` – ${t.date_end}` : ""}</span>
-                            {t.time && <span className="flex items-center gap-2"><Clock size={12} /> {t.time}</span>}
+                            <span className="flex items-center gap-2"><Calendar size={12} /> {trainingDateLabel(t) ?? "Jadwal menyusul"}</span>
+                            {trainingTimeLabel(t) && <span className="flex items-center gap-2"><Clock size={12} /> {trainingTimeLabel(t)}</span>}
                             <span className="flex items-center gap-2"><MapPin size={12} /> {t.location}</span>
                             {t.max_participants && <span className="flex items-center gap-2"><Users size={12} /> Maks. {t.max_participants} peserta</span>}
                           </div>
@@ -182,7 +226,7 @@ function BookingWidget({
                               <div className="w-4 h-4 rounded-full border-2 border-dark bg-dark flex items-center justify-center flex-shrink-0">
                                 <div className="w-1.5 h-1.5 rounded-full bg-white" />
                               </div>
-                              <span className="text-[0.78rem] font-semibold flex-1">{t.date_start} | {t.format} | {t.title.slice(0, 25)}… — <span style={{ color: accent }}>{t.price_label}</span></span>
+                              <span className="text-[0.78rem] font-semibold flex-1">{trainingDateLabel(t) ?? "Jadwal menyusul"} | {t.format} | {t.title.slice(0, 25)}… — <span style={{ color: accent }}>{t.price_label}</span></span>
                             </div>
                           )}
                         </div>
@@ -401,20 +445,20 @@ export default function SubProgramPage() {
     })();
   }, [programId, subSlug]);
 
-  // Fetch trainings once program is loaded
+  // Fetch trainings once sub-program is loaded. Training cards must match the
+  // current sub-program, otherwise users can register for the wrong program.
   useEffect(() => {
-    if (!programId) return;
+    if (!sub) return;
     supabase
       .from("training")
       .select("*")
       .eq("published", true)
-      .or(`program_id.eq.${programId},program_id.is.null`)
       .order("created_at", { ascending: false })
       .then(({ data }) => {
-        setTrainings(data ?? []);
+        setTrainings((data ?? []).filter((training) => trainingMatchesSubProgram(training, sub)));
         setLoadingT(false);
       });
-  }, [programId]);
+  }, [sub]);
 
   if (loading) {
     return (
@@ -609,8 +653,19 @@ export default function SubProgramPage() {
                     ))}
                   </div>
                 ) : trainings.length === 0 ? (
-                  <div className="bg-white rounded-2xl border border-border p-8 text-center text-muted text-[0.85rem]">
-                    Belum ada jadwal pelatihan. Hubungi kami untuk informasi terbaru.
+                  <div className="bg-white rounded-2xl border border-border p-8 text-center">
+                    <p className="font-bold text-[0.92rem] text-dark mb-1">Belum ada jadwal khusus</p>
+                    <p className="text-muted text-[0.82rem] mb-5">
+                      Jadwal yang tampil di sini hanya jadwal yang sesuai dengan program ini.
+                    </p>
+                    <a
+                      href={whatsappHref(`Halo Tim GRCC, saya ingin request jadwal untuk program *${sub.name}* (${program.title}). Mohon informasi jadwal terdekat atau opsi kelas khusus. Terima kasih.`)}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="inline-flex items-center gap-2 rounded-xl bg-[#25D366] px-5 py-2.5 text-[0.82rem] font-bold text-white"
+                    >
+                      <MessageCircle size={14} /> Request Jadwal
+                    </a>
                   </div>
                 ) : (
                   <div className="flex flex-col gap-4">
@@ -677,10 +732,10 @@ export default function SubProgramPage() {
                         <div className="p-4">
                           <p className="font-bold text-[0.85rem] leading-snug line-clamp-2 mb-2.5">{t.title}</p>
                           <div className="flex flex-col gap-1.5 mb-3">
-                            {t.date_start && (
+                            {trainingDateLabel(t) && (
                               <div className="flex items-center gap-2 text-[0.7rem] text-muted">
                                 <Calendar size={10} className="flex-shrink-0" />
-                                <span>{t.date_start}{t.date_end ? ` – ${t.date_end}` : ""}</span>
+                                <span>{trainingDateLabel(t)}</span>
                               </div>
                             )}
                             {t.location && (
