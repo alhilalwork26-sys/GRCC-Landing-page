@@ -31,7 +31,7 @@ const AUDIENCE_FALLBACK_TITLE = "Untuk Siapa Program Ini?";
 
 const EMPTY: Omit<TrainingItem,"id"|"created_at"> = {
   title:"", category:"", date_start:"", date_end: null, time:"Sabtu 08.00–17.00 WIB",
-  format:"Online", location:"Zoom Meeting", price: null, price_label:"",
+  format:"Online", location:"Zoom Meeting", price: null, price_label:"", price_note:"",
   max_participants: null, color:"#4F46E5", description:"", published: true,
   poster_url: null, poster_portrait_url: null, brochure_url: null, custom_fields: [], program_id: null,
   va_bank: null, va_number: null, va_set_at: null,
@@ -747,6 +747,10 @@ export default function AdminTraining() {
                           placeholder="Rp 3.900.000" className="input"/>
                       </Field>
                     </div>
+                    <Field label="Keterangan Harga" note="Teks kecil di bawah harga">
+                      <input value={form.price_note??""} onChange={e=>setForm({...form,price_note:e.target.value})}
+                        placeholder="per peserta · sudah termasuk sertifikat" className="input"/>
+                    </Field>
                   </Section>
 
                   {/* ── Section: Media ── */}

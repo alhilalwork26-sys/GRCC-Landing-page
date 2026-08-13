@@ -62,6 +62,7 @@ alter table training add column if not exists poster_url text;
 alter table training add column if not exists brochure_url text;
 alter table training add column if not exists custom_fields jsonb default '[]';
 alter table training add column if not exists program_id text;
+alter table training add column if not exists price_note text;
 
 -- 4. TRAINING REGISTRATIONS
 create table if not exists registrations (

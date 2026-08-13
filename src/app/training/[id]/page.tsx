@@ -529,7 +529,7 @@ export default function TrainingDetailPage() {
                           ? `Rp ${training.price.toLocaleString("id-ID")}`
                           : training.price_label}
                       </p>
-                      <p className="text-[0.72rem] text-muted mt-0.5">per peserta · sudah termasuk sertifikat</p>
+                      <p className="text-[0.72rem] text-muted mt-0.5">{training.price_note || "per peserta · sudah termasuk sertifikat"}</p>
                     </>
                   ) : (
                     <p className="font-bold text-[1rem] text-dark">Hubungi kami untuk harga</p>

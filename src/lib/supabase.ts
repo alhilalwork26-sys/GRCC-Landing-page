@@ -64,6 +64,7 @@ export interface TrainingItem {
   location: string;
   price: number | null;
   price_label: string;
+  price_note: string | null;
   max_participants: number | null;
   color: string;
   description: string;
