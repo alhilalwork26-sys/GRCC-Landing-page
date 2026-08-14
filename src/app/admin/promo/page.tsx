@@ -30,6 +30,7 @@ interface PromoRecord {
   cta_href: string;
   facilitators: Facilitator[] | null;
   highlights: Array<Highlight | string> | null;
+  poster_url: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -87,9 +88,11 @@ export default function AdminPromo() {
   const [highlights,  setHighlights]  = useState<Highlight[]>([]);
   const [placement,   setPlacement]   = useState<PromoPlacement>("banner");
   const [promoCode,   setPromoCode]   = useState("");
+  const [posterUrl,   setPosterUrl]   = useState<string | null>(null);
   const [choosingPlacement, setChoosingPlacement] = useState(false);
   const [saving,      setSaving]      = useState(false);
   const [uploadingFacilitatorPhoto, setUploadingFacilitatorPhoto] = useState<number | null>(null);
+  const [uploadingPoster, setUploadingPoster] = useState(false);
   const [msg,         setMsg]         = useState("");
   const [loading,     setLoading]     = useState(true);
 
@@ -105,6 +108,7 @@ export default function AdminPromo() {
     setCtaHref(data.cta_href || "mailto:grcc.ailg@gmail.com");
     setFacilitators(data.facilitators?.length ? data.facilitators : EMPTY_FACILITATORS);
     setHighlights(normalizedHighlights);
+    setPosterUrl(data.poster_url ?? null);
   };
 
   const resetForm = (nextPlacement: PromoPlacement = "banner") => {
@@ -124,6 +128,7 @@ export default function AdminPromo() {
     setCtaHref("mailto:grcc.ailg@gmail.com");
     setFacilitators(EMPTY_FACILITATORS);
     setHighlights([]);
+    setPosterUrl(null);
   };
 
   const applyCsslBatchTemplate = () => {
@@ -147,6 +152,7 @@ export default function AdminPromo() {
       { icon: "✓", text: "Materi strategi ESG dan leadership" },
       { icon: "✓", text: "Kuota peserta terbatas" },
     ]);
+    setPosterUrl(null);
   };
 
   const loadPromos = async () => {
@@ -208,6 +214,39 @@ export default function AdminPromo() {
     setTimeout(() => setMsg(""), 2500);
   };
 
+  const uploadPoster = async (file: File) => {
+    const allowed = ["image/jpeg", "image/png", "image/webp"];
+    if (!allowed.includes(file.type)) {
+      setMsg("Format poster harus JPG, PNG, atau WebP.");
+      setTimeout(() => setMsg(""), 2500);
+      return;
+    }
+    if (file.size > 15 * 1024 * 1024) {
+      setMsg("Poster maksimal 15MB.");
+      setTimeout(() => setMsg(""), 2500);
+      return;
+    }
+
+    setUploadingPoster(true);
+    const ext = file.name.split(".").pop()?.toLowerCase() || "jpg";
+    const filename = `promo-posters/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const { data, error } = await supabase.storage
+      .from("insight-images")
+      .upload(filename, file, { contentType: file.type, upsert: false });
+
+    setUploadingPoster(false);
+    if (error) {
+      setMsg(`Gagal upload poster: ${error.message}`);
+      setTimeout(() => setMsg(""), 3500);
+      return;
+    }
+
+    const { data: pub } = supabase.storage.from("insight-images").getPublicUrl(data.path);
+    setPosterUrl(pub.publicUrl);
+    setMsg("Poster berhasil diupload!");
+    setTimeout(() => setMsg(""), 2500);
+  };
+
   const addHighlight    = () => setHighlights([...highlights, { icon: "✅", text: "" }]);
   const removeHighlight = (i: number) => setHighlights(highlights.filter((_,idx) => idx !== i));
   const updateHighlight = (i: number, field: keyof Highlight, val: string) =>
@@ -218,7 +257,7 @@ export default function AdminPromo() {
     const payload = {
       active, badge, badge_color: badgeColor, tag, title, subtitle,
       accent_color: accentColor, description, status,
-      cta_label: ctaLabel, cta_href: ctaHref,
+      cta_label: ctaLabel, cta_href: ctaHref, poster_url: posterUrl,
       facilitators, highlights: withMeta(highlights, placement, promoCode), updated_at: new Date().toISOString(),
     };
     let savedId = id;
@@ -254,6 +293,7 @@ export default function AdminPromo() {
       status,
       cta_label: ctaLabel,
       cta_href: ctaHref,
+      poster_url: posterUrl,
       facilitators,
       highlights: withMeta(highlights, placement, promoCode),
       updated_at: new Date().toISOString(),
@@ -282,6 +322,8 @@ export default function AdminPromo() {
   };
 
   if (loading) return <div className="flex justify-center py-20"><Loader2 size={24} className="animate-spin text-muted" /></div>;
+
+  const posterOnlyMode = placement === "popup" && !!posterUrl;
 
   return (
     <div className="max-w-[1180px]">
@@ -466,9 +508,58 @@ export default function AdminPromo() {
           <p className="mt-1 opacity-75">
             {placement === "banner"
               ? "Teks badge, judul program, subjudul, kode promo, teks tombol, dan link tombol."
-              : "Badge, tag penyelenggara, judul, subjudul, deskripsi, highlights, fasilitator, dan tombol CTA."}
+              : posterOnlyMode
+              ? "Mode poster aktif — hanya gambar poster ini yang tampil (field lain di bawah disembunyikan)."
+              : "Badge, tag penyelenggara, judul, subjudul, deskripsi, highlights, fasilitator, dan tombol CTA. Atau upload 1 poster saja di bawah untuk mode simpel."}
           </p>
         </div>
+
+        {placement === "popup" && (
+          <div>
+            <label className="label">Poster Popup (opsional — mode simpel)</label>
+            <input
+              id="promo-poster-input"
+              type="file"
+              accept="image/jpeg,image/png,image/webp"
+              className="hidden"
+              onChange={e => {
+                const file = e.target.files?.[0];
+                if (file) uploadPoster(file);
+                e.currentTarget.value = "";
+              }}
+            />
+            {posterUrl ? (
+              <div className="flex items-center gap-3 p-3 rounded-2xl border border-border bg-[#FAFAFA]">
+                <div className="w-14 h-20 rounded-xl overflow-hidden border border-border bg-white flex-shrink-0">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={posterUrl} alt="Poster popup" className="w-full h-full object-cover" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <p className="text-[0.78rem] font-bold text-emerald-700">Poster aktif</p>
+                  <p className="text-[0.68rem] text-muted truncate">{posterUrl.split("/").pop()}</p>
+                </div>
+                <label htmlFor="promo-poster-input" className="cursor-pointer p-2 rounded-lg bg-dark text-white hover:bg-dark/90 transition-colors" title="Ganti poster">
+                  {uploadingPoster ? <Loader2 size={14} className="animate-spin" /> : <Upload size={14} />}
+                </label>
+                <button type="button" onClick={() => setPosterUrl(null)}
+                  className="p-2 rounded-lg border border-border text-muted hover:text-red-500 hover:bg-red-50 transition-colors" title="Hapus poster">
+                  <X size={14} />
+                </button>
+              </div>
+            ) : (
+              <label htmlFor="promo-poster-input"
+                className="flex cursor-pointer items-center gap-3 rounded-xl border border-dashed border-border bg-[#FAFAFA] px-4 py-3 text-[0.8rem] font-bold text-dark/65 hover:bg-dark/[0.03] transition-colors">
+                <span className="w-9 h-9 rounded-lg bg-dark/[0.06] flex items-center justify-center flex-shrink-0">
+                  {uploadingPoster ? <Loader2 size={15} className="animate-spin text-muted" /> : <ImageIcon size={15} className="text-muted" />}
+                </span>
+                <span>
+                  <span className="block">Upload poster</span>
+                  <span className="block text-[0.66rem] font-semibold text-muted">JPG/PNG/WebP · rasio 4:5 (mis. 1080×1350px) · maks. 15MB</span>
+                </span>
+              </label>
+            )}
+          </div>
+        )}
 
         {placement === "banner" && (
           <div>
@@ -486,68 +577,83 @@ export default function AdminPromo() {
         )}
 
         {/* Badge */}
-        <div className="grid grid-cols-2 gap-4">
-          <div>
-            <label className="label">Teks Badge</label>
-            <input value={badge} onChange={e => setBadge(e.target.value)} className="input" placeholder="Coming Soon" />
+        {!posterOnlyMode && (
+          <div className="grid grid-cols-2 gap-4">
+            <div>
+              <label className="label">Teks Badge</label>
+              <input value={badge} onChange={e => setBadge(e.target.value)} className="input" placeholder="Coming Soon" />
+            </div>
+            <div>
+              <label className="label">Warna Badge</label>
+              <div className="flex gap-2 mt-1">
+                {COLORS.map(c => (
+                  <button key={c} onClick={() => setBadgeColor(c)}
+                    className={`w-7 h-7 rounded-lg border-2 transition-all ${badgeColor===c?"border-dark scale-110":"border-transparent"}`}
+                    style={{ backgroundColor: c }} />
+                ))}
+              </div>
+            </div>
           </div>
+        )}
+
+        {/* Status */}
+        {!posterOnlyMode && (
           <div>
-            <label className="label">Warna Badge</label>
+            <label className="label">Status Program</label>
+            <div className="flex gap-2 flex-wrap">
+              {STATUSES.map(s => (
+                <button key={s.value} onClick={() => setStatus(s.value)}
+                  className={`px-4 py-2 rounded-full text-[0.78rem] font-bold border transition-all ${status===s.value?"bg-dark text-white border-dark":"border-border hover:border-dark/30"}`}>
+                  {s.label}
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {!posterOnlyMode && (
+          <div><label className="label">Tag Penyelenggara</label>
+            <input value={tag} onChange={e => setTag(e.target.value)} className="input" /></div>
+        )}
+
+        <div><label className="label">Judul Program *</label>
+          <input value={title} onChange={e => setTitle(e.target.value)} className="input" placeholder="Nama program" />
+          {posterOnlyMode && <p className="text-[0.68rem] text-muted mt-1">Cuma dipakai sebagai label internal di daftar promo, tidak tampil di poster.</p>}
+        </div>
+
+        {!posterOnlyMode && (
+          <div><label className="label">Subjudul</label>
+            <input value={subtitle} onChange={e => setSubtitle(e.target.value)} className="input" placeholder="For Non-Akuntan" /></div>
+        )}
+
+        {!posterOnlyMode && (
+          <div>
+            <label className="label">Warna Aksen</label>
             <div className="flex gap-2 mt-1">
               {COLORS.map(c => (
-                <button key={c} onClick={() => setBadgeColor(c)}
-                  className={`w-7 h-7 rounded-lg border-2 transition-all ${badgeColor===c?"border-dark scale-110":"border-transparent"}`}
+                <button key={c} onClick={() => setAccentColor(c)}
+                  className={`w-7 h-7 rounded-lg border-2 transition-all ${accentColor===c?"border-dark scale-110":"border-transparent"}`}
                   style={{ backgroundColor: c }} />
               ))}
             </div>
           </div>
-        </div>
+        )}
 
-        {/* Status */}
-        <div>
-          <label className="label">Status Program</label>
-          <div className="flex gap-2 flex-wrap">
-            {STATUSES.map(s => (
-              <button key={s.value} onClick={() => setStatus(s.value)}
-                className={`px-4 py-2 rounded-full text-[0.78rem] font-bold border transition-all ${status===s.value?"bg-dark text-white border-dark":"border-border hover:border-dark/30"}`}>
-                {s.label}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        <div><label className="label">Tag Penyelenggara</label>
-          <input value={tag} onChange={e => setTag(e.target.value)} className="input" /></div>
-
-        <div><label className="label">Judul Program *</label>
-          <input value={title} onChange={e => setTitle(e.target.value)} className="input" placeholder="Nama program" /></div>
-
-        <div><label className="label">Subjudul</label>
-          <input value={subtitle} onChange={e => setSubtitle(e.target.value)} className="input" placeholder="For Non-Akuntan" /></div>
-
-        <div>
-          <label className="label">Warna Aksen</label>
-          <div className="flex gap-2 mt-1">
-            {COLORS.map(c => (
-              <button key={c} onClick={() => setAccentColor(c)}
-                className={`w-7 h-7 rounded-lg border-2 transition-all ${accentColor===c?"border-dark scale-110":"border-transparent"}`}
-                style={{ backgroundColor: c }} />
-            ))}
-          </div>
-        </div>
-
-        <div><label className="label">Deskripsi</label>
-          <textarea rows={4} value={description} onChange={e => setDesc(e.target.value)} className="input resize-none" /></div>
+        {!posterOnlyMode && (
+          <div><label className="label">Deskripsi</label>
+            <textarea rows={4} value={description} onChange={e => setDesc(e.target.value)} className="input resize-none" /></div>
+        )}
 
         {/* CTA */}
         <div className="grid grid-cols-2 gap-4">
           <div><label className="label">Teks Tombol</label>
-            <input value={ctaLabel} onChange={e => setCtaLabel(e.target.value)} className="input" /></div>
-          <div><label className="label">Link Tombol</label>
+            <input value={ctaLabel} onChange={e => setCtaLabel(e.target.value)} className="input" disabled={posterOnlyMode} /></div>
+          <div><label className="label">Link Tombol{posterOnlyMode ? " (klik poster)" : ""}</label>
             <input value={ctaHref} onChange={e => setCtaHref(e.target.value)} className="input" placeholder="mailto: atau https://" /></div>
         </div>
 
         {/* Highlights */}
+        {!posterOnlyMode && (
         <div>
           <div className="flex items-center justify-between mb-3">
             <div>
@@ -583,8 +689,10 @@ export default function AdminPromo() {
             ))}
           </div>
         </div>
+        )}
 
         {/* Facilitators */}
+        {!posterOnlyMode && (
         <div>
           <div className="flex items-center justify-between mb-3">
             <label className="label mb-0">Tim Fasilitator</label>
@@ -667,6 +775,7 @@ export default function AdminPromo() {
             ))}
           </div>
         </div>
+        )}
 
         {/* Save */}
         <motion.button whileHover={{ scale:1.01 }} whileTap={{ scale:0.98 }}

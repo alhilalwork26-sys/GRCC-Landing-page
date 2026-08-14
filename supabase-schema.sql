@@ -23,6 +23,8 @@ create table if not exists promo (
   updated_at    timestamptz default now()
 );
 
+alter table promo add column if not exists poster_url text;
+
 -- 2. INSIGHTS (Kegiatan, Publikasi, Berita)
 create table if not exists insights (
   id          uuid primary key default gen_random_uuid(),

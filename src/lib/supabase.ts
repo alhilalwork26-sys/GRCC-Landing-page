@@ -25,6 +25,7 @@ export interface PromoItem {
   facilitators: { name: string; role: string; org: string; img: string | null; main?: boolean }[];
   cta_label: string;
   cta_href: string;
+  poster_url: string | null;
   created_at: string;
   updated_at: string;
 }

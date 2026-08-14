@@ -24,6 +24,7 @@ interface PromoData {
   facilitators: Facilitator[];
   cta_label: string;
   cta_href: string;
+  poster_url?: string | null;
 }
 
 // ── Avatar placeholder ────────────────────────────────────────────────────────
@@ -71,6 +72,59 @@ export default function PromoModal() {
   };
 
   if (!promo) return null;
+
+  // Mode poster: kalau poster_url diisi, tampilkan poster saja tanpa template teks.
+  if (promo.poster_url) {
+    return (
+      <AnimatePresence>
+        {show && (
+          <>
+            <motion.div
+              key="promo-poster-backdrop"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.35 }}
+              onClick={dismiss}
+              className="fixed inset-0 z-[10000] bg-black/75 backdrop-blur-sm"
+            />
+            <motion.div
+              key="promo-poster-card"
+              initial={{ opacity: 0, scale: 0.9, y: 32 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.94, y: 16 }}
+              transition={{ type: "spring", stiffness: 300, damping: 28, delay: 0.05 }}
+              className="fixed inset-0 z-[10001] flex items-center justify-center p-4 pointer-events-none"
+            >
+              <div className="relative w-full max-w-[440px] pointer-events-auto">
+                <motion.button
+                  whileHover={{ scale: 1.12, rotate: 90 }}
+                  whileTap={{ scale: 0.9 }}
+                  transition={{ duration: 0.18 }}
+                  onClick={dismiss}
+                  className="absolute -top-3 -right-3 z-20 w-9 h-9 rounded-full bg-white shadow-lg flex items-center justify-center"
+                >
+                  <X size={16} className="text-dark/70" />
+                </motion.button>
+                <a
+                  href={promo.cta_href}
+                  onClick={dismiss}
+                  className="block rounded-[20px] overflow-hidden shadow-2xl"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={promo.poster_url}
+                    alt={promo.title}
+                    className="w-full h-auto max-h-[85vh] object-contain block bg-white"
+                  />
+                </a>
+              </div>
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+    );
+  }
 
   // highlights bisa berupa string[] atau {icon, text}[] — normalisasi ke string[]
   const rawHighlights = promo.highlights as Array<string | { icon?: string; text?: string }> | null | undefined;
