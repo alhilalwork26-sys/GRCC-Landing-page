@@ -338,7 +338,7 @@ export default function TrainingDetailPage() {
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.45, delay: i * 0.08 }}
-                        className="rounded-2xl border border-border bg-[#FAFAFA] p-4 flex flex-col min-h-[260px]"
+                        className="rounded-2xl border border-border bg-[#FAFAFA] p-4 flex flex-col"
                       >
                         <div className="flex items-start gap-3">
                           <div className="w-14 h-14 rounded-2xl overflow-hidden border border-border bg-white flex-shrink-0">
@@ -354,12 +354,6 @@ export default function TrainingDetailPage() {
                             <p className="text-[0.66rem] text-muted leading-snug mt-1">{speaker.role}</p>
                           </div>
                         </div>
-
-                        {speaker.summary && (
-                          <p className="text-[0.73rem] leading-[1.65] text-dark/60 mt-4 flex-1">
-                            {speaker.summary}
-                          </p>
-                        )}
 
                         {speaker.showCv !== false && (
                           <button
