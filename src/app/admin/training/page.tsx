@@ -993,6 +993,22 @@ export default function AdminTraining() {
                             </div>
                           </div>
 
+                          <div className="mt-3">
+                            <label className="text-[0.72rem] font-bold text-muted mb-1 block">Ringkasan CV</label>
+                            <textarea
+                              rows={2}
+                              value={facilitator.summary ?? ""}
+                              onChange={e => {
+                                const next = [...facilitators];
+                                next[idx] = { ...facilitator, summary: e.target.value };
+                                updateFacilitators(next);
+                              }}
+                              placeholder={`${facilitator.name || "Nama fasilitator"} merupakan bagian dari tim fasilitator ${facilitator.org || "program ini"}.`}
+                              className="input resize-none text-[0.8rem]"
+                            />
+                            <p className="text-[0.66rem] text-muted mt-1">Kosongkan untuk pakai teks otomatis di atas.</p>
+                          </div>
+
                           <label className="mt-3 flex items-center gap-2 text-[0.75rem] font-semibold text-muted cursor-pointer">
                             <input
                               type="checkbox"

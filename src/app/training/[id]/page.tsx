@@ -126,7 +126,9 @@ export default function TrainingDetailPage() {
   const audience      = audienceSection.items;
   const trainingFacilitators = getTrainingFacilitators(training.custom_fields).map((facilitator) => ({
     ...facilitator,
-    summary: facilitator.org
+    summary: facilitator.summary?.trim()
+      ? facilitator.summary
+      : facilitator.org
       ? `${facilitator.name} merupakan bagian dari tim fasilitator ${facilitator.org}.`
       : `${facilitator.name} merupakan bagian dari tim fasilitator program ini.`,
     focus: [],

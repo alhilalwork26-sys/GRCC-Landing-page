@@ -7,6 +7,7 @@ export interface TrainingFacilitator {
   role: string;
   org: string;
   img: string | null;
+  summary?: string | null;
   main?: boolean;
   showCv?: boolean;
 }
@@ -17,6 +18,7 @@ function normalizeFacilitator(item: Partial<TrainingFacilitator>): TrainingFacil
     role: String(item.role ?? ""),
     org: String(item.org ?? ""),
     img: item.img ? String(item.img) : null,
+    summary: item.summary ? String(item.summary) : null,
     main: Boolean(item.main),
     showCv: item.showCv !== false,
   };
