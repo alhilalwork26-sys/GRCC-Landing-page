@@ -131,7 +131,8 @@ export default function FlipBookModal({ pdfUrl, title, accent, onClose }: Props)
   const goPrev = useCallback(() => flipRef.current?.pageFlip()?.flipPrev(), []);
 
   const totalPages = pages.length;
-  const bookWidth = Math.min(Math.floor((window?.innerWidth ?? 1200) * 0.38), 420);
+  const viewportWidth = typeof window === "undefined" ? 1200 : window.innerWidth;
+  const bookWidth = Math.min(Math.floor(viewportWidth * 0.38), 420);
   const bookHeight = Math.floor(bookWidth * 1.41);
 
   return (

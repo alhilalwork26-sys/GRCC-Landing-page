@@ -2,7 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { createClient } from "@supabase/supabase-js";
-import { ArrowUpRight, BookOpen, Calendar, CheckCircle2, MessageCircle, Search } from "lucide-react";
 import Footer from "@/components/Footer";
 import JsonLd from "@/components/JsonLd";
 import Navbar from "@/components/Navbar";
@@ -147,13 +146,14 @@ export default async function SeoLandingPage({ params }: Props) {
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 rounded-xl bg-white px-5 py-3 text-[0.85rem] font-extrabold text-dark"
               >
-                <MessageCircle size={16} /> Tanya Jadwal
+                <span aria-hidden="true" className="text-[1rem] leading-none">WA</span>
+                Tanya Jadwal
               </a>
               <Link
                 href="/programs"
                 className="inline-flex items-center gap-2 rounded-xl border border-white/15 px-5 py-3 text-[0.85rem] font-bold text-white/76 hover:bg-white/10"
               >
-                Lihat Semua Program <ArrowUpRight size={15} />
+                Lihat Semua Program <span aria-hidden="true">-&gt;</span>
               </Link>
             </div>
           </div>
@@ -164,7 +164,7 @@ export default async function SeoLandingPage({ params }: Props) {
             <div className="rounded-2xl border border-border bg-white p-7">
               <div className="mb-6 flex items-center gap-3">
                 <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#4F46E5]/10 text-[#4F46E5]">
-                  <Search size={19} />
+                  <span aria-hidden="true" className="text-[1rem] font-black">?</span>
                 </div>
                 <div>
                   <p className="text-[0.72rem] font-extrabold uppercase tracking-[0.14em] text-muted">Keyword Fokus</p>
@@ -186,7 +186,7 @@ export default async function SeoLandingPage({ params }: Props) {
                 <ul className="space-y-3">
                   {page.audience.map((item) => (
                     <li key={item} className="flex gap-3 text-[0.9rem] font-semibold text-dark/72">
-                      <CheckCircle2 size={16} className="mt-0.5 flex-shrink-0 text-emerald-500" />
+                      <span aria-hidden="true" className="mt-1 h-3.5 w-3.5 flex-shrink-0 rounded-full bg-emerald-500" />
                       {item}
                     </li>
                   ))}
@@ -198,7 +198,7 @@ export default async function SeoLandingPage({ params }: Props) {
                 <ul className="space-y-3">
                   {page.outcomes.map((item) => (
                     <li key={item} className="flex gap-3 text-[0.9rem] font-semibold text-dark/72">
-                      <CheckCircle2 size={16} className="mt-0.5 flex-shrink-0 text-[#4F46E5]" />
+                      <span aria-hidden="true" className="mt-1 h-3.5 w-3.5 flex-shrink-0 rounded-full bg-[#4F46E5]" />
                       {item}
                     </li>
                   ))}
@@ -228,7 +228,8 @@ export default async function SeoLandingPage({ params }: Props) {
                     <Link key={training.id} href={`/training/${training.id}`} className="block rounded-xl border border-border p-4 transition hover:border-dark/25">
                       <p className="text-[0.85rem] font-black leading-snug">{training.title}</p>
                       <p className="mt-2 flex items-center gap-2 text-[0.74rem] font-semibold text-muted">
-                        <Calendar size={12} /> {trainingDateLabel(training) ?? "Jadwal menyusul"}
+                        <span aria-hidden="true" className="h-2.5 w-2.5 rounded-full bg-emerald-500" />
+                        {trainingDateLabel(training) ?? "Jadwal menyusul"}
                       </p>
                     </Link>
                   ))}
@@ -243,7 +244,7 @@ export default async function SeoLandingPage({ params }: Props) {
               <div className="space-y-3">
                 {subPrograms.slice(0, 5).map((sub) => (
                   <Link key={sub.id} href={`/programs/${sub.program_id}/${sub.slug}`} className="flex items-start gap-3 rounded-xl border border-border p-4 transition hover:border-dark/25">
-                    <BookOpen size={15} className="mt-0.5 flex-shrink-0 text-[#4F46E5]" />
+                    <span aria-hidden="true" className="mt-1 h-2.5 w-2.5 flex-shrink-0 rounded-full bg-[#4F46E5]" />
                     <span className="text-[0.82rem] font-bold leading-snug">{sub.name}</span>
                   </Link>
                 ))}
