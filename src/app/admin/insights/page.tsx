@@ -38,7 +38,7 @@ const AUTO_POPUP_BADGE: Record<InsightItem["type"], string> = {
 
 type HighlightMeta = { icon?: string; text?: string };
 
-async function publishPopupFromInsight(insight: Pick<InsightItem, "id"|"type"|"title"|"tag"|"excerpt"|"color"|"date"|"location">) {
+async function publishPopupFromInsight(insight: Pick<InsightItem, "id"|"type"|"title"|"tag"|"excerpt"|"color"|"date"|"location"|"img">) {
   // Nonaktifkan popup auto-generate sebelumnya biar cuma satu yang tayang
   const { data: actives } = await supabase.from("promo").select("id, highlights").eq("active", true);
   const staleIds = (actives ?? [])
@@ -49,11 +49,13 @@ async function publishPopupFromInsight(insight: Pick<InsightItem, "id"|"type"|"t
   if (staleIds.length) await supabase.from("promo").update({ active: false }).in("id", staleIds);
 
   // Mode kartu bertema (bukan poster) — foto dokumentasi kegiatan biasanya bukan poster promosi jadi,
-  // jadi popup dibangun dari judul/ringkasan dengan template kartu gelap yang sudah beranimasi.
+  // jadi popup dibangun dari judul/ringkasan dengan template kartu gelap yang sudah beranimasi,
+  // dengan foto artikel ditampilkan sebagai banner di bagian atas kartu.
   const highlights: HighlightMeta[] = [
     { icon: "__placement", text: "popup" },
     { icon: "__source", text: "insight" },
   ];
+  if (insight.img) highlights.push({ icon: "__image", text: insight.img });
   if (insight.date) highlights.push({ text: insight.date });
   if (insight.location) highlights.push({ text: insight.location });
 
@@ -142,7 +144,7 @@ export default function AdminInsights() {
       setGalleryPendingDelete([]);
     }
     if (autoPromo && insightId) {
-      await publishPopupFromInsight({ id: insightId, type: form.type, title: form.title, tag: form.tag, excerpt: form.excerpt, color: form.color, date: form.date, location: form.location });
+      await publishPopupFromInsight({ id: insightId, type: form.type, title: form.title, tag: form.tag, excerpt: form.excerpt, color: form.color, date: form.date, location: form.location, img: form.img });
     }
     setSaving(false);
     setMsg(editId ? "Insight diperbarui!" : "Insight ditambahkan!");

@@ -127,12 +127,14 @@ export default function PromoModal() {
   }
 
   // highlights bisa berupa string[] atau {icon, text}[] — normalisasi ke string[]
-  // Item dengan icon berawalan "__" adalah metadata internal (placement, source, dll), bukan untuk ditampilkan.
+  // Item dengan icon berawalan "__" adalah metadata internal (placement, source, foto, dll), bukan untuk ditampilkan.
   const rawHighlights = promo.highlights as Array<string | { icon?: string; text?: string }> | null | undefined;
   const highlights = rawHighlights
     ?.filter((h) => typeof h === "string" || !h?.icon?.startsWith("__"))
     .map((h) => (typeof h === "string" ? h : (h?.text ?? "")))
     .filter((text) => Boolean(text));
+  const heroImage = rawHighlights?.find((h) => typeof h !== "string" && h.icon === "__image");
+  const heroImageUrl = heroImage && typeof heroImage !== "string" ? heroImage.text : null;
 
   return (
     <AnimatePresence>
@@ -167,7 +169,7 @@ export default function PromoModal() {
             >
               {/* Top accent line */}
               <div
-                className="absolute top-0 inset-x-0 h-[2px] rounded-t-[28px]"
+                className="absolute top-0 inset-x-0 h-[2px] rounded-t-[28px] z-10"
                 style={{ background: `linear-gradient(90deg, transparent 0%, ${promo.accent_color} 40%, ${promo.badge_color} 70%, transparent 100%)` }}
               />
 
@@ -177,13 +179,27 @@ export default function PromoModal() {
                 whileTap={{ scale: 0.9 }}
                 transition={{ duration: 0.18 }}
                 onClick={dismiss}
-                className="absolute top-5 right-5 z-20 w-8 h-8 rounded-full bg-white/8 hover:bg-white/15 flex items-center justify-center transition-colors"
+                className="absolute top-5 right-5 z-20 w-8 h-8 rounded-full bg-black/30 hover:bg-black/45 backdrop-blur-sm flex items-center justify-center transition-colors"
               >
-                <X size={15} className="text-white/70" />
+                <X size={15} className="text-white/80" />
               </motion.button>
 
+              {/* ── Foto ───────────────────────────────────── */}
+              {heroImageUrl && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ duration: 0.4 }}
+                  className="relative w-full h-[160px] sm:h-[200px] overflow-hidden rounded-t-[28px]"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={heroImageUrl} alt="" className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-[#0D0D0D] via-transparent to-black/10" />
+                </motion.div>
+              )}
+
               {/* ── Header ─────────────────────────────────── */}
-              <div className="relative px-8 pt-9 pb-7">
+              <div className={`relative px-8 pb-7 ${heroImageUrl ? "pt-6" : "pt-9"}`}>
                 {/* Glow blob */}
                 <div
                   className="absolute top-0 right-0 w-[300px] h-[200px] pointer-events-none opacity-60"
