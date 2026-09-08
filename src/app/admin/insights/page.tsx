@@ -38,7 +38,7 @@ const AUTO_POPUP_BADGE: Record<InsightItem["type"], string> = {
 
 type HighlightMeta = { icon?: string; text?: string };
 
-async function publishPopupFromInsight(insight: Pick<InsightItem, "id"|"type"|"title"|"tag"|"excerpt"|"color"|"img">) {
+async function publishPopupFromInsight(insight: Pick<InsightItem, "id"|"type"|"title"|"tag"|"excerpt"|"color"|"date"|"location">) {
   // Nonaktifkan popup auto-generate sebelumnya biar cuma satu yang tayang
   const { data: actives } = await supabase.from("promo").select("id, highlights").eq("active", true);
   const staleIds = (actives ?? [])
@@ -47,6 +47,15 @@ async function publishPopupFromInsight(insight: Pick<InsightItem, "id"|"type"|"t
     ))
     .map((p) => p.id);
   if (staleIds.length) await supabase.from("promo").update({ active: false }).in("id", staleIds);
+
+  // Mode kartu bertema (bukan poster) — foto dokumentasi kegiatan biasanya bukan poster promosi jadi,
+  // jadi popup dibangun dari judul/ringkasan dengan template kartu gelap yang sudah beranimasi.
+  const highlights: HighlightMeta[] = [
+    { icon: "__placement", text: "popup" },
+    { icon: "__source", text: "insight" },
+  ];
+  if (insight.date) highlights.push({ text: insight.date });
+  if (insight.location) highlights.push({ text: insight.location });
 
   await supabase.from("promo").insert({
     active: true,
@@ -58,11 +67,11 @@ async function publishPopupFromInsight(insight: Pick<InsightItem, "id"|"type"|"t
     accent_color: insight.color,
     description: insight.excerpt || null,
     status: "open",
-    highlights: [{ icon: "__placement", text: "popup" }, { icon: "__source", text: "insight" }],
+    highlights,
     facilitators: [],
     cta_label: "Baca Selengkapnya",
     cta_href: `/insights/${insight.id}`,
-    poster_url: insight.img || null,
+    poster_url: null,
     updated_at: new Date().toISOString(),
   });
 }
@@ -133,7 +142,7 @@ export default function AdminInsights() {
       setGalleryPendingDelete([]);
     }
     if (autoPromo && insightId) {
-      await publishPopupFromInsight({ id: insightId, type: form.type, title: form.title, tag: form.tag, excerpt: form.excerpt, color: form.color, img: form.img });
+      await publishPopupFromInsight({ id: insightId, type: form.type, title: form.title, tag: form.tag, excerpt: form.excerpt, color: form.color, date: form.date, location: form.location });
     }
     setSaving(false);
     setMsg(editId ? "Insight diperbarui!" : "Insight ditambahkan!");

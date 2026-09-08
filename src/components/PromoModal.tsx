@@ -127,10 +127,12 @@ export default function PromoModal() {
   }
 
   // highlights bisa berupa string[] atau {icon, text}[] — normalisasi ke string[]
+  // Item dengan icon berawalan "__" adalah metadata internal (placement, source, dll), bukan untuk ditampilkan.
   const rawHighlights = promo.highlights as Array<string | { icon?: string; text?: string }> | null | undefined;
-  const highlights = rawHighlights?.map((h) =>
-    typeof h === "string" ? h : (h?.text ?? "")
-  ).filter((text) => Boolean(text) && text !== "popup" && text !== "banner");
+  const highlights = rawHighlights
+    ?.filter((h) => typeof h === "string" || !h?.icon?.startsWith("__"))
+    .map((h) => (typeof h === "string" ? h : (h?.text ?? "")))
+    .filter((text) => Boolean(text));
 
   return (
     <AnimatePresence>
