@@ -29,6 +29,44 @@ const EMPTY: Omit<InsightItem,"id"|"created_at"> = {
   img: "", color: "#4F46E5", featured: false, published: true, view_count: 0, gallery: [],
 };
 
+// ── Auto popup promo di beranda saat insight baru disimpan ───────────────────
+const AUTO_POPUP_BADGE: Record<InsightItem["type"], string> = {
+  Kegiatan: "Kegiatan Baru",
+  Berita: "Berita Baru",
+  Publikasi: "Publikasi Baru",
+};
+
+type HighlightMeta = { icon?: string; text?: string };
+
+async function publishPopupFromInsight(insight: Pick<InsightItem, "id"|"type"|"title"|"tag"|"excerpt"|"color"|"img">) {
+  // Nonaktifkan popup auto-generate sebelumnya biar cuma satu yang tayang
+  const { data: actives } = await supabase.from("promo").select("id, highlights").eq("active", true);
+  const staleIds = (actives ?? [])
+    .filter((p) => Array.isArray(p.highlights) && (p.highlights as HighlightMeta[]).some(
+      (h) => h && typeof h === "object" && h.icon === "__source" && h.text === "insight"
+    ))
+    .map((p) => p.id);
+  if (staleIds.length) await supabase.from("promo").update({ active: false }).in("id", staleIds);
+
+  await supabase.from("promo").insert({
+    active: true,
+    badge: AUTO_POPUP_BADGE[insight.type],
+    badge_color: insight.color,
+    tag: "GRCC × AILG · Universitas Airlangga",
+    title: insight.title,
+    subtitle: insight.tag || null,
+    accent_color: insight.color,
+    description: insight.excerpt || null,
+    status: "open",
+    highlights: [{ icon: "__placement", text: "popup" }, { icon: "__source", text: "insight" }],
+    facilitators: [],
+    cta_label: "Baca Selengkapnya",
+    cta_href: `/insights/${insight.id}`,
+    poster_url: insight.img || null,
+    updated_at: new Date().toISOString(),
+  });
+}
+
 export default function AdminInsights() {
   const [items,   setItems]   = useState<InsightItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -42,6 +80,7 @@ export default function AdminInsights() {
   const [preview, setPreview] = useState(false);
   const [msg,     setMsg]     = useState("");
   const [galleryPendingDelete, setGalleryPendingDelete] = useState<string[]>([]);
+  const [autoPromo, setAutoPromo] = useState(true);
   const imageInputRef   = useRef<HTMLInputElement>(null);
   const galleryInputRef = useRef<HTMLInputElement>(null);
 
@@ -56,10 +95,10 @@ export default function AdminInsights() {
 
   const [dirty, setDirty] = useState(false);
 
-  const openNew  = () => { setForm({ ...EMPTY }); setEditId(null); setPreview(false); setUploadError(""); setDragOver(false); setDirty(false); setGalleryPendingDelete([]); };
+  const openNew  = () => { setForm({ ...EMPTY }); setEditId(null); setPreview(false); setUploadError(""); setDragOver(false); setDirty(false); setGalleryPendingDelete([]); setAutoPromo(true); };
   const openEdit = (item: InsightItem) => {
     const { id, created_at, ...rest } = item;
-    setForm({ ...rest, gallery: rest.gallery ?? [] }); setEditId(id); setPreview(false); setUploadError(""); setDragOver(false); setDirty(false); setGalleryPendingDelete([]);
+    setForm({ ...rest, gallery: rest.gallery ?? [] }); setEditId(id); setPreview(false); setUploadError(""); setDragOver(false); setDirty(false); setGalleryPendingDelete([]); setAutoPromo(false);
   };
   const closeForm = (force = false) => {
     if (!force && dirty && !confirm("Ada perubahan yang belum disimpan. Tutup?")) return;
@@ -78,18 +117,23 @@ export default function AdminInsights() {
   const save = async () => {
     if (!form) return;
     setSaving(true);
+    let insightId = editId;
     if (editId) {
       // If hero image was changed, delete old file from storage
       const old = items.find(i => i.id === editId);
       if (old?.img && old.img !== form.img) await deleteStorageImage(old.img);
       await supabase.from("insights").update(form).eq("id", editId);
     } else {
-      await supabase.from("insights").insert(form);
+      const { data } = await supabase.from("insights").insert(form).select().single();
+      insightId = data?.id ?? null;
     }
     // Flush gallery images that were removed during editing
     if (galleryPendingDelete.length > 0) {
       await Promise.all(galleryPendingDelete.map(url => deleteStorageImage(url)));
       setGalleryPendingDelete([]);
+    }
+    if (autoPromo && insightId) {
+      await publishPopupFromInsight({ id: insightId, type: form.type, title: form.title, tag: form.tag, excerpt: form.excerpt, color: form.color, img: form.img });
     }
     setSaving(false);
     setMsg(editId ? "Insight diperbarui!" : "Insight ditambahkan!");
@@ -576,6 +620,20 @@ export default function AdminInsights() {
                         <span className="text-[0.82rem] font-semibold">{label}</span>
                       </label>
                     ))}
+                  </div>
+
+                  {/* Auto popup promo */}
+                  <div className="flex items-start gap-3 p-3.5 rounded-xl border border-dark/10 bg-dark/[0.02]">
+                    <div onClick={() => setAutoPromo(!autoPromo)}
+                      className={`mt-0.5 w-10 h-5 rounded-full transition-colors relative flex-shrink-0 cursor-pointer select-none ${autoPromo?"bg-dark":"bg-dark/20"}`}>
+                      <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${autoPromo?"left-5":"left-0.5"}`} />
+                    </div>
+                    <div className="cursor-pointer select-none" onClick={() => setAutoPromo(!autoPromo)}>
+                      <p className="text-[0.82rem] font-semibold leading-tight">Tampilkan sebagai Popup Promo di Beranda</p>
+                      <p className="text-[0.72rem] text-muted mt-1 leading-snug">
+                        {form.type === "Kegiatan" ? "Kegiatan" : form.type === "Berita" ? "Berita" : "Publikasi"} ini otomatis muncul sebagai popup iklan di halaman utama begitu disimpan (popup lama akan digantikan).
+                      </p>
+                    </div>
                   </div>
                 </div>
 
