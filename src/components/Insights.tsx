@@ -262,11 +262,20 @@ function ComingSoonCard({ post, index }: { post: ComingSoonPost; index: number }
           </motion.span>
         </div>
 
-        {post.category && (
-          <span className="absolute top-3.5 left-[calc(3.5*4px+6.5rem)] text-[0.6rem] font-bold tracking-[0.08em] uppercase px-2.5 py-1 rounded-full bg-white/80 backdrop-blur-sm text-dark/70 shadow-sm">
-            {post.category}
-          </span>
-        )}
+        <div className="absolute top-3.5 right-3.5 flex items-center gap-2">
+          {post.format && (
+            <span className="flex items-center gap-1.5 text-[0.6rem] font-extrabold tracking-[0.1em] uppercase px-2.5 py-1 rounded-full text-white shadow-sm"
+              style={{ backgroundColor: c }}>
+              <FormatIcon format={post.format} />
+              {post.format}
+            </span>
+          )}
+          {post.category && (
+            <span className="text-[0.6rem] font-bold tracking-[0.08em] uppercase px-2.5 py-1 rounded-full bg-white/80 backdrop-blur-sm text-dark/70 shadow-sm">
+              {post.category}
+            </span>
+          )}
+        </div>
 
         {/* Bottom: expected date */}
         {post.expected_date && (

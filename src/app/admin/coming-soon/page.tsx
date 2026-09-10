@@ -9,6 +9,7 @@ import {
 } from "lucide-react";
 
 const COLORS = ["#4F46E5", "#10B981", "#EF4444", "#F59E0B", "#8B5CF6", "#0EA5E9", "#F97316", "#EC4899"];
+const FORMATS = ["Online", "Offline", "Hybrid"];
 
 const EMPTY: Omit<ComingSoonPost, "id" | "created_at"> = {
   title: "",
@@ -17,6 +18,7 @@ const EMPTY: Omit<ComingSoonPost, "id" | "created_at"> = {
   color: "#4F46E5",
   visible: true,
   expected_date: "",
+  format: "Online",
 };
 
 export default function AdminComingSoon() {
@@ -180,6 +182,12 @@ export default function AdminComingSoon() {
                               {item.category}
                             </span>
                           )}
+                          {item.format && (
+                            <span className="px-2 py-0.5 rounded-full text-[0.65rem] font-bold"
+                              style={{ backgroundColor: item.color + "15", color: item.color }}>
+                              {item.format}
+                            </span>
+                          )}
                           {item.expected_date && (
                             <span className="flex items-center gap-1">
                               <Clock size={10} /> {item.expected_date}
@@ -265,6 +273,12 @@ export default function AdminComingSoon() {
                             {form.category}
                           </span>
                         )}
+                        {form.format && (
+                          <span className="text-[0.62rem] font-semibold px-2 py-0.5 rounded-full"
+                            style={{ backgroundColor: form.color + "20", color: form.color }}>
+                            {form.format}
+                          </span>
+                        )}
                       </div>
                       <p className="font-extrabold text-[0.95rem] leading-tight text-dark">
                         {form.title || "Judul pelatihan..."}
@@ -303,6 +317,12 @@ export default function AdminComingSoon() {
                       <input value={form.expected_date ?? ""} onChange={e => setForm({ ...form, expected_date: e.target.value })}
                         placeholder="Agustus 2026" className="input" />
                     </div>
+                  </div>
+                  <div>
+                    <p className="label">Format Pelatihan</p>
+                    <select value={form.format ?? "Online"} onChange={e => setForm({ ...form, format: e.target.value })} className="input">
+                      {FORMATS.map(f => <option key={f}>{f}</option>)}
+                    </select>
                   </div>
 
                   {/* Color */}

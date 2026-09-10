@@ -187,6 +187,7 @@ export interface ComingSoonPost {
   color: string;
   visible: boolean;
   expected_date: string | null;
+  format: string | null;
   created_at: string;
 }
 

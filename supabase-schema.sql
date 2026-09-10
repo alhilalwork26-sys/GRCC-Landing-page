@@ -66,6 +66,10 @@ alter table training add column if not exists custom_fields jsonb default '[]';
 alter table training add column if not exists program_id text;
 alter table training add column if not exists price_note text;
 
+-- Catatan: tabel `coming_soon_posts` sudah dibuat langsung di Supabase dashboard
+-- (belum ditrack sebagai create table di file ini). Tambahan kolom formatnya:
+alter table coming_soon_posts add column if not exists format text default 'Online';
+
 -- 4. TRAINING REGISTRATIONS
 create table if not exists registrations (
   id                    uuid primary key default gen_random_uuid(),

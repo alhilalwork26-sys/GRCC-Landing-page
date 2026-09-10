@@ -131,6 +131,12 @@ function ComingSoonCard({ cs, index }: { cs: ComingSoonPost; index: number }) {
             <span className="w-1.5 h-1.5 rounded-full animate-pulse inline-block" style={{ backgroundColor: cs.color }} />
             Segera Hadir
           </span>
+          {cs.format && (
+            <span className="text-[0.58rem] font-bold tracking-wider uppercase px-2 py-0.5 rounded-md text-white"
+              style={{ backgroundColor: cs.color }}>
+              {cs.format}
+            </span>
+          )}
           {cs.category && (
             <span className="text-[0.58rem] font-bold tracking-wider uppercase px-2 py-0.5 rounded-md border"
               style={{ borderColor: cs.color + "45", color: cs.color }}>
