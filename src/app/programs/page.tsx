@@ -80,7 +80,7 @@ export default function ProgramsPage() {
         supabase.from("programs").select("*").eq("active", true).order("order_index"),
         supabase.from("sub_programs").select("*").eq("active", true).order("order_index"),
         supabase.from("training").select("*").eq("published", true).order("created_at", { ascending: false }).limit(3),
-        supabase.from("coming_soon_posts").select("*").eq("visible", true).order("created_at", { ascending: false }).limit(2),
+        supabase.from("coming_soon_posts").select("*").eq("visible", true).order("created_at", { ascending: false }).limit(3),
       ]);
       const ps = progs ?? [];
       setPrograms(ps);
