@@ -228,7 +228,11 @@ export default function InsightDetailPage() {
       const { data } = await supabase.from("insights").select("*").eq("id", id).single();
       if (data) {
         setItem(data);
-        supabase.rpc("increment_insight_views", { insight_id: id });
+        // Query builder Supabase itu lazy — request baru benar-benar terkirim saat di-await/.then().
+        // Tanpa itu, panggilan RPC ini tidak pernah sampai ke server (view count tidak akan pernah bertambah).
+        supabase.rpc("increment_insight_views", { insight_id: id }).then(({ error }) => {
+          if (error) console.error("Gagal mencatat view:", error);
+        });
         const sel = "id,title,img,type,color,tag,date";
         const [{ data: rel }, { data: prev }, { data: nxt }] = await Promise.all([
           supabase.from("insights").select("*").eq("published", true).eq("type", data.type).neq("id", id).order("created_at", { ascending: false }).limit(3),
