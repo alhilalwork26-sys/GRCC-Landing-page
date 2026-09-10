@@ -539,6 +539,12 @@ export default function ProgramsPage() {
                       <span className="text-[0.6rem] font-extrabold tracking-[0.12em] uppercase" style={{ color: cs.color }}>
                         Segera Hadir
                       </span>
+                      {cs.format && (
+                        <span className="ml-1 text-[0.6rem] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md text-white"
+                          style={{ backgroundColor: cs.color }}>
+                          {cs.format}
+                        </span>
+                      )}
                       {cs.category && (
                         <span className="ml-1 text-[0.6rem] font-bold uppercase tracking-wider px-2 py-0.5 rounded-md border"
                           style={{ borderColor: cs.color + "40", color: cs.color }}>
