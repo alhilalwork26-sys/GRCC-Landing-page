@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { supabase, TrainingItem, TrainingSession, CustomField } from "@/lib/supabase";
+import { supabase, TrainingItem, TrainingSession, CustomField, PriceTier } from "@/lib/supabase";
 import { parseTrainingSection, serializeTrainingSection, serializeTrainingSectionDraft } from "@/lib/training-sections";
 import { getPublicCustomFields, getTrainingFacilitators, setTrainingFacilitators, TrainingFacilitator } from "@/lib/training-facilitators";
 import {
@@ -31,7 +31,7 @@ const AUDIENCE_FALLBACK_TITLE = "Untuk Siapa Program Ini?";
 
 const EMPTY: Omit<TrainingItem,"id"|"created_at"> = {
   title:"", category:"", date_start:"", date_end: null, time:"Sabtu 08.00–17.00 WIB",
-  format:"Online", location:"Zoom Meeting", price: null, price_label:"", price_note:"",
+  format:"Online", location:"Zoom Meeting", price: null, price_label:"", price_note:"", price_tiers: [],
   max_participants: null, color:"#4F46E5", description:"", published: true,
   poster_url: null, poster_portrait_url: null, brochure_url: null, custom_fields: [], program_id: null,
   va_bank: null, va_number: null, va_set_at: null,
@@ -750,6 +750,47 @@ export default function AdminTraining() {
                     <Field label="Keterangan Harga" note="Teks kecil di bawah harga">
                       <input value={form.price_note??""} onChange={e=>setForm({...form,price_note:e.target.value})}
                         placeholder="per peserta · sudah termasuk sertifikat" className="input"/>
+                    </Field>
+
+                    {/* Varian harga tambahan (mis. Online/Offline/biaya tambahan) — tampilan saja, tidak dipakai kalkulasi pendaftaran */}
+                    <Field label="Varian Harga (opsional)" note="Untuk info harga berbeda, mis. Online/Offline/tambahan — tampil di halaman training, tidak memengaruhi harga pendaftaran">
+                      <div className="flex flex-col gap-2">
+                        {(form.price_tiers??[]).map((tier, ti) => (
+                          <div key={tier.id} className="flex gap-2 items-center">
+                            <input value={tier.label}
+                              onChange={e=>{
+                                const tiers=[...(form.price_tiers??[])];
+                                tiers[ti]={...tiers[ti],label:e.target.value};
+                                setForm({...form,price_tiers:tiers});
+                              }}
+                              placeholder="Online" className="input flex-1 text-[0.82rem]"/>
+                            <input type="number" value={tier.price??""}
+                              onChange={e=>{
+                                const tiers=[...(form.price_tiers??[])];
+                                tiers[ti]={...tiers[ti],price:+e.target.value||null};
+                                setForm({...form,price_tiers:tiers});
+                              }}
+                              placeholder="2900000" className="input w-[130px] text-[0.82rem]"/>
+                            <input value={tier.price_label}
+                              onChange={e=>{
+                                const tiers=[...(form.price_tiers??[])];
+                                tiers[ti]={...tiers[ti],price_label:e.target.value};
+                                setForm({...form,price_tiers:tiers});
+                              }}
+                              placeholder="Rp 2.900.000" className="input flex-1 text-[0.82rem]"/>
+                            <button type="button"
+                              onClick={()=>setForm({...form,price_tiers:(form.price_tiers??[]).filter((_,i)=>i!==ti)})}
+                              className="w-8 h-9 rounded-lg bg-red-50 hover:bg-red-100 flex items-center justify-center flex-shrink-0 transition-colors">
+                              <X size={12} className="text-red-400"/>
+                            </button>
+                          </div>
+                        ))}
+                        <button type="button"
+                          onClick={()=>setForm({...form,price_tiers:[...(form.price_tiers??[]),{id:Math.random().toString(36).slice(2),label:"",price:null,price_label:""}]})}
+                          className="flex items-center justify-center gap-1.5 text-[0.75rem] font-bold border border-dashed border-border rounded-xl py-2.5 text-dark/50 hover:text-dark hover:border-dark/30 transition-all">
+                          <Plus size={12}/> Tambah Varian Harga
+                        </button>
+                      </div>
                     </Field>
                   </Section>
 

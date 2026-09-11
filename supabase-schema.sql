@@ -65,6 +65,7 @@ alter table training add column if not exists brochure_url text;
 alter table training add column if not exists custom_fields jsonb default '[]';
 alter table training add column if not exists program_id text;
 alter table training add column if not exists price_note text;
+alter table training add column if not exists price_tiers jsonb default '[]';
 
 -- Catatan: tabel `coming_soon_posts` sudah dibuat langsung di Supabase dashboard
 -- (belum ditrack sebagai create table di file ini). Tambahan kolom formatnya:

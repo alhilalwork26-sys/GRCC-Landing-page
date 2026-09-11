@@ -54,6 +54,13 @@ export interface TrainingSession {
   times: string[]; // ["15:30 - 17:30 WIB", "19:30 - 20:30"]
 }
 
+export interface PriceTier {
+  id: string;
+  label: string;       // "Online" | "Offline" | "Tambahan Sertifikat Cetak" dll — bebas
+  price: number | null;
+  price_label: string; // teks tampilan, mis. "Rp 2.900.000"
+}
+
 export interface TrainingItem {
   id: string;
   title: string;
@@ -66,6 +73,7 @@ export interface TrainingItem {
   price: number | null;
   price_label: string;
   price_note: string | null;
+  price_tiers: PriceTier[] | null;
   max_participants: number | null;
   color: string;
   description: string;

@@ -530,6 +530,19 @@ export default function TrainingDetailPage() {
                   ) : (
                     <p className="font-bold text-[1rem] text-dark">Hubungi kami untuk harga</p>
                   )}
+
+                  {training.price_tiers && training.price_tiers.length > 0 && (
+                    <div className="mt-4 pt-4 border-t border-border flex flex-col gap-2">
+                      {training.price_tiers.map((tier) => (
+                        <div key={tier.id} className="flex items-center justify-between gap-3 text-[0.8rem]">
+                          <span className="text-muted">{tier.label}</span>
+                          <span className="font-bold text-dark">
+                            {tier.price ? `Rp ${tier.price.toLocaleString("id-ID")}` : tier.price_label}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 <div className="p-5 flex flex-col gap-3">
                   {/* Info rows */}
