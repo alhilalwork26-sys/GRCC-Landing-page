@@ -18,7 +18,19 @@ export function parseTrainingSection(raw: string | null | undefined, fallbackTit
 
   if (raw.startsWith(SECTION_PREFIX)) {
     try {
-      const parsed = JSON.parse(raw.slice(SECTION_PREFIX.length)) as { title?: string; items?: string[] };
+      const parsed = JSON.parse(raw.slice(SECTION_PREFIX.length)) as { title?: string; items?: string[]; itemsText?: string };
+
+      // Draft format (while editing): teks disimpan apa adanya, tanpa trim/filter,
+      // supaya enter & spasi di ujung baris tidak langsung "dimakan" tiap ketikan.
+      if (typeof parsed.itemsText === "string") {
+        return {
+          title: parsed.title ?? fallbackTitle,
+          items: parseLines(parsed.itemsText),
+          itemsText: parsed.itemsText,
+        };
+      }
+
+      // Final saved format: sudah dibersihkan sekali saat disimpan.
       const items = Array.isArray(parsed.items)
         ? parsed.items.map((item) => String(item).trim()).filter(Boolean)
         : [];
@@ -46,9 +58,13 @@ export function serializeTrainingSection(title: string, itemsText: string, fallb
   })}`;
 }
 
+// Dipakai saat mengetik (draft) — simpan title & itemsText apa adanya, tanpa
+// trim/filter, supaya baris kosong (Enter) dan spasi di ujung baris tidak
+// langsung hilang lagi di render berikutnya. Pembersihan baru terjadi saat
+// serializeTrainingSection dipanggil pada proses Simpan.
 export function serializeTrainingSectionDraft(title: string, itemsText: string, fallbackTitle: string) {
   return `${SECTION_PREFIX}${JSON.stringify({
-    title: title.trim() || fallbackTitle,
-    items: parseLines(itemsText),
+    title: title || fallbackTitle,
+    itemsText,
   })}`;
 }
