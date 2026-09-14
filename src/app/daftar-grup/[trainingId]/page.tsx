@@ -11,8 +11,16 @@ import {
   Tag, BadgePercent, CheckCircle2, Users, Plus, Trash2,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
+import TaxInvoiceSection from "@/components/TaxInvoiceSection";
 import { supabase, TrainingItem, CustomField, PromoCode, Participant } from "@/lib/supabase";
-import { paymentInstruction, siteConfig, whatsappHref } from "@/lib/site-config";
+import { siteConfig, whatsappHref } from "@/lib/site-config";
+import {
+  TAX_INVOICE_CONTACTED_KEY,
+  TAX_INVOICE_EMAIL_KEY,
+  TAX_INVOICE_KEY,
+  TAX_INVOICE_REQUIRED_KEYS,
+  needsTaxInvoice,
+} from "@/lib/tax-invoice";
 import { getPublicCustomFields } from "@/lib/training-facilitators";
 import { hasTrainingSessions, trainingDateLabel, trainingTimeLabel } from "@/lib/training-schedule";
 
@@ -63,38 +71,6 @@ function FormField({ label, required, error, children, icon }: {
           </motion.p>
         )}
       </AnimatePresence>
-    </motion.div>
-  );
-}
-
-function InvoiceNotice({ trainingTitle, accent }: { trainingTitle: string; accent: string }) {
-  const message = `Halo Tim GRCC, saya membutuhkan Faktur Pajak untuk pendaftaran grup pelatihan "${trainingTitle}". Mohon informasi dokumen yang perlu disiapkan sebelum saya mengisi form dan melakukan pembayaran.`;
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.4 }}
-      className="mb-5 rounded-2xl border border-amber-200 bg-amber-50 p-4 flex flex-col sm:flex-row sm:items-center gap-4"
-    >
-      <div className="flex items-start gap-3 flex-1">
-        <div className="w-9 h-9 rounded-xl bg-white border border-amber-200 flex items-center justify-center flex-shrink-0">
-          <FileText size={16} className="text-amber-600" />
-        </div>
-        <p className="text-[0.78rem] text-amber-800 leading-[1.7]">
-          <strong>Bagi perusahaan yang membutuhkan Faktur Pajak,</strong> bisa menghubungi Contact Person sebelum mengisi form dan melakukan pembayaran.
-        </p>
-      </div>
-      <a
-        href={whatsappHref(message)}
-        target="_blank"
-        rel="noreferrer"
-        className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-white text-[0.8rem] font-bold flex-shrink-0"
-        style={{ backgroundColor: accent }}
-      >
-        Minta Faktur <ChevronRight size={14} />
-      </a>
     </motion.div>
   );
 }
@@ -280,9 +256,14 @@ export default function DaftarGrupPage() {
   const finalTotal = subtotal - discountAmt;
 
   // Progress
-  const totalFields = 5 + participants.length * 3 + 1;
+  const taxFields = needsTaxInvoice(customData)
+    ? TAX_INVOICE_REQUIRED_KEYS.map((key) => customData[key])
+    : [];
+  const totalFields = 6 + taxFields.length + participants.length * 3 + 1;
   const filled = [pic.nama_lengkap, pic.instansi, pic.jabatan, pic.email, pic.telepon].filter(Boolean).length
     + participants.reduce((acc, p) => acc + [p.nama, p.jabatan, p.email].filter(Boolean).length, 0)
+    + (customData[TAX_INVOICE_KEY] ? 1 : 0)
+    + taxFields.filter(Boolean).length
     + (paymentFile ? 1 : 0);
   const progress = Math.round((filled / totalFields) * 100);
 
@@ -311,6 +292,24 @@ export default function DaftarGrupPage() {
     if (!pic.email.trim())        e.pic_email        = "Wajib diisi";
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(pic.email)) e.pic_email = "Format email tidak valid";
     if (!pic.telepon.trim())      e.pic_telepon      = "Wajib diisi";
+    if (!customData[TAX_INVOICE_KEY]) {
+      e[TAX_INVOICE_KEY] = "Pilih apakah Anda membutuhkan Faktur Pajak";
+    }
+    if (needsTaxInvoice(customData)) {
+      TAX_INVOICE_REQUIRED_KEYS.forEach((key) => {
+        if (!customData[key]?.trim()) {
+          e[`tax_${key}`] = key === TAX_INVOICE_CONTACTED_KEY
+            ? "Centang konfirmasi ini sebelum melanjutkan"
+            : "Wajib diisi untuk proses Faktur Pajak";
+        }
+      });
+      if (
+        customData[TAX_INVOICE_EMAIL_KEY]?.trim() &&
+        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customData[TAX_INVOICE_EMAIL_KEY])
+      ) {
+        e[`tax_${TAX_INVOICE_EMAIL_KEY}`] = "Format email finance tidak valid";
+      }
+    }
     participants.forEach((p, i) => {
       if (!p.nama.trim())   e[`p_${i}_nama`]    = "Wajib diisi";
       if (!p.jabatan.trim())e[`p_${i}_jabatan`] = "Wajib diisi";
@@ -459,7 +458,15 @@ export default function DaftarGrupPage() {
                   </div>
                 </div>
 
-                <InvoiceNotice trainingTitle={training.title} accent={accent} />
+                <TaxInvoiceSection
+                  trainingTitle={training.title}
+                  accent={accent}
+                  customData={customData}
+                  setCustomData={setCustomData}
+                  errors={errors}
+                  setErrors={setErrors}
+                  group
+                />
 
                 {/* ── Section 1: Data PIC ── */}
                 <SectionHeader num="1" title="Data PIC / Koordinator" accent={accent} />

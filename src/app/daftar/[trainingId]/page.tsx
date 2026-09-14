@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { useParams, useRouter, useSearchParams } from "next/navigation";
+import { useParams, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Link from "next/link";
 import {
@@ -11,8 +11,16 @@ import {
   BadgePercent, CheckCircle2,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
+import TaxInvoiceSection from "@/components/TaxInvoiceSection";
 import { supabase, TrainingItem, CustomField, PromoCode } from "@/lib/supabase";
-import { paymentInstruction, siteConfig, whatsappHref } from "@/lib/site-config";
+import { siteConfig, whatsappHref } from "@/lib/site-config";
+import {
+  TAX_INVOICE_CONTACTED_KEY,
+  TAX_INVOICE_EMAIL_KEY,
+  TAX_INVOICE_KEY,
+  TAX_INVOICE_REQUIRED_KEYS,
+  needsTaxInvoice,
+} from "@/lib/tax-invoice";
 import { getPublicCustomFields } from "@/lib/training-facilitators";
 import { hasTrainingSessions, trainingDateLabel, trainingTimeLabel } from "@/lib/training-schedule";
 
@@ -197,38 +205,6 @@ function SectionHeader({ num, title, accent }: { num: string; title: string; acc
   );
 }
 
-function InvoiceNotice({ trainingTitle, accent }: { trainingTitle: string; accent: string }) {
-  const message = `Halo Tim GRCC, saya membutuhkan Faktur Pajak untuk pendaftaran pelatihan "${trainingTitle}". Mohon informasi dokumen yang perlu disiapkan sebelum saya mengisi form dan melakukan pembayaran.`;
-
-  return (
-    <motion.div
-      initial={{ opacity: 0, y: 12 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true }}
-      transition={{ duration: 0.4 }}
-      className="mb-5 rounded-2xl border border-amber-200 bg-amber-50 p-4 flex flex-col sm:flex-row sm:items-center gap-4"
-    >
-      <div className="flex items-start gap-3 flex-1">
-        <div className="w-9 h-9 rounded-xl bg-white border border-amber-200 flex items-center justify-center flex-shrink-0">
-          <FileText size={16} className="text-amber-600" />
-        </div>
-        <p className="text-[0.78rem] text-amber-800 leading-[1.7]">
-          <strong>Bagi perusahaan yang membutuhkan Faktur Pajak,</strong> bisa menghubungi Contact Person sebelum mengisi form dan melakukan pembayaran.
-        </p>
-      </div>
-      <a
-        href={whatsappHref(message)}
-        target="_blank"
-        rel="noreferrer"
-        className="inline-flex items-center justify-center gap-2 px-4 py-2.5 rounded-xl text-white text-[0.8rem] font-bold flex-shrink-0"
-        style={{ backgroundColor: accent }}
-      >
-        Minta Faktur <ChevronRight size={14} />
-      </a>
-    </motion.div>
-  );
-}
-
 // ── Success screen ────────────────────────────────────────────────────────────
 function SuccessScreen({ training, accent }: { training: TrainingItem; accent: string }) {
   return (
@@ -311,7 +287,6 @@ function SuccessScreen({ training, accent }: { training: TrainingItem; accent: s
 export default function DaftarPage() {
   const { trainingId } = useParams<{ trainingId: string }>();
   const searchParams   = useSearchParams();
-  const router = useRouter();
 
   const [training, setTraining] = useState<TrainingItem | null>(null);
   const [loading, setLoading] = useState(true);
@@ -364,9 +339,13 @@ export default function DaftarPage() {
     const fields = [
       form.nama_lengkap, form.instansi, form.jabatan,
       form.email, form.telepon, customData[INFO_SOURCE_KEY],
+      customData[TAX_INVOICE_KEY],
     ];
-    const filled = fields.filter(Boolean).length;
-    const total = fields.length + 1; // +1 for payment file
+    const taxFields = needsTaxInvoice(customData)
+      ? TAX_INVOICE_REQUIRED_KEYS.map((key) => customData[key])
+      : [];
+    const filled = [...fields, ...taxFields].filter(Boolean).length;
+    const total = fields.length + taxFields.length + 1; // +1 for payment file
     setProgress(Math.round(((filled + (paymentFile ? 1 : 0)) / total) * 100));
   }, [form, customData, paymentFile]);
 
@@ -385,6 +364,24 @@ export default function DaftarPage() {
     if (!form.telepon.trim()) e.telepon = "Nomor telepon wajib diisi";
     if (!customData[INFO_SOURCE_KEY]?.trim()) {
       e[INFO_SOURCE_KEY] = "Sumber informasi wajib dipilih";
+    }
+    if (!customData[TAX_INVOICE_KEY]) {
+      e[TAX_INVOICE_KEY] = "Pilih apakah Anda membutuhkan Faktur Pajak";
+    }
+    if (needsTaxInvoice(customData)) {
+      TAX_INVOICE_REQUIRED_KEYS.forEach((key) => {
+        if (!customData[key]?.trim()) {
+          e[`tax_${key}`] = key === TAX_INVOICE_CONTACTED_KEY
+            ? "Centang konfirmasi ini sebelum melanjutkan"
+            : "Wajib diisi untuk proses Faktur Pajak";
+        }
+      });
+      if (
+        customData[TAX_INVOICE_EMAIL_KEY]?.trim() &&
+        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customData[TAX_INVOICE_EMAIL_KEY])
+      ) {
+        e[`tax_${TAX_INVOICE_EMAIL_KEY}`] = "Format email finance tidak valid";
+      }
     }
     if (!paymentFile) e.payment = "Bukti pembayaran wajib diunggah";
     // Custom required fields
@@ -611,7 +608,14 @@ export default function DaftarPage() {
                   </p>
                 </div>
 
-                <InvoiceNotice trainingTitle={training.title} accent={accent} />
+                <TaxInvoiceSection
+                  trainingTitle={training.title}
+                  accent={accent}
+                  customData={customData}
+                  setCustomData={setCustomData}
+                  errors={errors}
+                  setErrors={setErrors}
+                />
 
                 {/* ── Section 1: Data Peserta ── */}
                 <SectionHeader num="1" title="Data Peserta" accent={accent} />

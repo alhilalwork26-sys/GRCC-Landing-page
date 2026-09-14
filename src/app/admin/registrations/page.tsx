@@ -10,6 +10,17 @@ import {
   Receipt, Tag, RefreshCw, AlertCircle, Users,
   Database, GraduationCap, CircleDollarSign, Trash2,
 } from "lucide-react";
+import {
+  TAX_INVOICE_ADDRESS_KEY,
+  TAX_INVOICE_COMPANY_KEY,
+  TAX_INVOICE_EMAIL_KEY,
+  TAX_INVOICE_KEY,
+  TAX_INVOICE_NPWP_KEY,
+  TAX_INVOICE_PHONE_KEY,
+  TAX_INVOICE_PIC_KEY,
+  needsTaxInvoice,
+  taxInvoiceLabel,
+} from "@/lib/tax-invoice";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const INFO_SOURCE_KEY = "sumber_informasi";
@@ -43,12 +54,18 @@ function StatusBadge({ status }: { status: Registration["status"] }) {
 
 function customDataLabel(key: string, training?: TrainingItem) {
   if (key === INFO_SOURCE_KEY) return "Sumber Informasi";
+  const taxLabel = taxInvoiceLabel(key);
+  if (taxLabel) return taxLabel;
   const cf = training?.custom_fields?.find((f) => f.id === key);
   return cf?.label ?? key.replace(/_/g, " ");
 }
 
 function getInfoSource(reg: Registration) {
   return reg.custom_data?.[INFO_SOURCE_KEY] || "—";
+}
+
+function getTaxInvoiceStatus(reg: Registration) {
+  return reg.custom_data?.[TAX_INVOICE_KEY] || "—";
 }
 
 function formatRp(n: number | null | undefined) {
@@ -150,6 +167,11 @@ function DetailModal({
                     <Users size={9} /> GRUP · {reg.participant_count} peserta
                   </span>
                 )}
+                {needsTaxInvoice(reg.custom_data) && (
+                  <span className="inline-flex items-center gap-1 text-[0.62rem] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">
+                    <Receipt size={9} /> Butuh Faktur Pajak
+                  </span>
+                )}
                 <span className="text-[0.68rem] text-muted">{formatDate(reg.created_at)}</span>
               </div>
               <h2 className="text-[1.15rem] font-extrabold tracking-tight truncate">
@@ -220,10 +242,17 @@ function DetailModal({
                 </p>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   {visibleCustomEntries.map(([key, val]) => {
+                    const isTaxField = key === TAX_INVOICE_KEY || key.startsWith("faktur_");
+                    const Icon = isTaxField ? Receipt : Tag;
                     return (
-                      <div key={key} className="flex items-start gap-3 p-3 rounded-xl bg-[#F7F7F5]">
+                      <div
+                        key={key}
+                        className={`flex items-start gap-3 p-3 rounded-xl ${
+                          isTaxField ? "bg-amber-50 border border-amber-100" : "bg-[#F7F7F5]"
+                        }`}
+                      >
                         <div className="w-7 h-7 rounded-lg bg-white flex items-center justify-center flex-shrink-0 mt-0.5 border border-border">
-                          <Tag size={13} className="text-dark/50" />
+                          <Icon size={13} className={isTaxField ? "text-amber-600" : "text-dark/50"} />
                         </div>
                         <div className="min-w-0">
                           <p className="text-[0.62rem] text-muted font-semibold uppercase tracking-wide">
@@ -413,6 +442,11 @@ function RegistrationRow({
               <Users size={8} /> {reg.participant_count}
             </span>
           )}
+          {needsTaxInvoice(reg.custom_data) && (
+            <span className="inline-flex items-center gap-0.5 text-[0.58rem] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-800 flex-shrink-0">
+              <Receipt size={8} /> Faktur
+            </span>
+          )}
         </div>
         <p className="text-[0.72rem] text-muted mt-0.5">{reg.email}</p>
       </td>
@@ -553,6 +587,11 @@ export default function AdminRegistrations() {
         r.instansi.toLowerCase().includes(q) ||
         r.telepon.toLowerCase().includes(q) ||
         getInfoSource(r).toLowerCase().includes(q) ||
+        getTaxInvoiceStatus(r).toLowerCase().includes(q) ||
+        Object.entries(r.custom_data ?? {}).some(([key, value]) =>
+          customDataLabel(key, t).toLowerCase().includes(q) ||
+          String(value).toLowerCase().includes(q)
+        ) ||
         t?.title.toLowerCase().includes(q) ||
         !!inParticipants
       );
@@ -567,6 +606,7 @@ export default function AdminRegistrations() {
     confirmed: registrations.filter((r) => r.status === "confirmed").length,
     rejected:  registrations.filter((r) => r.status === "rejected").length,
     grup:      registrations.filter((r) => r.is_group).length,
+    taxInvoice: registrations.filter((r) => needsTaxInvoice(r.custom_data)).length,
   };
 
   const totalParticipants = registrations.reduce((sum, r) => sum + (r.participant_count || 1), 0);
@@ -604,6 +644,13 @@ export default function AdminRegistrations() {
       "Jumlah Peserta",
       "Status",
       "Sumber Informasi",
+      "Butuh Faktur Pajak",
+      "Nama Perusahaan Faktur",
+      "NPWP Perusahaan",
+      "Alamat Perusahaan",
+      "Email Finance",
+      "PIC Finance",
+      "WhatsApp PIC Finance",
       "Kode Promo",
       "Harga Awal",
       "Diskon",
@@ -624,6 +671,13 @@ export default function AdminRegistrations() {
         r.participant_count || 1,
         STATUS_CONFIG[r.status].label,
         getInfoSource(r),
+        getTaxInvoiceStatus(r),
+        r.custom_data?.[TAX_INVOICE_COMPANY_KEY] ?? "",
+        r.custom_data?.[TAX_INVOICE_NPWP_KEY] ?? "",
+        r.custom_data?.[TAX_INVOICE_ADDRESS_KEY] ?? "",
+        r.custom_data?.[TAX_INVOICE_EMAIL_KEY] ?? "",
+        r.custom_data?.[TAX_INVOICE_PIC_KEY] ?? "",
+        r.custom_data?.[TAX_INVOICE_PHONE_KEY] ?? "",
         r.promo_code ?? "",
         r.original_price ?? "",
         r.discount_amount ?? "",
@@ -689,12 +743,13 @@ export default function AdminRegistrations() {
       </div>
 
       {/* Stat Cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-4">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-3 mb-4">
         {[
           { label: "Total Peserta", value: totalParticipants, color: "#4F46E5", icon: Users2, desc: `${registrations.length} registrasi` },
           { label: "Pelatihan Terisi", value: uniqueTrainingCount, color: "#6366F1", icon: GraduationCap, desc: "program dengan pendaftar" },
           { label: "Pendapatan Terkonfirmasi", value: formatRp(confirmedRevenue), color: "#10B981", icon: CircleDollarSign, desc: "berdasarkan status dikonfirmasi" },
           { label: "Pendaftaran Grup", value: counts.grup, color: "#F59E0B", icon: Users, desc: "registrasi tipe grup" },
+          { label: "Butuh Faktur", value: counts.taxInvoice, color: "#D97706", icon: Receipt, desc: "perlu diproses finance" },
         ].map(({ label, value, color, icon: Icon, desc }, idx) => (
           <motion.div
             key={label}
@@ -768,7 +823,7 @@ export default function AdminRegistrations() {
           <Search size={15} className="text-muted flex-shrink-0" />
           <input
             type="text"
-            placeholder="Cari nama, email, telepon, instansi, pelatihan, pilihan waktu, atau sumber informasi..."
+            placeholder="Cari nama, email, telepon, instansi, pelatihan, faktur pajak, NPWP, atau sumber informasi..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="flex-1 bg-transparent text-[0.84rem] outline-none text-dark placeholder:text-muted"
