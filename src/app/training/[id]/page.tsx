@@ -419,7 +419,7 @@ export default function TrainingDetailPage() {
                         >
                           {String(i + 1).padStart(2, "0")}
                         </motion.div>
-                        <div className="flex-1 pt-0.5">
+                        <div className="flex-1 min-w-0 pt-0.5">
                           <p className="text-[0.88rem] leading-[1.75] text-dark/70">{obj}</p>
                         </div>
                         <motion.div
@@ -472,7 +472,7 @@ export default function TrainingDetailPage() {
                           className="flex items-start gap-4"
                         >
                           <CheckCircle2 size={17} style={{ color: c }} className="flex-shrink-0 mt-0.5" />
-                          <p className="flex-1 text-[0.88rem] leading-[1.75] text-dark/70">{aud}</p>
+                          <p className="flex-1 min-w-0 text-[0.88rem] leading-[1.75] text-dark/70">{aud}</p>
                         </motion.div>
                       ))}
                     </div>
