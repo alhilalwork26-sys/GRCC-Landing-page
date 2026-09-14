@@ -169,7 +169,7 @@ function DetailModal({
                 )}
                 {needsTaxInvoice(reg.custom_data) && (
                   <span className="inline-flex items-center gap-1 text-[0.62rem] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">
-                    <Receipt size={9} /> Butuh Faktur Pajak
+                    <Receipt size={9} /> Menunggu Faktur Pajak
                   </span>
                 )}
                 <span className="text-[0.68rem] text-muted">{formatDate(reg.created_at)}</span>
@@ -360,9 +360,15 @@ function DetailModal({
                   </div>
                 </div>
               ) : (
-                <div className="flex items-center gap-2 p-4 rounded-xl bg-[#F7F7F5] text-muted text-[0.82rem]">
-                  <AlertCircle size={15} />
-                  Belum ada bukti pembayaran
+                <div className={`flex items-center gap-2 p-4 rounded-xl text-[0.82rem] ${
+                  needsTaxInvoice(reg.custom_data)
+                    ? "bg-amber-50 text-amber-800 border border-amber-200"
+                    : "bg-[#F7F7F5] text-muted"
+                }`}>
+                  {needsTaxInvoice(reg.custom_data) ? <Receipt size={15} /> : <AlertCircle size={15} />}
+                  {needsTaxInvoice(reg.custom_data)
+                    ? "Pembayaran dikunci karena peserta meminta Faktur Pajak. Tunggu proses finance sebelum meminta bukti bayar."
+                    : "Belum ada bukti pembayaran"}
                 </div>
               )}
             </div>
@@ -444,7 +450,7 @@ function RegistrationRow({
           )}
           {needsTaxInvoice(reg.custom_data) && (
             <span className="inline-flex items-center gap-0.5 text-[0.58rem] font-bold px-1.5 py-0.5 rounded-full bg-amber-100 text-amber-800 flex-shrink-0">
-              <Receipt size={8} /> Faktur
+              <Receipt size={8} /> Request Faktur
             </span>
           )}
         </div>

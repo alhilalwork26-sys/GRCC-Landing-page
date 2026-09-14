@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
 import { trainingDateLabel } from "@/lib/training-schedule";
+import { needsTaxInvoice } from "@/lib/tax-invoice";
 
 const ADMIN_EMAIL = "grcc.ailg@gmail.com";
 
@@ -133,13 +134,13 @@ export async function POST(req: NextRequest) {
     // Fetch all registrations for this training
     const { data: registrations, error: rErr } = await supabaseAdmin
       .from("registrations")
-      .select("nama_lengkap, email, final_price")
+      .select("nama_lengkap, email, final_price, custom_data")
       .eq("training_id", trainingId)
       .neq("status", "rejected");
 
     if (rErr) return NextResponse.json({ error: rErr.message }, { status: 500 });
 
-    const regs = registrations ?? [];
+    const regs = (registrations ?? []).filter((reg) => !needsTaxInvoice(reg.custom_data));
     if (regs.length === 0) {
       return NextResponse.json({ success: true, sent: 0, message: "Tidak ada peserta terdaftar" });
     }

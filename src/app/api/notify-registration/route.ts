@@ -23,6 +23,7 @@ interface RegistrationData {
   trainingColor?: string;
   vaBank?: string;
   vaNumber?: string;
+  taxInvoiceRequested?: boolean;
 }
 
 function formatRp(n: number) {
@@ -31,8 +32,10 @@ function formatRp(n: number) {
 
 // ── Email to ADMIN ─────────────────────────────────────────────────────────────
 function buildAdminEmail(data: RegistrationData) {
-  const badgeColor = data.type === "grup" ? "#10B981" : "#4F46E5";
-  const badgeLabel = data.type === "grup" ? "Pendaftaran Grup" : "Pendaftaran Individu";
+  const badgeColor = data.taxInvoiceRequested ? "#F59E0B" : data.type === "grup" ? "#10B981" : "#4F46E5";
+  const badgeLabel = data.taxInvoiceRequested
+    ? "Request Faktur Pajak"
+    : data.type === "grup" ? "Pendaftaran Grup" : "Pendaftaran Individu";
 
   return `<!DOCTYPE html>
 <html lang="id">
@@ -44,7 +47,7 @@ function buildAdminEmail(data: RegistrationData) {
   <tr>
     <td style="background:linear-gradient(135deg,#1a1a1a 0%,#333 100%);padding:32px 36px;">
       <span style="display:inline-block;background:${badgeColor};color:#fff;font-size:11px;font-weight:700;letter-spacing:0.08em;text-transform:uppercase;padding:4px 12px;border-radius:20px;margin-bottom:12px;">${badgeLabel}</span>
-      <p style="margin:0;font-size:22px;font-weight:700;color:#fff;">🎉 Pendaftaran Baru!</p>
+      <p style="margin:0;font-size:22px;font-weight:700;color:#fff;">${data.taxInvoiceRequested ? "Request Faktur Pajak Baru!" : "Pendaftaran Baru!"}</p>
       <p style="margin:8px 0 0;font-size:13px;color:rgba(255,255,255,0.6);">${data.trainingTitle}</p>
     </td>
   </tr>
@@ -58,7 +61,8 @@ function buildAdminEmail(data: RegistrationData) {
         ${adminRow("Jabatan", data.jabatan || "-")}
         ${data.participantCount ? adminRow("Jumlah Peserta", `${data.participantCount} orang`) : ""}
         ${data.promoCode ? adminRow("Kode Promo", `<span style="background:#f0fdf4;color:#16a34a;padding:2px 8px;border-radius:4px;font-weight:700;">${data.promoCode}</span>`) : ""}
-        ${data.finalPrice ? adminRow("Total Pembayaran", `<strong style="color:#1a1a1a;">${formatRp(data.finalPrice)}</strong>`) : ""}
+        ${data.finalPrice ? adminRow(data.taxInvoiceRequested ? "Nilai Program" : "Total Pembayaran", `<strong style="color:#1a1a1a;">${formatRp(data.finalPrice)}</strong>`) : ""}
+        ${data.taxInvoiceRequested ? adminRow("Catatan Finance", `<strong style="color:#92400e;">Jangan instruksikan transfer sebelum Faktur Pajak diproses.</strong>`) : ""}
       </table>
       <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:24px;">
         <tr>
@@ -95,7 +99,11 @@ function buildConfirmationEmail(data: RegistrationData) {
     `Halo Tim GRCC, saya ${data.nama} baru saja mendaftar program *${data.trainingTitle}*. Ingin konfirmasi pendaftaran saya. Terima kasih.`
   );
   const waUrl = `https://wa.me/${WA_NUMBER}?text=${waMsg}`;
-  const hasVA = data.vaNumber && data.vaBank;
+  const hasVA = !data.taxInvoiceRequested && data.vaNumber && data.vaBank;
+  const title = data.taxInvoiceRequested ? "Request Faktur Pajak Terkirim!" : "Pendaftaran Berhasil!";
+  const intro = data.taxInvoiceRequested
+    ? `Terima kasih, <strong>${data.nama}</strong>. Request Faktur Pajak Anda telah kami terima.`
+    : `Selamat, <strong>${data.nama}</strong>! Kami telah menerima pendaftaran Anda.`;
 
   const detailRows = [
     data.trainingDate     ? detailRow("📅", "Tanggal",   data.trainingDate)     : "",
@@ -120,8 +128,8 @@ function buildConfirmationEmail(data: RegistrationData) {
         <span style="color:#fff;font-size:14px;font-weight:800;letter-spacing:0.06em;">GRCC</span>
       </div>
       <div style="font-size:48px;line-height:1;margin-bottom:14px;">✅</div>
-      <h1 style="margin:0;color:#fff;font-size:24px;font-weight:800;letter-spacing:-0.5px;">Pendaftaran Berhasil!</h1>
-      <p style="margin:10px 0 0;color:rgba(255,255,255,0.8);font-size:14px;line-height:1.6;">Selamat, <strong>${data.nama}</strong>! Kami telah menerima pendaftaran Anda.</p>
+      <h1 style="margin:0;color:#fff;font-size:24px;font-weight:800;letter-spacing:-0.5px;">${title}</h1>
+      <p style="margin:10px 0 0;color:rgba(255,255,255,0.8);font-size:14px;line-height:1.6;">${intro}</p>
     </td>
   </tr>
 
@@ -164,10 +172,15 @@ function buildConfirmationEmail(data: RegistrationData) {
         <tr>
           <td style="background:#fffbeb;border-radius:12px;padding:20px 24px;border:1px solid #fde68a;">
             <p style="margin:0 0 14px;font-size:11px;font-weight:800;letter-spacing:0.1em;text-transform:uppercase;color:#92400e;">📋 Langkah Selanjutnya</p>
-            ${step("1", hasVA ? "Lakukan pembayaran ke Virtual Account di atas" : "Tunggu instruksi pembayaran dari tim kami")}
-            ${step("2", "Upload bukti pembayaran di halaman pendaftaran")}
-            ${step("3", "Tim GRCC akan verifikasi dalam <strong>1–2 hari kerja</strong>")}
-            ${step("4", "Informasi teknis (link Zoom / venue) dikirim <strong>H-1 sebelum pelatihan</strong>")}
+            ${data.taxInvoiceRequested
+              ? `${step("1", "Tim GRCC menghubungi Anda untuk proses administrasi Faktur Pajak")}
+                 ${step("2", "Jangan melakukan transfer sebelum menerima instruksi pembayaran resmi")}
+                 ${step("3", "Setelah administrasi selesai, tim GRCC mengirim instruksi pembayaran")}
+                 ${step("4", "Informasi teknis (link Zoom / venue) dikirim <strong>H-1 sebelum pelatihan</strong>")}`
+              : `${step("1", hasVA ? "Lakukan pembayaran ke Virtual Account di atas" : "Tunggu instruksi pembayaran dari tim kami")}
+                 ${step("2", "Upload bukti pembayaran di halaman pendaftaran")}
+                 ${step("3", "Tim GRCC akan verifikasi dalam <strong>1–2 hari kerja</strong>")}
+                 ${step("4", "Informasi teknis (link Zoom / venue) dikirim <strong>H-1 sebelum pelatihan</strong>")}`}
           </td>
         </tr>
       </table>
@@ -271,7 +284,7 @@ export async function POST(req: NextRequest) {
     // 1. Notify admin
     await send(
       [ADMIN_EMAIL],
-      `🎉 Pendaftaran Baru: ${body.trainingTitle} — ${body.nama}`,
+      `${body.taxInvoiceRequested ? "Request Faktur Pajak" : "Pendaftaran Baru"}: ${body.trainingTitle} — ${body.nama}`,
       buildAdminEmail(body)
     );
 
@@ -280,7 +293,7 @@ export async function POST(req: NextRequest) {
     if (body.email) {
       const result = await send(
         [body.email],
-        `✅ Konfirmasi Pendaftaran — ${body.trainingTitle}`,
+        `${body.taxInvoiceRequested ? "Request Faktur Pajak Diterima" : "Konfirmasi Pendaftaran"} — ${body.trainingTitle}`,
         buildConfirmationEmail(body)
       );
       participantSent = !!result?.id;

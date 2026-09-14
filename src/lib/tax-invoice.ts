@@ -25,7 +25,7 @@ export const TAX_INVOICE_LABELS: Record<string, string> = {
   [TAX_INVOICE_EMAIL_KEY]: "Email Finance",
   [TAX_INVOICE_PIC_KEY]: "PIC Finance",
   [TAX_INVOICE_PHONE_KEY]: "WhatsApp PIC Finance",
-  [TAX_INVOICE_CONTACTED_KEY]: "Sudah Hubungi Admin",
+  [TAX_INVOICE_CONTACTED_KEY]: "Paham Tidak Transfer Dulu",
 };
 
 export function needsTaxInvoice(customData?: Record<string, string> | null) {

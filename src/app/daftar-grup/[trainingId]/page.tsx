@@ -127,7 +127,17 @@ function FileUpload({ value, onChange, error }: { value: File | null; onChange: 
 }
 
 // ── Success Screen ────────────────────────────────────────────────────────────
-function SuccessScreen({ training, participantCount, accent }: { training: TrainingItem; participantCount: number; accent: string }) {
+function SuccessScreen({
+  training,
+  participantCount,
+  accent,
+  taxInvoiceRequested = false,
+}: {
+  training: TrainingItem;
+  participantCount: number;
+  accent: string;
+  taxInvoiceRequested?: boolean;
+}) {
   return (
     <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }}
       transition={{ type: "spring", stiffness: 260, damping: 24 }}
@@ -146,13 +156,23 @@ function SuccessScreen({ training, participantCount, accent }: { training: Train
       <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.35 }}>
         <div className="flex items-center justify-center gap-2 mb-3">
           <Sparkles size={14} style={{ color: accent }} />
-          <span className="text-[0.7rem] font-bold tracking-[0.15em] uppercase" style={{ color: accent }}>Pendaftaran Grup Berhasil</span>
+          <span className="text-[0.7rem] font-bold tracking-[0.15em] uppercase" style={{ color: accent }}>
+            {taxInvoiceRequested ? "Request Faktur Pajak Grup Terkirim" : "Pendaftaran Grup Berhasil"}
+          </span>
         </div>
         <h2 className="text-[1.7rem] font-extrabold tracking-tight leading-tight mb-3 text-dark">Terima kasih!</h2>
         <p className="text-dark/50 text-[0.9rem] leading-[1.8] mb-1">Pendaftaran grup <strong>{participantCount} peserta</strong> untuk</p>
         <p className="font-bold text-dark text-[0.95rem] mb-6">{training.title}</p>
         <p className="text-dark/45 text-[0.85rem] leading-[1.8]">
-          Tim GRCC akan menghubungi PIC melalui email atau WhatsApp dalam <strong>1×24 jam</strong> untuk konfirmasi dan informasi selanjutnya.
+          {taxInvoiceRequested ? (
+            <>
+              Tim GRCC akan menghubungi PIC melalui email atau WhatsApp dalam <strong>1×24 jam</strong> untuk proses administrasi Faktur Pajak dan instruksi pembayaran resmi. Jangan melakukan transfer sebelum menerima arahan resmi.
+            </>
+          ) : (
+            <>
+              Tim GRCC akan menghubungi PIC melalui email atau WhatsApp dalam <strong>1×24 jam</strong> untuk konfirmasi dan informasi selanjutnya.
+            </>
+          )}
         </p>
       </motion.div>
       <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.55 }}
@@ -254,18 +274,31 @@ export default function DaftarGrupPage() {
       : Math.min(appliedPromo.discount_value, subtotal)
     : 0;
   const finalTotal = subtotal - discountAmt;
+  const taxInvoiceRequested = needsTaxInvoice(customData);
 
   // Progress
-  const taxFields = needsTaxInvoice(customData)
+  const taxFields = taxInvoiceRequested
     ? TAX_INVOICE_REQUIRED_KEYS.map((key) => customData[key])
     : [];
-  const totalFields = 6 + taxFields.length + participants.length * 3 + 1;
+  const paymentStepCount = taxInvoiceRequested ? 0 : 1;
+  const totalFields = 6 + taxFields.length + participants.length * 3 + paymentStepCount;
   const filled = [pic.nama_lengkap, pic.instansi, pic.jabatan, pic.email, pic.telepon].filter(Boolean).length
     + participants.reduce((acc, p) => acc + [p.nama, p.jabatan, p.email].filter(Boolean).length, 0)
     + (customData[TAX_INVOICE_KEY] ? 1 : 0)
     + taxFields.filter(Boolean).length
-    + (paymentFile ? 1 : 0);
+    + (!taxInvoiceRequested && paymentFile ? 1 : 0);
   const progress = Math.round((filled / totalFields) * 100);
+
+  useEffect(() => {
+    if (taxInvoiceRequested && paymentFile) {
+      setPaymentFile(null);
+      setErrors((prev) => {
+        const next = { ...prev };
+        delete next.payment;
+        return next;
+      });
+    }
+  }, [paymentFile, taxInvoiceRequested]);
 
   // Promo apply
   const applyPromo = async () => {
@@ -295,7 +328,7 @@ export default function DaftarGrupPage() {
     if (!customData[TAX_INVOICE_KEY]) {
       e[TAX_INVOICE_KEY] = "Pilih apakah Anda membutuhkan Faktur Pajak";
     }
-    if (needsTaxInvoice(customData)) {
+    if (taxInvoiceRequested) {
       TAX_INVOICE_REQUIRED_KEYS.forEach((key) => {
         if (!customData[key]?.trim()) {
           e[`tax_${key}`] = key === TAX_INVOICE_CONTACTED_KEY
@@ -319,7 +352,7 @@ export default function DaftarGrupPage() {
     getPublicCustomFields(training?.custom_fields).forEach(cf => {
       if (cf.required && !customData[cf.id]?.trim()) e[`custom_${cf.id}`] = `${cf.label} wajib diisi`;
     });
-    if (!paymentFile) e.payment = "Bukti pembayaran wajib diunggah";
+    if (!taxInvoiceRequested && !paymentFile) e.payment = "Bukti pembayaran wajib diunggah";
     setErrors(e);
     return Object.keys(e).length === 0;
   };
@@ -332,7 +365,7 @@ export default function DaftarGrupPage() {
     try {
       // Upload bukti
       let buktiUrl: string | null = null;
-      if (paymentFile) {
+      if (!taxInvoiceRequested && paymentFile) {
         const ext = paymentFile.name.split(".").pop();
         const filename = `${trainingId}/grup-${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
         const { data: up, error: upErr } = await supabase.storage.from("payment-proofs").upload(filename, paymentFile, { contentType: paymentFile.type });
@@ -349,7 +382,7 @@ export default function DaftarGrupPage() {
         email:               pic.email.trim().toLowerCase(),
         telepon:             pic.telepon.trim(),
         npwp:                pic.npwp.trim() || null,
-        bukti_pembayaran_url: buktiUrl,
+        bukti_pembayaran_url: taxInvoiceRequested ? null : buktiUrl,
         custom_data:         customData,
         status:              "pending",
         is_group:            true,
@@ -382,14 +415,15 @@ export default function DaftarGrupPage() {
           participantCount: participants.length,
           promoCode: appliedPromo?.code ?? undefined,
           finalPrice: subtotal ? finalTotal : undefined,
+          taxInvoiceRequested,
           // Training details for confirmation email
           trainingDate: trainingDateLabel(training),
           trainingTime: trainingTimeLabel(training),
           trainingLocation: training?.location ?? undefined,
           trainingFormat:   training?.format   ?? undefined,
           trainingColor:    training?.color    ?? undefined,
-          vaBank:    training?.va_bank   ?? undefined,
-          vaNumber:  training?.va_number ?? undefined,
+          vaBank:    taxInvoiceRequested ? undefined : training?.va_bank   ?? undefined,
+          vaNumber:  taxInvoiceRequested ? undefined : training?.va_number ?? undefined,
         }),
       }).catch(() => {/* silent */});
 
@@ -421,7 +455,12 @@ export default function DaftarGrupPage() {
       <main className="min-h-screen bg-[#F7F7F5] pt-20">
         {submitted ? (
           <div className="max-w-[1280px] mx-auto px-6 lg:px-16 py-20">
-            <SuccessScreen training={training} participantCount={participants.length} accent={accent} />
+            <SuccessScreen
+              training={training}
+              participantCount={participants.length}
+              accent={accent}
+              taxInvoiceRequested={taxInvoiceRequested}
+            />
           </div>
         ) : (
           <div className="max-w-[1280px] mx-auto px-6 lg:px-16 py-12">
@@ -629,26 +668,56 @@ export default function DaftarGrupPage() {
                   </div>
                 )}
 
-                {/* ── Section: Bukti Pembayaran ── */}
-                <SectionHeader num={String(++sectionNum)} title="Bukti Pembayaran" accent={accent} />
-                <div className="mb-10">
-                  <FileUpload value={paymentFile} onChange={setPaymentFile} error={errors.payment} />
-                  <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
-                    className={`mt-4 flex items-start gap-3 p-4 rounded-xl ${training?.va_number ? "bg-indigo-50 border border-indigo-200" : "bg-amber-50 border border-amber-200"}`}>
-                    <AlertCircle size={15} className={`flex-shrink-0 mt-0.5 ${training?.va_number ? "text-indigo-500" : "text-amber-500"}`} />
-                    {training?.va_number ? (
-                      <div className="text-[0.75rem] text-indigo-800 leading-[1.7]">
-                        <p className="font-bold mb-1">💳 Transfer ke Virtual Account {training.va_bank ?? ""}:</p>
-                        <p className="font-mono text-[1rem] font-extrabold tracking-widest text-indigo-900 my-1">{training.va_number}</p>
-                        <p className="text-indigo-600">a.n. Universitas Airlangga · Upload <strong>1 bukti transfer</strong> untuk seluruh peserta grup.</p>
+                {taxInvoiceRequested ? (
+                  <motion.div
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mb-10 overflow-hidden rounded-2xl border border-amber-200 bg-amber-50 p-5"
+                  >
+                    <motion.div
+                      aria-hidden="true"
+                      className="mb-4 h-1 rounded-full bg-gradient-to-r from-amber-300 via-orange-400 to-amber-300"
+                      animate={{ x: ["-15%", "15%", "-15%"], opacity: [0.45, 1, 0.45] }}
+                      transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
+                    />
+                    <div className="flex items-start gap-3">
+                      <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl bg-white text-amber-600">
+                        <FileText size={18} />
                       </div>
-                    ) : (
-                      <p className="text-[0.75rem] text-amber-700 leading-[1.7]">
-                        <strong>Instruksi pembayaran akan dikirim via email & WhatsApp</strong> setelah pendaftaran dikonfirmasi oleh tim GRCC (1–2 hari kerja). Upload bukti transfer setelah menerima instruksi.
-                      </p>
-                    )}
+                      <div>
+                        <p className="text-[0.78rem] font-extrabold uppercase tracking-[0.12em] text-amber-800">
+                          Pembayaran grup dikunci sementara
+                        </p>
+                        <p className="mt-1 text-[0.82rem] leading-[1.7] text-amber-900/80">
+                          Karena perusahaan membutuhkan Faktur Pajak, instruksi transfer dan upload bukti bayar grup tidak ditampilkan. Request ini akan masuk ke admin, lalu tim GRCC menghubungi PIC untuk administrasi dan instruksi pembayaran resmi.
+                        </p>
+                      </div>
+                    </div>
                   </motion.div>
-                </div>
+                ) : (
+                  <>
+                    {/* ── Section: Bukti Pembayaran ── */}
+                    <SectionHeader num={String(++sectionNum)} title="Bukti Pembayaran" accent={accent} />
+                    <div className="mb-10">
+                      <FileUpload value={paymentFile} onChange={setPaymentFile} error={errors.payment} />
+                      <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
+                        className={`mt-4 flex items-start gap-3 p-4 rounded-xl ${training?.va_number ? "bg-indigo-50 border border-indigo-200" : "bg-amber-50 border border-amber-200"}`}>
+                        <AlertCircle size={15} className={`flex-shrink-0 mt-0.5 ${training?.va_number ? "text-indigo-500" : "text-amber-500"}`} />
+                        {training?.va_number ? (
+                          <div className="text-[0.75rem] text-indigo-800 leading-[1.7]">
+                            <p className="font-bold mb-1">Transfer ke Virtual Account {training.va_bank ?? ""}:</p>
+                            <p className="font-mono text-[1rem] font-extrabold tracking-widest text-indigo-900 my-1">{training.va_number}</p>
+                            <p className="text-indigo-600">a.n. Universitas Airlangga · Upload <strong>1 bukti transfer</strong> untuk seluruh peserta grup.</p>
+                          </div>
+                        ) : (
+                          <p className="text-[0.75rem] text-amber-700 leading-[1.7]">
+                            <strong>Instruksi pembayaran akan dikirim via email & WhatsApp</strong> setelah pendaftaran dikonfirmasi oleh tim GRCC (1–2 hari kerja). Upload bukti transfer setelah menerima instruksi.
+                          </p>
+                        )}
+                      </motion.div>
+                    </div>
+                  </>
+                )}
 
                 {/* Submit */}
                 <motion.button type="submit" disabled={submitting}
@@ -657,7 +726,9 @@ export default function DaftarGrupPage() {
                   style={{ backgroundColor: accent, boxShadow: `0 8px 24px ${accent}40` }}>
                   {submitting
                     ? <><Loader2 size={18} className="animate-spin" /> Mengirim...</>
-                    : <><Users size={18} /> Kirim Pendaftaran Grup ({participants.length} peserta)</>
+                    : taxInvoiceRequested
+                      ? <><FileText size={18} /> Kirim Request Faktur Pajak Grup</>
+                      : <><Users size={18} /> Kirim Pendaftaran Grup ({participants.length} peserta)</>
                   }
                 </motion.button>
                 <p className="text-center text-[0.72rem] text-muted mt-4">

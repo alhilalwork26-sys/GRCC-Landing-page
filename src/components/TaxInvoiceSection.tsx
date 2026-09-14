@@ -82,7 +82,7 @@ export default function TaxInvoiceSection({
   group = false,
 }: Props) {
   const needsInvoice = customData[TAX_INVOICE_KEY] === "Ya";
-  const message = `Halo Tim GRCC, saya membutuhkan Faktur Pajak untuk pendaftaran${group ? " grup" : ""} pelatihan "${trainingTitle}". Mohon bantu arahan dokumen dan alur sebelum saya mengisi form dan melakukan pembayaran.`;
+  const message = `Halo Tim GRCC, saya membutuhkan Faktur Pajak untuk pendaftaran${group ? " grup" : ""} pelatihan "${trainingTitle}". Mohon bantu proses administrasi dan instruksi pembayaran resmi. Saya tidak akan melakukan transfer terlebih dahulu.`;
 
   const clearError = (key: string) => {
     setErrors((prev) => {
@@ -147,7 +147,7 @@ export default function TaxInvoiceSection({
                 Apakah Anda membutuhkan Faktur Pajak?
               </h3>
               <p className="mt-1 max-w-2xl text-[0.78rem] leading-[1.7] text-amber-900/75">
-                <strong>Wajib hubungi Contact Person sebelum mengisi form dan melakukan pembayaran</strong> jika perusahaan membutuhkan Faktur Pajak.
+                Jika memilih <strong>Ya</strong>, sistem akan menonaktifkan instruksi transfer dan upload bukti bayar. Tim GRCC akan mengirim instruksi pembayaran resmi setelah proses Faktur Pajak.
               </p>
             </div>
           </div>
@@ -185,7 +185,7 @@ export default function TaxInvoiceSection({
                     {value === "Ya" ? "Ya, butuh Faktur Pajak" : "Tidak butuh Faktur Pajak"}
                   </span>
                   <span className="mt-0.5 block text-[0.7rem] font-semibold text-muted">
-                    {value === "Ya" ? "Isi data pajak dan konfirmasi admin" : "Lanjut isi formulir seperti biasa"}
+                    {value === "Ya" ? "Pembayaran website dikunci dahulu" : "Lanjut isi formulir dan pembayaran"}
                   </span>
                 </span>
                 <span
@@ -285,10 +285,10 @@ export default function TaxInvoiceSection({
                   </span>
                   <span>
                     <span className="block text-[0.78rem] font-extrabold text-dark">
-                      Saya sudah menghubungi Contact Person GRCC sebelum melanjutkan pembayaran.
+                      Saya paham untuk tidak melakukan transfer sebelum menerima instruksi pembayaran resmi dari GRCC.
                     </span>
                     <span className="mt-0.5 block text-[0.7rem] leading-relaxed text-muted">
-                      Ini wajib agar dokumen Faktur Pajak dapat diproses benar oleh tim finance.
+                      Request tetap masuk ke admin agar tim finance dapat memproses Faktur Pajak terlebih dahulu.
                     </span>
                     {errors[`tax_${TAX_INVOICE_CONTACTED_KEY}`] && (
                       <span className="mt-1.5 flex items-center gap-1.5 text-[0.7rem] text-red-500">
