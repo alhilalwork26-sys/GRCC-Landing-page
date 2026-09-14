@@ -422,15 +422,6 @@ export default function TrainingDetailPage() {
                         <div className="flex-1 min-w-0 pt-0.5">
                           <p className="text-[0.88rem] leading-[1.75] text-dark/70">{obj}</p>
                         </div>
-                        <motion.div
-                          initial={{ scale: 0 }}
-                          whileInView={{ scale: 1 }}
-                          viewport={{ once: true }}
-                          transition={{ delay: i * 0.08 + 0.3, type: "spring", stiffness: 300 }}
-                          className="flex-shrink-0 mt-0.5"
-                        >
-                          <CheckCircle2 size={15} style={{ color: c + "80" }} />
-                        </motion.div>
                       </motion.div>
                     ))}
                   </div>
