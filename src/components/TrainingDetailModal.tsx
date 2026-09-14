@@ -223,24 +223,46 @@ export default function TrainingDetailModal({ training, accent = "#4F46E5", onCl
                   {/* Target Audience */}
                   {audienceLines.length > 0 && (
                     <Section icon={<UserCheck size={14} />} label={audienceSection.title} accent={training.color}>
-                      <div className="flex flex-wrap gap-2">
-                        {audienceLines.map((aud, i) => (
-                          <motion.span
-                            key={i}
-                            initial={{ opacity: 0, scale: 0.9 }}
-                            animate={{ opacity: 1, scale: 1 }}
-                            transition={{ delay: i * 0.05 }}
-                            className="text-[0.78rem] font-semibold px-3 py-1.5 rounded-full border"
-                            style={{
-                              borderColor: training.color + "40",
-                              backgroundColor: training.color + "0D",
-                              color: training.color,
-                            }}
-                          >
-                            {aud}
-                          </motion.span>
-                        ))}
-                      </div>
+                      {audienceLines.some((a) => a.length > 70) ? (
+                        // Kalimat panjang (mis. syarat sertifikasi) — daftar checklist, bukan chip pendek.
+                        <ul className="flex flex-col gap-2">
+                          {audienceLines.map((aud, i) => (
+                            <motion.li
+                              key={i}
+                              initial={{ opacity: 0, x: -8 }}
+                              animate={{ opacity: 1, x: 0 }}
+                              transition={{ delay: i * 0.06, duration: 0.3 }}
+                              className="flex items-start gap-2.5 text-[0.84rem] text-dark/70 leading-[1.7]"
+                            >
+                              <CheckCircle2
+                                size={14}
+                                className="flex-shrink-0 mt-[3px]"
+                                style={{ color: training.color }}
+                              />
+                              {aud}
+                            </motion.li>
+                          ))}
+                        </ul>
+                      ) : (
+                        <div className="flex flex-wrap gap-2">
+                          {audienceLines.map((aud, i) => (
+                            <motion.span
+                              key={i}
+                              initial={{ opacity: 0, scale: 0.9 }}
+                              animate={{ opacity: 1, scale: 1 }}
+                              transition={{ delay: i * 0.05 }}
+                              className="text-[0.78rem] font-semibold px-3 py-1.5 rounded-full border"
+                              style={{
+                                borderColor: training.color + "40",
+                                backgroundColor: training.color + "0D",
+                                color: training.color,
+                              }}
+                            >
+                              {aud}
+                            </motion.span>
+                          ))}
+                        </div>
+                      )}
                     </Section>
                   )}
 

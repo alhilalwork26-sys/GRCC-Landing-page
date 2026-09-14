@@ -124,6 +124,10 @@ export default function TrainingDetailPage() {
   const audienceSection  = parseTrainingSection(training.target_audience, "Untuk Siapa Program Ini?");
   const objectives    = objectiveSection.items;
   const audience      = audienceSection.items;
+  // Kartu ikon 2-kolom cocok untuk label singkat (mis. "Risk Manager"); kalau
+  // isinya kalimat panjang (mis. syarat sertifikasi), pakai daftar checklist
+  // penuh selebar konten seperti section Tujuan Program.
+  const audienceIsLongForm = audience.some((a) => a.length > 70);
   const trainingFacilitators = getTrainingFacilitators(training.custom_fields).map((facilitator) => ({
     ...facilitator,
     summary: facilitator.summary?.trim()
@@ -456,34 +460,52 @@ export default function TrainingDetailPage() {
                     </div>
                   </div>
 
-                  <div className="px-7 py-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {audience.map((aud, i) => {
-                      const icons = [Briefcase, GraduationCap, Landmark, LineChart, UserCircle2, Award, ShieldCheck, Users];
-                      const Icon = icons[i % icons.length];
-                      return (
+                  {audienceIsLongForm ? (
+                    <div className="px-7 py-6 flex flex-col gap-4">
+                      {audience.map((aud, i) => (
                         <motion.div
                           key={i}
-                          initial={{ opacity: 0, scale: 0.92 }}
-                          whileInView={{ opacity: 1, scale: 1 }}
+                          initial={{ opacity: 0, x: -16 }}
+                          whileInView={{ opacity: 1, x: 0 }}
                           viewport={{ once: true }}
-                          transition={{ duration: 0.4, delay: i * 0.07 }}
-                          whileHover={{ y: -2, boxShadow: `0 6px 20px ${c}18` }}
-                          className="flex items-center gap-3.5 p-4 rounded-xl border transition-all duration-200"
-                          style={{ borderColor: c + "20", backgroundColor: c + "06" }}
+                          transition={{ duration: 0.45, delay: i * 0.08 }}
+                          className="flex items-start gap-4"
                         >
-                          <motion.div
-                            whileHover={{ rotate: 10, scale: 1.1 }}
-                            transition={{ type: "spring", stiffness: 400, damping: 12 }}
-                            className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
-                            style={{ backgroundColor: c + "18" }}
-                          >
-                            <Icon size={17} style={{ color: c }} />
-                          </motion.div>
-                          <p className="text-[0.84rem] font-semibold text-dark/80 leading-snug">{aud}</p>
+                          <CheckCircle2 size={17} style={{ color: c }} className="flex-shrink-0 mt-0.5" />
+                          <p className="flex-1 text-[0.88rem] leading-[1.75] text-dark/70">{aud}</p>
                         </motion.div>
-                      );
-                    })}
-                  </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="px-7 py-6 grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      {audience.map((aud, i) => {
+                        const icons = [Briefcase, GraduationCap, Landmark, LineChart, UserCircle2, Award, ShieldCheck, Users];
+                        const Icon = icons[i % icons.length];
+                        return (
+                          <motion.div
+                            key={i}
+                            initial={{ opacity: 0, scale: 0.92 }}
+                            whileInView={{ opacity: 1, scale: 1 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.4, delay: i * 0.07 }}
+                            whileHover={{ y: -2, boxShadow: `0 6px 20px ${c}18` }}
+                            className="flex items-center gap-3.5 p-4 rounded-xl border transition-all duration-200"
+                            style={{ borderColor: c + "20", backgroundColor: c + "06" }}
+                          >
+                            <motion.div
+                              whileHover={{ rotate: 10, scale: 1.1 }}
+                              transition={{ type: "spring", stiffness: 400, damping: 12 }}
+                              className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                              style={{ backgroundColor: c + "18" }}
+                            >
+                              <Icon size={17} style={{ color: c }} />
+                            </motion.div>
+                            <p className="text-[0.84rem] font-semibold text-dark/80 leading-snug">{aud}</p>
+                          </motion.div>
+                        );
+                      })}
+                    </div>
+                  )}
                 </motion.div>
               )}
 
