@@ -500,22 +500,29 @@ export default function TrainingDetailPage() {
                 </motion.div>
               )}
 
-              {/* VA Payment */}
+              {/* Info Pembayaran — nomor VA sengaja tidak ditampilkan di sini.
+                  Halaman ini publik dan tidak tahu apakah pengunjung butuh Faktur Pajak,
+                  jadi menampilkan VA di sini bisa membuat peserta yang butuh Faktur Pajak
+                  transfer duluan sebelum prosesnya selesai. VA hanya muncul di form
+                  pendaftaran, setelah peserta menjawab pertanyaan Faktur Pajak. */}
               {training.va_number && (
                 <ContentSection icon={<CreditCard size={15} />} label="Informasi Pembayaran" color={c}>
                   <div className="rounded-2xl border p-6 text-center"
                     style={{ borderColor: c + "30", backgroundColor: c + "08" }}>
-                    <p className="text-[0.68rem] font-extrabold tracking-[0.14em] uppercase mb-2" style={{ color: c }}>
-                      Virtual Account {training.va_bank ?? ""}
+                    <CreditCard size={22} style={{ color: c }} className="mx-auto mb-3" />
+                    <p className="text-[0.86rem] font-bold text-dark mb-1.5">
+                      Instruksi pembayaran tersedia di formulir pendaftaran
                     </p>
-                    <p className="font-mono font-extrabold text-[1.6rem] tracking-[0.1em] text-dark my-2">
-                      {training.va_number}
+                    <p className="text-[0.76rem] text-muted leading-[1.7] max-w-sm mx-auto">
+                      Nomor Virtual Account akan ditampilkan setelah Anda mengisi formulir — menyesuaikan apakah Anda membutuhkan Faktur Pajak atau tidak. Jangan transfer sebelum mengisi formulir pendaftaran.
                     </p>
-                    <p className="text-[0.74rem] text-muted">a.n. Universitas Airlangga</p>
-                    <div className="mt-4 pt-4 border-t text-[0.75rem] text-dark/50 leading-[1.8]"
-                      style={{ borderColor: c + "20" }}>
-                      Transfer tepat sesuai nominal. Simpan bukti transfer &amp; upload di halaman pendaftaran.
-                    </div>
+                    <Link
+                      href={`/daftar/${training.id}`}
+                      className="mt-4 inline-flex items-center gap-2 rounded-xl px-5 py-2.5 text-[0.82rem] font-extrabold text-white transition-transform hover:-translate-y-0.5"
+                      style={{ backgroundColor: c }}
+                    >
+                      Isi Form Pendaftaran <ArrowUpRight size={14} />
+                    </Link>
                   </div>
                 </ContentSection>
               )}

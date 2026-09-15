@@ -266,20 +266,21 @@ export default function TrainingDetailModal({ training, accent = "#4F46E5", onCl
                     </Section>
                   )}
 
-                  {/* VA Payment info */}
+                  {/* Info Pembayaran — nomor VA sengaja tidak ditampilkan di preview publik ini
+                      (bisa mendorong peserta yang butuh Faktur Pajak transfer duluan).
+                      VA hanya muncul di form pendaftaran setelah pertanyaan Faktur Pajak dijawab. */}
                   {training.va_number && (
                     <Section icon={<CreditCard size={14} />} label="Pembayaran" accent={training.color}>
                       <div
                         className="rounded-xl border p-4 text-center"
                         style={{ borderColor: training.color + "30", backgroundColor: training.color + "08" }}
                       >
-                        <p className="text-[0.7rem] font-bold tracking-[0.1em] uppercase mb-1" style={{ color: training.color }}>
-                          Virtual Account {training.va_bank ?? ""}
+                        <p className="text-[0.78rem] font-bold text-dark">
+                          Instruksi pembayaran tersedia di formulir pendaftaran
                         </p>
-                        <p className="font-mono font-extrabold text-[1.1rem] tracking-widest text-dark">
-                          {training.va_number}
+                        <p className="text-[0.7rem] text-muted mt-1 leading-relaxed">
+                          Nomor Virtual Account menyesuaikan kebutuhan Faktur Pajak Anda — jangan transfer sebelum mengisi formulir.
                         </p>
-                        <p className="text-[0.7rem] text-muted mt-1">a.n. Universitas Airlangga</p>
                       </div>
                     </Section>
                   )}
