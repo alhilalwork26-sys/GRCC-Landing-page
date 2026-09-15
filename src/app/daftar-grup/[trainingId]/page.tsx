@@ -736,10 +736,21 @@ export default function DaftarGrupPage() {
                         className={`mt-4 flex items-start gap-3 p-4 rounded-xl ${training?.va_number ? "bg-indigo-50 border border-indigo-200" : "bg-amber-50 border border-amber-200"}`}>
                         <AlertCircle size={15} className={`flex-shrink-0 mt-0.5 ${training?.va_number ? "text-indigo-500" : "text-amber-500"}`} />
                         {training?.va_number ? (
-                          <div className="text-[0.75rem] text-indigo-800 leading-[1.7]">
+                          <div className="text-[0.75rem] text-indigo-800 leading-[1.7] w-full">
                             <p className="font-bold mb-1">Transfer ke Virtual Account {training.va_bank ?? ""}:</p>
                             <p className="font-mono text-[1rem] font-extrabold tracking-widest text-indigo-900 my-1">{training.va_number}</p>
                             <p className="text-indigo-600">a.n. Universitas Airlangga · Upload <strong>1 bukti transfer</strong> untuk seluruh peserta grup.</p>
+                            <motion.div
+                              initial={{ opacity: 0, y: -4 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ delay: 0.15 }}
+                              className="mt-3 flex items-start gap-2 rounded-lg border-2 border-red-300 bg-red-50 px-3 py-2.5"
+                            >
+                              <AlertCircle size={14} className="mt-0.5 flex-shrink-0 text-red-600" />
+                              <p className="text-[0.72rem] font-bold leading-snug text-red-700">
+                                VA ini KHUSUS untuk yang TIDAK butuh Faktur Pajak. Jika instansi Anda butuh Faktur Pajak, JANGAN transfer ke nomor ini — scroll ke atas dan pilih &quot;Ya, butuh Faktur Pajak&quot; di bagian Faktur Pajak.
+                              </p>
+                            </motion.div>
                           </div>
                         ) : (
                           <p className="text-[0.75rem] text-amber-700 leading-[1.7]">
