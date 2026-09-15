@@ -11,11 +11,10 @@ import {
   Database, GraduationCap, CircleDollarSign, Trash2,
 } from "lucide-react";
 import {
-  TAX_INVOICE_ADDRESS_KEY,
   TAX_INVOICE_COMPANY_KEY,
   TAX_INVOICE_EMAIL_KEY,
   TAX_INVOICE_KEY,
-  TAX_INVOICE_NPWP_KEY,
+  TAX_INVOICE_NPWP_PHOTO_KEY,
   TAX_INVOICE_PHONE_KEY,
   TAX_INVOICE_PIC_KEY,
   needsTaxInvoice,
@@ -89,6 +88,8 @@ function DetailModal({
 }) {
   const [updating, setUpdating] = useState(false);
   const [proofUrl, setProofUrl] = useState<string | null>(null);
+  const [npwpPhotoUrl, setNpwpPhotoUrl] = useState<string | null>(null);
+  const npwpPhotoPath = reg.custom_data?.[TAX_INVOICE_NPWP_PHOTO_KEY];
 
   useEffect(() => {
     let alive = true;
@@ -109,6 +110,26 @@ function DetailModal({
     resolveProofUrl();
     return () => { alive = false; };
   }, [reg.bukti_pembayaran_url]);
+
+  useEffect(() => {
+    let alive = true;
+    async function resolveNpwpUrl() {
+      if (!npwpPhotoPath) {
+        setNpwpPhotoUrl(null);
+        return;
+      }
+      if (/^https?:\/\//i.test(npwpPhotoPath)) {
+        setNpwpPhotoUrl(npwpPhotoPath);
+        return;
+      }
+      const { data } = await supabase.storage
+        .from("payment-proofs")
+        .createSignedUrl(npwpPhotoPath, 60 * 60);
+      if (alive) setNpwpPhotoUrl(data?.signedUrl ?? null);
+    }
+    resolveNpwpUrl();
+    return () => { alive = false; };
+  }, [npwpPhotoPath]);
 
   const updateStatus = async (status: Registration["status"]) => {
     setUpdating(true);
@@ -138,7 +159,8 @@ function DetailModal({
     { icon: Phone,     label: "Nomor Telepon",    value: reg.telepon },
     { icon: Tag,       label: "NPWP",             value: reg.npwp || "—" },
   ];
-  const visibleCustomEntries = Object.entries(reg.custom_data ?? {});
+  const visibleCustomEntries = Object.entries(reg.custom_data ?? {})
+    .filter(([key]) => key !== TAX_INVOICE_NPWP_PHOTO_KEY);
 
   return (
     <AnimatePresence>
@@ -310,6 +332,53 @@ function DetailModal({
                         </p>
                       </div>
                     )}
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Foto NPWP (hanya untuk request Faktur Pajak) */}
+            {npwpPhotoPath && (
+              <div>
+                <p className="text-[0.65rem] font-bold tracking-[0.12em] uppercase text-muted mb-3">
+                  Foto NPWP
+                </p>
+                <div className="rounded-xl border border-border overflow-hidden">
+                  {npwpPhotoPath.match(/\.(jpg|jpeg|png|webp|gif)$/i) && npwpPhotoUrl ? (
+                    <div className="relative">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img
+                        src={npwpPhotoUrl}
+                        alt="Foto NPWP"
+                        className="w-full max-h-64 object-contain bg-[#F7F7F5]"
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-3 p-4 bg-[#F7F7F5]">
+                      <FileText size={20} className="text-muted" />
+                      <p className="text-[0.82rem] text-dark font-medium flex-1 truncate">
+                        {npwpPhotoPath.split("/").pop()}
+                      </p>
+                    </div>
+                  )}
+                  <div className="flex gap-2 p-3 border-t border-border bg-white">
+                    <a
+                      href={npwpPhotoUrl ?? "#"}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="flex items-center gap-1.5 text-[0.75rem] font-semibold text-dark hover:text-dark/70 transition-colors"
+                    >
+                      <ExternalLink size={13} />
+                      Buka di Tab Baru
+                    </a>
+                    <a
+                      href={npwpPhotoUrl ?? "#"}
+                      download
+                      className="flex items-center gap-1.5 text-[0.75rem] font-semibold text-muted hover:text-dark transition-colors ml-4"
+                    >
+                      <Download size={13} />
+                      Download
+                    </a>
                   </div>
                 </div>
               </div>
@@ -651,12 +720,11 @@ export default function AdminRegistrations() {
       "Status",
       "Sumber Informasi",
       "Butuh Faktur Pajak",
-      "Nama Perusahaan Faktur",
-      "NPWP Perusahaan",
-      "Alamat Perusahaan",
-      "Email Finance",
-      "PIC Finance",
-      "WhatsApp PIC Finance",
+      "Nama PIC",
+      "Nama Instansi",
+      "Email Aktif",
+      "Nomor WA Aktif",
+      "Foto NPWP",
       "Kode Promo",
       "Harga Awal",
       "Diskon",
@@ -678,12 +746,11 @@ export default function AdminRegistrations() {
         STATUS_CONFIG[r.status].label,
         getInfoSource(r),
         getTaxInvoiceStatus(r),
-        r.custom_data?.[TAX_INVOICE_COMPANY_KEY] ?? "",
-        r.custom_data?.[TAX_INVOICE_NPWP_KEY] ?? "",
-        r.custom_data?.[TAX_INVOICE_ADDRESS_KEY] ?? "",
-        r.custom_data?.[TAX_INVOICE_EMAIL_KEY] ?? "",
         r.custom_data?.[TAX_INVOICE_PIC_KEY] ?? "",
+        r.custom_data?.[TAX_INVOICE_COMPANY_KEY] ?? "",
+        r.custom_data?.[TAX_INVOICE_EMAIL_KEY] ?? "",
         r.custom_data?.[TAX_INVOICE_PHONE_KEY] ?? "",
+        r.custom_data?.[TAX_INVOICE_NPWP_PHOTO_KEY] ?? "",
         r.promo_code ?? "",
         r.original_price ?? "",
         r.discount_amount ?? "",

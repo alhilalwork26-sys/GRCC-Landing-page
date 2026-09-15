@@ -12,11 +12,10 @@ import {
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import TaxInvoiceSection from "@/components/TaxInvoiceSection";
+import TaxInvoiceRequestForm from "@/components/TaxInvoiceRequestForm";
 import { supabase, TrainingItem, CustomField, PromoCode } from "@/lib/supabase";
 import { siteConfig, whatsappHref } from "@/lib/site-config";
 import {
-  TAX_INVOICE_CONTACTED_KEY,
-  TAX_INVOICE_EMAIL_KEY,
   TAX_INVOICE_KEY,
   TAX_INVOICE_REQUIRED_KEYS,
   needsTaxInvoice,
@@ -396,25 +395,10 @@ export default function DaftarPage() {
     if (!customData[INFO_SOURCE_KEY]?.trim()) {
       e[INFO_SOURCE_KEY] = "Sumber informasi wajib dipilih";
     }
-    if (!customData[TAX_INVOICE_KEY]) {
-      e[TAX_INVOICE_KEY] = "Pilih apakah Anda membutuhkan Faktur Pajak";
-    }
-    if (taxInvoiceRequested) {
-      TAX_INVOICE_REQUIRED_KEYS.forEach((key) => {
-        if (!customData[key]?.trim()) {
-          e[`tax_${key}`] = key === TAX_INVOICE_CONTACTED_KEY
-            ? "Centang konfirmasi ini sebelum melanjutkan"
-            : "Wajib diisi untuk proses Faktur Pajak";
-        }
-      });
-      if (
-        customData[TAX_INVOICE_EMAIL_KEY]?.trim() &&
-        !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(customData[TAX_INVOICE_EMAIL_KEY])
-      ) {
-        e[`tax_${TAX_INVOICE_EMAIL_KEY}`] = "Format email finance tidak valid";
-      }
-    }
-    if (!taxInvoiceRequested && !paymentFile) e.payment = "Bukti pembayaran wajib diunggah";
+    // Catatan: validasi Faktur Pajak ("Ya") ditangani sepenuhnya oleh
+    // TaxInvoiceRequestForm sendiri — form ini hanya pernah dirender saat
+    // pilihannya "Tidak", jadi bukti pembayaran selalu wajib di sini.
+    if (!paymentFile) e.payment = "Bukti pembayaran wajib diunggah";
     // Custom required fields
     getPublicCustomFields(training?.custom_fields).forEach(cf => {
       if (cf.required && !customData[cf.id]?.trim()) {
@@ -616,8 +600,7 @@ export default function DaftarPage() {
             <div className="grid lg:grid-cols-[1fr_380px] gap-10 items-start">
 
               {/* ── FORM ── */}
-              <motion.form
-                onSubmit={handleSubmit}
+              <motion.div
                 initial={{ opacity: 0, y: 24 }}
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6 }}
@@ -667,11 +650,32 @@ export default function DaftarPage() {
                         Sisa formulir pendaftaran akan terbuka setelah Anda memilih salah satu opsi.
                       </p>
                     </motion.div>
-                  ) : (
+                  ) : taxInvoiceRequested ? (
                     <motion.div
+                      key="tax-gate-request-form"
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.35 }}
+                    >
+                      <TaxInvoiceRequestForm
+                        trainingId={trainingId}
+                        training={training}
+                        accent={accent}
+                        onBack={() => setCustomData((prev) => {
+                          const next = { ...prev };
+                          delete next[TAX_INVOICE_KEY];
+                          return next;
+                        })}
+                      />
+                    </motion.div>
+                  ) : (
+                    <motion.form
+                      onSubmit={handleSubmit}
                       key="tax-gate-content"
                       initial={{ opacity: 0, y: 8 }}
                       animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0 }}
                       transition={{ duration: 0.35 }}
                     >
                       {/* ── Section 1: Data Peserta ── */}
@@ -993,10 +997,10 @@ export default function DaftarPage() {
                       <p className="text-center text-[0.72rem] text-muted mt-4">
                         Dengan mendaftar, Anda menyetujui <a href="#" className="underline hover:text-dark">syarat & ketentuan</a> GRCC.
                       </p>
-                    </motion.div>
+                    </motion.form>
                   )}
                 </AnimatePresence>
-              </motion.form>
+              </motion.div>
 
               {/* ── SIDEBAR: Training Info ── */}
               <div className="lg:sticky lg:top-24 flex flex-col gap-4">
