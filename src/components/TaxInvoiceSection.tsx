@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, AnimatePresence } from "framer-motion";
-import { AlertCircle, CheckCircle2, FileText, Phone } from "lucide-react";
+import { AlertCircle, Check, FileText, Phone } from "lucide-react";
 import type { ChangeEvent, Dispatch, SetStateAction } from "react";
 import { whatsappHref } from "@/lib/site-config";
 import {
@@ -27,10 +27,10 @@ type Props = {
 };
 
 const fieldCls = (error?: string) =>
-  `w-full rounded-xl border bg-white px-4 py-3 text-[0.84rem] outline-none transition-all placeholder:text-dark/25 focus:ring-2 ${
+  `w-full rounded-xl border bg-[#FAFAFA] px-4 py-3 text-[0.84rem] outline-none transition-all placeholder:text-dark/25 focus:bg-white focus:ring-2 ${
     error
       ? "border-red-300 focus:border-red-400 focus:ring-red-100"
-      : "border-black/[0.1] focus:border-[#4F46E5] focus:ring-[#4F46E5]/10"
+      : "border-black/[0.08] focus:border-black/20 focus:ring-black/[0.04]"
   }`;
 
 const fields = [
@@ -114,88 +114,96 @@ export default function TaxInvoiceSection({
     clearError(key);
   };
 
+  const confirmed = customData[TAX_INVOICE_CONTACTED_KEY] === "Ya";
+  const confirmError = errors[`tax_${TAX_INVOICE_CONTACTED_KEY}`];
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 16 }}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-40px" }}
-      transition={{ duration: 0.45 }}
+      transition={{ duration: 0.5, ease: [0.4, 0, 0.2, 1] }}
       className="mb-10"
     >
       <div
-        className="relative overflow-hidden rounded-2xl border border-amber-200 bg-gradient-to-br from-amber-50 via-white to-amber-50 p-5"
+        className="rounded-2xl border border-black/[0.08] bg-white p-6"
         data-error={errors[TAX_INVOICE_KEY] ? true : undefined}
       >
-        <motion.div
-          aria-hidden="true"
-          className="absolute inset-x-0 top-0 h-1"
-          style={{ background: `linear-gradient(90deg, #f59e0b, ${accent}, #f59e0b)` }}
-          animate={{ opacity: [0.35, 0.9, 0.35] }}
-          transition={{ duration: 2.2, repeat: Infinity, ease: "easeInOut" }}
-        />
-
-        <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
-          <div className="flex gap-3">
-            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl border border-amber-200 bg-white">
-              <FileText size={17} className="text-amber-600" />
-            </div>
+        {/* Header */}
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="flex gap-3.5">
+            <motion.div
+              whileHover={{ scale: 1.06, rotate: 4 }}
+              transition={{ type: "spring", stiffness: 400, damping: 15 }}
+              className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl"
+              style={{ backgroundColor: accent + "12" }}
+            >
+              <FileText size={17} style={{ color: accent }} />
+            </motion.div>
             <div>
-              <p className="text-[0.7rem] font-extrabold uppercase tracking-[0.15em] text-amber-700">
+              <p className="text-[0.68rem] font-extrabold uppercase tracking-[0.15em]" style={{ color: accent }}>
                 Faktur Pajak
               </p>
-              <h3 className="mt-1 text-[1rem] font-extrabold leading-snug text-dark">
+              <h3 className="mt-1 text-[0.98rem] font-extrabold leading-snug text-dark">
                 Apakah Anda membutuhkan Faktur Pajak?
               </h3>
-              <p className="mt-1 max-w-2xl text-[0.78rem] leading-[1.7] text-amber-900/75">
-                Jika memilih <strong>Ya</strong>, sistem akan menonaktifkan instruksi transfer dan upload bukti bayar. Tim GRCC akan mengirim instruksi pembayaran resmi setelah proses Faktur Pajak.
+              <p className="mt-1 max-w-xl text-[0.78rem] leading-[1.7] text-muted">
+                Jika memilih <strong className="text-dark/70">Ya</strong>, instruksi transfer &amp; upload bukti bayar dinonaktifkan sementara — tim GRCC akan mengirim instruksi pembayaran resmi setelah proses Faktur Pajak.
               </p>
             </div>
           </div>
 
-          <a
+          <motion.a
             href={whatsappHref(message)}
             target="_blank"
             rel="noreferrer"
-            className="inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-[0.8rem] font-extrabold text-white shadow-sm transition-transform hover:-translate-y-0.5"
+            whileHover={{ y: -1 }}
+            whileTap={{ scale: 0.98 }}
+            className="inline-flex flex-shrink-0 items-center justify-center gap-2 rounded-xl px-4 py-2.5 text-[0.8rem] font-extrabold text-white shadow-sm"
             style={{ backgroundColor: accent }}
           >
             <Phone size={14} /> Hubungi Admin
-          </a>
+          </motion.a>
         </div>
 
-        <div className="mt-5 grid gap-3 sm:grid-cols-2">
+        {/* Segmented toggle */}
+        <div className="mt-5 grid gap-2 sm:grid-cols-2">
           {(["Tidak", "Ya"] as const).map((value) => {
             const active = customData[TAX_INVOICE_KEY] === value;
             return (
               <motion.button
                 key={value}
                 type="button"
-                whileHover={{ y: -1 }}
                 whileTap={{ scale: 0.985 }}
                 onClick={() => choose(value)}
-                className={`flex items-center justify-between rounded-2xl border px-4 py-3 text-left transition-all ${
-                  active ? "bg-white shadow-sm" : "bg-white/65 hover:bg-white"
-                }`}
-                style={{
-                  borderColor: active ? accent : "rgba(0,0,0,0.1)",
-                }}
+                className="relative overflow-hidden rounded-2xl border px-4 py-3.5 text-left transition-colors"
+                style={{ borderColor: active ? accent : "rgba(0,0,0,0.08)" }}
               >
-                <span>
-                  <span className="block text-[0.86rem] font-extrabold text-dark">
-                    {value === "Ya" ? "Ya, butuh Faktur Pajak" : "Tidak butuh Faktur Pajak"}
+                {active && (
+                  <motion.div
+                    layoutId="tax-toggle-bg"
+                    transition={{ type: "spring", stiffness: 420, damping: 34 }}
+                    className="absolute inset-0"
+                    style={{ backgroundColor: accent + "0A" }}
+                  />
+                )}
+                <span className="relative flex items-center justify-between gap-3">
+                  <span>
+                    <span className={`block text-[0.85rem] font-extrabold ${active ? "text-dark" : "text-dark/60"}`}>
+                      {value === "Ya" ? "Ya, butuh Faktur Pajak" : "Tidak butuh Faktur Pajak"}
+                    </span>
+                    <span className={`mt-0.5 block text-[0.7rem] font-semibold ${active ? "text-muted" : "text-dark/30"}`}>
+                      {value === "Ya" ? "Pembayaran website dikunci dahulu" : "Lanjut isi formulir dan pembayaran"}
+                    </span>
                   </span>
-                  <span className="mt-0.5 block text-[0.7rem] font-semibold text-muted">
-                    {value === "Ya" ? "Pembayaran website dikunci dahulu" : "Lanjut isi formulir dan pembayaran"}
-                  </span>
-                </span>
-                <span
-                  className="flex h-6 w-6 items-center justify-center rounded-full border"
-                  style={{
-                    borderColor: active ? accent : "rgba(0,0,0,0.16)",
-                    backgroundColor: active ? accent : "white",
-                  }}
-                >
-                  {active && <CheckCircle2 size={15} className="text-white" />}
+                  <motion.span
+                    animate={{ scale: active ? 1 : 0, opacity: active ? 1 : 0 }}
+                    transition={{ type: "spring", stiffness: 500, damping: 24 }}
+                    className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full"
+                    style={{ backgroundColor: accent }}
+                  >
+                    <Check size={12} className="text-white" strokeWidth={3} />
+                  </motion.span>
                 </span>
               </motion.button>
             );
@@ -218,15 +226,15 @@ export default function TaxInvoiceSection({
         <AnimatePresence>
           {needsInvoice && (
             <motion.div
-              initial={{ opacity: 0, height: 0, y: -10 }}
-              animate={{ opacity: 1, height: "auto", y: 0 }}
-              exit={{ opacity: 0, height: 0, y: -10 }}
-              transition={{ duration: 0.35, ease: [0.4, 0, 0.2, 1] }}
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.4, ease: [0.4, 0, 0.2, 1] }}
               className="overflow-hidden"
             >
-              <div className="mt-5 rounded-2xl border border-amber-200 bg-white p-4">
+              <div className="mt-5 border-t border-black/[0.06] pt-5">
                 <div className="grid gap-4 sm:grid-cols-2">
-                  {fields.map((field) => {
+                  {fields.map((field, i) => {
                     const error = errors[`tax_${field.key}`];
                     const common = {
                       value: customData[field.key] || "",
@@ -238,7 +246,13 @@ export default function TaxInvoiceSection({
                     };
 
                     return (
-                      <div key={field.key} className={field.type === "textarea" ? "sm:col-span-2" : ""}>
+                      <motion.div
+                        key={field.key}
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: i * 0.05, duration: 0.3 }}
+                        className={field.type === "textarea" ? "sm:col-span-2" : ""}
+                      >
                         <label className="mb-1.5 flex items-center gap-1.5 text-[0.75rem] font-bold text-dark/70">
                           {field.label} <span className="text-red-500">*</span>
                         </label>
@@ -247,42 +261,48 @@ export default function TaxInvoiceSection({
                         ) : (
                           <input {...common} type={field.type} />
                         )}
-                        {error && (
-                          <p className="mt-1.5 flex items-center gap-1.5 text-[0.7rem] text-red-500">
-                            <AlertCircle size={10} /> {error}
-                          </p>
-                        )}
-                      </div>
+                        <AnimatePresence>
+                          {error && (
+                            <motion.p
+                              initial={{ opacity: 0, y: -4 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              exit={{ opacity: 0, y: -4 }}
+                              className="mt-1.5 flex items-center gap-1.5 text-[0.7rem] text-red-500"
+                            >
+                              <AlertCircle size={10} /> {error}
+                            </motion.p>
+                          )}
+                        </AnimatePresence>
+                      </motion.div>
                     );
                   })}
                 </div>
 
-                <button
+                <motion.button
                   type="button"
-                  data-error={errors[`tax_${TAX_INVOICE_CONTACTED_KEY}`] ? true : undefined}
-                  onClick={() =>
-                    update(
-                      TAX_INVOICE_CONTACTED_KEY,
-                      customData[TAX_INVOICE_CONTACTED_KEY] === "Ya" ? "" : "Ya"
-                    )
-                  }
-                  className={`mt-4 flex w-full items-start gap-3 rounded-xl border p-3 text-left transition-all ${
-                    customData[TAX_INVOICE_CONTACTED_KEY] === "Ya"
-                      ? "border-emerald-200 bg-emerald-50"
-                      : errors[`tax_${TAX_INVOICE_CONTACTED_KEY}`]
-                        ? "border-red-200 bg-red-50"
-                        : "border-black/[0.1] bg-[#F7F7F5] hover:bg-white"
+                  whileTap={{ scale: 0.99 }}
+                  data-error={confirmError ? true : undefined}
+                  onClick={() => update(TAX_INVOICE_CONTACTED_KEY, confirmed ? "" : "Ya")}
+                  className={`mt-4 flex w-full items-start gap-3 rounded-xl border p-3 text-left transition-colors ${
+                    confirmed
+                      ? "border-emerald-200 bg-emerald-50/60"
+                      : confirmError
+                        ? "border-red-200 bg-red-50/60"
+                        : "border-black/[0.08] bg-[#FAFAFA] hover:bg-white"
                   }`}
                 >
-                  <span
+                  <motion.span
+                    animate={{ backgroundColor: confirmed ? "#10B981" : "#ffffff" }}
                     className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-md border"
-                    style={{
-                      borderColor: customData[TAX_INVOICE_CONTACTED_KEY] === "Ya" ? "#10B981" : "rgba(0,0,0,0.18)",
-                      backgroundColor: customData[TAX_INVOICE_CONTACTED_KEY] === "Ya" ? "#10B981" : "white",
-                    }}
+                    style={{ borderColor: confirmed ? "#10B981" : "rgba(0,0,0,0.16)" }}
                   >
-                    {customData[TAX_INVOICE_CONTACTED_KEY] === "Ya" && <CheckCircle2 size={13} className="text-white" />}
-                  </span>
+                    <motion.span
+                      animate={{ scale: confirmed ? 1 : 0, opacity: confirmed ? 1 : 0 }}
+                      transition={{ type: "spring", stiffness: 500, damping: 24 }}
+                    >
+                      <Check size={13} className="text-white" strokeWidth={3} />
+                    </motion.span>
+                  </motion.span>
                   <span>
                     <span className="block text-[0.78rem] font-extrabold text-dark">
                       Saya paham untuk tidak melakukan transfer sebelum menerima instruksi pembayaran resmi dari GRCC.
@@ -290,13 +310,20 @@ export default function TaxInvoiceSection({
                     <span className="mt-0.5 block text-[0.7rem] leading-relaxed text-muted">
                       Request tetap masuk ke admin agar tim finance dapat memproses Faktur Pajak terlebih dahulu.
                     </span>
-                    {errors[`tax_${TAX_INVOICE_CONTACTED_KEY}`] && (
-                      <span className="mt-1.5 flex items-center gap-1.5 text-[0.7rem] text-red-500">
-                        <AlertCircle size={10} /> {errors[`tax_${TAX_INVOICE_CONTACTED_KEY}`]}
-                      </span>
-                    )}
+                    <AnimatePresence>
+                      {confirmError && (
+                        <motion.span
+                          initial={{ opacity: 0, y: -4 }}
+                          animate={{ opacity: 1, y: 0 }}
+                          exit={{ opacity: 0, y: -4 }}
+                          className="mt-1.5 flex items-center gap-1.5 text-[0.7rem] text-red-500"
+                        >
+                          <AlertCircle size={10} /> {confirmError}
+                        </motion.span>
+                      )}
+                    </AnimatePresence>
                   </span>
-                </button>
+                </motion.button>
               </div>
             </motion.div>
           )}
