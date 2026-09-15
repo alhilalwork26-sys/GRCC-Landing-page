@@ -275,6 +275,7 @@ export default function DaftarGrupPage() {
     : 0;
   const finalTotal = subtotal - discountAmt;
   const taxInvoiceRequested = needsTaxInvoice(customData);
+  const taxAnswered = Boolean(customData[TAX_INVOICE_KEY]);
 
   // Progress
   const taxFields = taxInvoiceRequested
@@ -507,8 +508,33 @@ export default function DaftarGrupPage() {
                   group
                 />
 
-                {/* ── Section 1: Data PIC ── */}
-                <SectionHeader num="1" title="Data PIC / Koordinator" accent={accent} />
+                <AnimatePresence mode="wait">
+                  {!taxAnswered ? (
+                    <motion.div
+                      key="tax-gate-placeholder"
+                      initial={{ opacity: 0 }}
+                      animate={{ opacity: 1 }}
+                      exit={{ opacity: 0 }}
+                      transition={{ duration: 0.25 }}
+                      className="flex flex-col items-center gap-2 rounded-2xl border border-dashed border-black/[0.1] py-14 text-center"
+                    >
+                      <FileText size={22} className="text-dark/20" />
+                      <p className="text-[0.85rem] font-bold text-dark/50">
+                        Jawab pertanyaan Faktur Pajak di atas dulu, ya
+                      </p>
+                      <p className="max-w-xs text-[0.76rem] text-muted">
+                        Sisa formulir pendaftaran grup akan terbuka setelah Anda memilih salah satu opsi.
+                      </p>
+                    </motion.div>
+                  ) : (
+                    <motion.div
+                      key="tax-gate-content"
+                      initial={{ opacity: 0, y: 8 }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ duration: 0.35 }}
+                    >
+                      {/* ── Section 1: Data PIC ── */}
+                      <SectionHeader num="1" title="Data PIC / Koordinator" accent={accent} />
                 <div className="grid sm:grid-cols-2 gap-5 mb-10">
                   <div className="sm:col-span-2">
                     <FormField label="Nama Lengkap PIC" required error={errors.pic_nama_lengkap} icon={<User size={13} />}>
@@ -731,9 +757,12 @@ export default function DaftarGrupPage() {
                       : <><Users size={18} /> Kirim Pendaftaran Grup ({participants.length} peserta)</>
                   }
                 </motion.button>
-                <p className="text-center text-[0.72rem] text-muted mt-4">
-                  Dengan mendaftar, Anda menyetujui <a href="#" className="underline hover:text-dark">syarat & ketentuan</a> GRCC.
-                </p>
+                      <p className="text-center text-[0.72rem] text-muted mt-4">
+                        Dengan mendaftar, Anda menyetujui <a href="#" className="underline hover:text-dark">syarat & ketentuan</a> GRCC.
+                      </p>
+                    </motion.div>
+                  )}
+                </AnimatePresence>
               </motion.form>
 
               {/* ── SIDEBAR ── */}
