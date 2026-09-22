@@ -23,6 +23,8 @@ import {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 const INFO_SOURCE_KEY = "sumber_informasi";
+const PRICE_TIER_KEY = "varian_harga_dipilih";
+const SCHEDULE_KEY = "jadwal_dipilih";
 
 const STATUS_CONFIG = {
   pending:   { label: "Menunggu",      color: "#F59E0B", bg: "#FEF3C7", icon: Clock         },
@@ -53,6 +55,8 @@ function StatusBadge({ status }: { status: Registration["status"] }) {
 
 function customDataLabel(key: string, training?: TrainingItem) {
   if (key === INFO_SOURCE_KEY) return "Sumber Informasi";
+  if (key === PRICE_TIER_KEY) return "Varian Harga Dipilih";
+  if (key === SCHEDULE_KEY) return "Jadwal Dipilih";
   const taxLabel = taxInvoiceLabel(key);
   if (taxLabel) return taxLabel;
   const cf = training?.custom_fields?.find((f) => f.id === key);
@@ -719,6 +723,8 @@ export default function AdminRegistrations() {
       "Jumlah Peserta",
       "Status",
       "Sumber Informasi",
+      "Varian Harga Dipilih",
+      "Jadwal Dipilih",
       "Butuh Faktur Pajak",
       "Nama PIC",
       "Nama Instansi",
@@ -745,6 +751,8 @@ export default function AdminRegistrations() {
         r.participant_count || 1,
         STATUS_CONFIG[r.status].label,
         getInfoSource(r),
+        r.custom_data?.[PRICE_TIER_KEY] ?? "",
+        r.custom_data?.[SCHEDULE_KEY] ?? "",
         getTaxInvoiceStatus(r),
         r.custom_data?.[TAX_INVOICE_PIC_KEY] ?? "",
         r.custom_data?.[TAX_INVOICE_COMPANY_KEY] ?? "",

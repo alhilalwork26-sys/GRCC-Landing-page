@@ -200,6 +200,14 @@ export default function DaftarGrupPage() {
   const [submitting, setSubmitting] = useState(false);
   const [submitted,  setSubmitted]  = useState(false);
 
+  // Pilihan Varian Harga & Jadwal (independen — jadwal tidak memengaruhi harga)
+  const [selectedTierId, setSelectedTierId] = useState<string | null>(null);
+  const [selectedSessionIdx, setSelectedSessionIdx] = useState<number | null>(null);
+  const hasPriceTiers = (training?.price_tiers?.length ?? 0) > 0;
+  const hasScheduleChoice = (training?.sessions?.length ?? 0) > 1;
+  const selectedTier = training?.price_tiers?.find(t => t.id === selectedTierId) ?? null;
+  const selectedSession = selectedSessionIdx != null ? training?.sessions?.[selectedSessionIdx] ?? null : null;
+
   // PIC form
   const [pic, setPic] = useState({ nama_lengkap: "", instansi: "", jabatan: "", email: "", telepon: "", npwp: "" });
   const setPicField = (k: keyof typeof pic) => (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -265,7 +273,12 @@ export default function DaftarGrupPage() {
     const d = label.replace(/[^\d]/g, "");
     return d ? parseInt(d, 10) : 0;
   };
-  const unitPrice  = training?.price ?? parseLabelPrice(training?.price_label);
+  const unitPrice  = hasPriceTiers
+    ? (selectedTier?.price ?? 0)
+    : (training?.price ?? parseLabelPrice(training?.price_label));
+  const effectivePriceLabel = hasPriceTiers
+    ? (selectedTier ? (selectedTier.price_label || (selectedTier.price ? formatRp(selectedTier.price) : "")) : "")
+    : (training?.price_label ?? "");
   const subtotal   = unitPrice * participants.length;
   const discountAmt = appliedPromo && subtotal > 0
     ? appliedPromo.discount_type === "percentage"
@@ -325,6 +338,8 @@ export default function DaftarGrupPage() {
     if (!pic.email.trim())        e.pic_email        = "Wajib diisi";
     else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(pic.email)) e.pic_email = "Format email tidak valid";
     if (!pic.telepon.trim())      e.pic_telepon      = "Wajib diisi";
+    if (hasPriceTiers && !selectedTierId) e.price_tier = "Pilih varian harga terlebih dahulu";
+    if (hasScheduleChoice && selectedSessionIdx == null) e.schedule = "Pilih jadwal terlebih dahulu";
     // Catatan: validasi Faktur Pajak ("Ya") ditangani sepenuhnya oleh
     // TaxInvoiceRequestForm sendiri — form ini hanya pernah dirender saat
     // pilihannya "Tidak".
@@ -359,6 +374,14 @@ export default function DaftarGrupPage() {
       }
 
       // Insert registration
+      const finalCustomData: Record<string, string> = { ...customData };
+      if (selectedTier) {
+        const tierLabel = selectedTier.label?.trim() || selectedTier.note?.trim() || "Varian Harga";
+        finalCustomData["varian_harga_dipilih"] = `${tierLabel} — ${selectedTier.price ? formatRp(selectedTier.price) : selectedTier.price_label}`;
+      }
+      if (selectedSession) {
+        finalCustomData["jadwal_dipilih"] = `${selectedSession.day}, ${selectedSession.date}${selectedSession.times.length ? ` (${selectedSession.times.join(", ")})` : ""}`;
+      }
       const { error: insertErr } = await supabase.from("registrations").insert({
         training_id:         trainingId,
         nama_lengkap:        pic.nama_lengkap.trim(),
@@ -368,7 +391,7 @@ export default function DaftarGrupPage() {
         telepon:             pic.telepon.trim(),
         npwp:                pic.npwp.trim() || null,
         bukti_pembayaran_url: taxInvoiceRequested ? null : buktiUrl,
-        custom_data:         customData,
+        custom_data:         finalCustomData,
         status:              "pending",
         is_group:            true,
         participant_count:   participants.length,
@@ -402,8 +425,8 @@ export default function DaftarGrupPage() {
           finalPrice: subtotal ? finalTotal : undefined,
           taxInvoiceRequested,
           // Training details for confirmation email
-          trainingDate: trainingDateLabel(training),
-          trainingTime: trainingTimeLabel(training),
+          trainingDate: selectedSession ? `${selectedSession.day}, ${selectedSession.date}` : trainingDateLabel(training),
+          trainingTime: selectedSession ? selectedSession.times.join(", ") : trainingTimeLabel(training),
           trainingLocation: training?.location ?? undefined,
           trainingFormat:   training?.format   ?? undefined,
           trainingColor:    training?.color    ?? undefined,
@@ -539,6 +562,107 @@ export default function DaftarGrupPage() {
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.35 }}
                     >
+                      {(hasScheduleChoice || hasPriceTiers) && (
+                        <div className="mb-10 rounded-2xl border border-black/[0.08] bg-white p-6 flex flex-col gap-6">
+                          {hasScheduleChoice && (
+                            <div>
+                              <p className="text-[0.68rem] font-extrabold uppercase tracking-[0.15em] mb-1" style={{ color: accent }}>Pilih Jadwal</p>
+                              <h3 className="text-[0.95rem] font-extrabold text-dark mb-3">Jadwal mana yang ingin diikuti grup Anda?</h3>
+                              <div className="grid gap-2 sm:grid-cols-2">
+                                {training!.sessions!.map((s, i) => {
+                                  const active = selectedSessionIdx === i;
+                                  return (
+                                    <motion.button
+                                      key={i}
+                                      type="button"
+                                      whileTap={{ scale: 0.985 }}
+                                      data-error={errors.schedule ? true : undefined}
+                                      onClick={() => { setSelectedSessionIdx(i); setErrors(er => ({ ...er, schedule: "" })); }}
+                                      className="relative overflow-hidden rounded-xl border px-4 py-3 text-left transition-colors"
+                                      style={{ borderColor: active ? accent : (errors.schedule ? "#fca5a5" : "rgba(0,0,0,0.08)") }}
+                                    >
+                                      {active && (
+                                        <motion.div layoutId="schedule-toggle-bg-grup" transition={{ type: "spring", stiffness: 420, damping: 34 }}
+                                          className="absolute inset-0" style={{ backgroundColor: accent + "0A" }} />
+                                      )}
+                                      <span className="relative flex items-center justify-between gap-3">
+                                        <span>
+                                          <span className="block text-[0.85rem] font-extrabold text-dark">{s.day}, {s.date}</span>
+                                          <span className="mt-0.5 block text-[0.7rem] font-semibold text-muted">{s.times.join(" · ")}</span>
+                                        </span>
+                                        <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full"
+                                          style={{ backgroundColor: active ? accent : "transparent", border: active ? "none" : "1px solid rgba(0,0,0,0.16)" }}>
+                                          {active && <Check size={12} className="text-white" strokeWidth={3} />}
+                                        </span>
+                                      </span>
+                                    </motion.button>
+                                  );
+                                })}
+                              </div>
+                              <AnimatePresence>
+                                {errors.schedule && (
+                                  <motion.p initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }}
+                                    className="mt-2 flex items-center gap-1.5 text-[0.72rem] text-red-500">
+                                    <AlertCircle size={11} /> {errors.schedule}
+                                  </motion.p>
+                                )}
+                              </AnimatePresence>
+                            </div>
+                          )}
+
+                          {hasPriceTiers && (
+                            <div>
+                              <p className="text-[0.68rem] font-extrabold uppercase tracking-[0.15em] mb-1" style={{ color: accent }}>Pilih Varian Harga</p>
+                              <h3 className="text-[0.95rem] font-extrabold text-dark mb-3">Paket mana yang sesuai kebutuhan grup Anda?</h3>
+                              <div className="grid gap-2 sm:grid-cols-2">
+                                {training!.price_tiers!.map((tier) => {
+                                  const active = selectedTierId === tier.id;
+                                  const tierTitle = tier.label?.trim() || tier.note?.trim() || "Varian Harga";
+                                  const tierSubNote = tier.label?.trim() ? tier.note : null;
+                                  return (
+                                    <motion.button
+                                      key={tier.id}
+                                      type="button"
+                                      whileTap={{ scale: 0.985 }}
+                                      data-error={errors.price_tier ? true : undefined}
+                                      onClick={() => { setSelectedTierId(tier.id); setErrors(er => ({ ...er, price_tier: "" })); }}
+                                      className="relative overflow-hidden rounded-xl border px-4 py-3 text-left transition-colors"
+                                      style={{ borderColor: active ? accent : (errors.price_tier ? "#fca5a5" : "rgba(0,0,0,0.08)") }}
+                                    >
+                                      {active && (
+                                        <motion.div layoutId="tier-toggle-bg-grup" transition={{ type: "spring", stiffness: 420, damping: 34 }}
+                                          className="absolute inset-0" style={{ backgroundColor: accent + "0A" }} />
+                                      )}
+                                      <span className="relative flex items-center justify-between gap-3">
+                                        <span>
+                                          <span className="block text-[0.85rem] font-extrabold text-dark">{tierTitle}</span>
+                                          <span className="mt-0.5 block text-[0.82rem] font-extrabold" style={{ color: accent }}>
+                                            {tier.price ? formatRp(tier.price) : tier.price_label} <span className="font-semibold text-muted">/ peserta</span>
+                                          </span>
+                                          {tierSubNote && <span className="mt-0.5 block text-[0.68rem] text-muted">{tierSubNote}</span>}
+                                        </span>
+                                        <span className="mt-0.5 flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full"
+                                          style={{ backgroundColor: active ? accent : "transparent", border: active ? "none" : "1px solid rgba(0,0,0,0.16)" }}>
+                                          {active && <Check size={12} className="text-white" strokeWidth={3} />}
+                                        </span>
+                                      </span>
+                                    </motion.button>
+                                  );
+                                })}
+                              </div>
+                              <AnimatePresence>
+                                {errors.price_tier && (
+                                  <motion.p initial={{ opacity: 0, y: -4 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -4 }}
+                                    className="mt-2 flex items-center gap-1.5 text-[0.72rem] text-red-500">
+                                    <AlertCircle size={11} /> {errors.price_tier}
+                                  </motion.p>
+                                )}
+                              </AnimatePresence>
+                            </div>
+                          )}
+                        </div>
+                      )}
+
                       {/* ── Section 1: Data PIC ── */}
                       <SectionHeader num="1" title="Data PIC / Koordinator" accent={accent} />
                 <div className="grid sm:grid-cols-2 gap-5 mb-10">
@@ -649,7 +773,7 @@ export default function DaftarGrupPage() {
                 )}
 
                 {/* ── Section: Kode Promo ── */}
-                {unitPrice > 0 && (
+                {(unitPrice > 0 || hasPriceTiers) && (
                   <div className="mb-10">
                     <SectionHeader num={String(++sectionNum)} title="Kode Promo" accent={accent} />
                     {appliedPromo ? (
@@ -830,14 +954,16 @@ export default function DaftarGrupPage() {
                 </motion.div>
 
                 {/* Price summary */}
-                {unitPrice > 0 && (
+                {(unitPrice > 0 || hasPriceTiers) && (
                   <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}
                     className="bg-white rounded-2xl border border-black/[0.07] p-5" style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.04)" }}>
                     <p className="text-[0.68rem] font-bold tracking-[0.12em] uppercase text-muted mb-3">Ringkasan Biaya Grup</p>
                     <div className="flex flex-col gap-2">
                       <div className="flex justify-between text-[0.8rem]">
-                        <span className="text-muted">{training.price_label || formatRp(unitPrice)} × peserta</span>
-                        <span className="font-semibold">{formatRp(unitPrice)}</span>
+                        <span className="text-muted">{hasPriceTiers && selectedTier ? (selectedTier.label?.trim() || selectedTier.note?.trim() || "Varian Harga") : (effectivePriceLabel || formatRp(unitPrice))} × peserta</span>
+                        <span className="font-semibold">
+                          {unitPrice > 0 ? formatRp(unitPrice) : <span className="text-muted italic">Pilih varian harga</span>}
+                        </span>
                       </div>
                       <div className="flex justify-between text-[0.8rem]">
                         <span className="text-muted">Jumlah peserta</span>
@@ -857,7 +983,7 @@ export default function DaftarGrupPage() {
                         <span className="font-extrabold text-[0.9rem]">Total</span>
                         <motion.span key={finalTotal} initial={{ scale: 1.08 }} animate={{ scale: 1 }}
                           className="font-extrabold text-[1.05rem]" style={{ color: accent }}>
-                          {formatRp(finalTotal)}
+                          {unitPrice > 0 ? formatRp(finalTotal) : "—"}
                         </motion.span>
                       </div>
                     </div>
