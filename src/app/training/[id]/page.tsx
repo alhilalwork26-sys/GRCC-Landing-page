@@ -552,13 +552,16 @@ export default function TrainingDetailPage() {
                   )}
 
                   {training.price_tiers && training.price_tiers.length > 0 && (
-                    <div className="mt-4 pt-4 border-t border-border flex flex-col gap-2">
+                    <div className="flex flex-col">
                       {training.price_tiers.map((tier) => (
-                        <div key={tier.id} className="flex items-center justify-between gap-3 text-[0.8rem]">
-                          <span className="text-muted">{tier.label}</span>
-                          <span className="font-bold text-dark">
+                        <div key={tier.id} className="mt-4 pt-4 border-t border-border">
+                          <p className="text-[0.7rem] font-bold tracking-[0.1em] uppercase text-muted mb-1">{tier.label || "Investasi"}</p>
+                          <p className="font-extrabold text-[1.8rem] tracking-tight" style={{ color: c }}>
                             {tier.price ? `Rp ${tier.price.toLocaleString("id-ID")}` : tier.price_label}
-                          </span>
+                          </p>
+                          {tier.note && (
+                            <p className="text-[0.72rem] text-muted mt-0.5">{tier.note}</p>
+                          )}
                         </div>
                       ))}
                     </div>

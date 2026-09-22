@@ -59,6 +59,7 @@ export interface PriceTier {
   label: string;       // "Online" | "Offline" | "Tambahan Sertifikat Cetak" dll — bebas
   price: number | null;
   price_label: string; // teks tampilan, mis. "Rp 2.900.000"
+  note?: string | null; // teks kecil di bawah harga, mis. "2 hari, tanpa penginapan"
 }
 
 export interface TrainingItem {

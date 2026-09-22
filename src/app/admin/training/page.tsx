@@ -793,10 +793,19 @@ export default function AdminTraining() {
                                   placeholder="Rp 2.900.000" className="input text-[0.82rem]"/>
                               </Field>
                             </div>
+                            <Field label="Keterangan Harga" note="Teks kecil di bawah harga">
+                              <input value={tier.note??""}
+                                onChange={e=>{
+                                  const tiers=[...(form.price_tiers??[])];
+                                  tiers[ti]={...tiers[ti],note:e.target.value};
+                                  setForm({...form,price_tiers:tiers});
+                                }}
+                                placeholder="2 Hari Pelatihan Tanpa Workshop, Tanpa Penginapan" className="input text-[0.82rem]"/>
+                            </Field>
                           </div>
                         ))}
                         <button type="button"
-                          onClick={()=>setForm({...form,price_tiers:[...(form.price_tiers??[]),{id:Math.random().toString(36).slice(2),label:"",price:null,price_label:""}]})}
+                          onClick={()=>setForm({...form,price_tiers:[...(form.price_tiers??[]),{id:Math.random().toString(36).slice(2),label:"",price:null,price_label:"",note:""}]})}
                           className="flex items-center justify-center gap-1.5 text-[0.75rem] font-bold border border-dashed border-border rounded-xl py-2.5 text-dark/50 hover:text-dark hover:border-dark/30 transition-all">
                           <Plus size={12}/> Tambah Varian Harga
                         </button>
