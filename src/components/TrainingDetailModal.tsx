@@ -173,24 +173,34 @@ export default function TrainingDetailModal({ training, accent = "#4F46E5", onCl
                   {facilitators.length > 0 && (
                     <Section icon={<Users size={14} />} label="Tim Fasilitator" accent={training.color}>
                       <div className="grid grid-cols-1 gap-2">
-                        {facilitators.map((facilitator) => (
-                          <div key={`${facilitator.name}-${facilitator.role}`} className="flex items-center gap-3 rounded-xl border border-border bg-[#FAFAFA] p-3">
-                            <div className="w-11 h-11 rounded-xl overflow-hidden border border-border bg-white flex-shrink-0">
+                        {facilitators.map((facilitator, i) => (
+                          <motion.div
+                            key={`${facilitator.name}-${facilitator.role}`}
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ duration: 0.35, delay: i * 0.06 }}
+                            whileHover={{ x: 2 }}
+                            className="group relative flex items-center gap-3 rounded-xl border border-border bg-white p-3 overflow-hidden transition-shadow duration-300 hover:shadow-[0_6px_18px_-10px_rgba(0,0,0,0.2)]"
+                          >
+                            <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                              style={{ background: `linear-gradient(120deg, ${training.color}08, transparent 60%)` }} />
+                            <div className="relative w-11 h-11 rounded-xl overflow-hidden bg-white flex-shrink-0 ring-1 ring-border transition-all duration-300 group-hover:ring-2"
+                              style={{ ["--tw-ring-color" as string]: facilitator.img ? undefined : training.color + "40" }}>
                               {facilitator.img ? (
                                 // eslint-disable-next-line @next/next/no-img-element
-                                <img src={facilitator.img} alt={facilitator.name} className="w-full h-full object-cover" />
+                                <img src={facilitator.img} alt={facilitator.name} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
                               ) : (
-                                <div className="w-full h-full flex items-center justify-center text-[0.72rem] font-black" style={{ color: training.color, backgroundColor: training.color + "12" }}>
+                                <div className="w-full h-full flex items-center justify-center text-[0.72rem] font-black" style={{ color: training.color, background: `linear-gradient(135deg, ${training.color}22, ${training.color}0A)` }}>
                                   {facilitator.name.split(/\s+/).slice(0, 2).map((part) => part[0]).join("").toUpperCase() || "GR"}
                                 </div>
                               )}
                             </div>
-                            <div className="min-w-0">
+                            <div className="relative min-w-0">
                               <p className="text-[0.82rem] font-extrabold text-dark leading-tight">{facilitator.name}</p>
                               <p className="text-[0.68rem] text-muted mt-0.5">{facilitator.role}</p>
                               {facilitator.org && <p className="text-[0.64rem] text-muted mt-0.5">{facilitator.org}</p>}
                             </div>
-                          </div>
+                          </motion.div>
                         ))}
                       </div>
                     </Section>

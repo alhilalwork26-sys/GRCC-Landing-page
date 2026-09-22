@@ -342,13 +342,20 @@ export default function TrainingDetailPage() {
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
                         transition={{ duration: 0.45, delay: i * 0.08 }}
-                        className="rounded-2xl border border-border bg-[#FAFAFA] p-4 flex flex-col"
+                        whileHover={{ y: -3 }}
+                        className="group relative rounded-2xl border border-border bg-white p-4 flex flex-col overflow-hidden transition-shadow duration-300 hover:shadow-[0_10px_30px_-12px_rgba(0,0,0,0.15)]"
                       >
-                        <div className="flex items-start gap-3">
-                          <div className="w-14 h-14 rounded-2xl overflow-hidden border border-border bg-white flex-shrink-0">
+                        <div className="pointer-events-none absolute inset-0 opacity-0 transition-opacity duration-300 group-hover:opacity-100"
+                          style={{ background: `linear-gradient(160deg, ${c}08, transparent 55%)` }} />
+                        <div className="pointer-events-none absolute left-0 right-0 top-0 h-[3px] origin-left scale-x-0 transition-transform duration-300 group-hover:scale-x-100"
+                          style={{ backgroundColor: c }} />
+
+                        <div className="relative flex items-start gap-3">
+                          <div className="relative w-14 h-14 rounded-2xl overflow-hidden bg-white flex-shrink-0 ring-1 ring-border transition-all duration-300 group-hover:ring-2"
+                            style={{ ["--tw-ring-color" as string]: speaker.img ? undefined : c + "40" }}>
                             {speaker.img ? (
                               // eslint-disable-next-line @next/next/no-img-element
-                              <img src={speaker.img} alt={speaker.name} className="w-full h-full object-cover" />
+                              <img src={speaker.img} alt={speaker.name} className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" />
                             ) : (
                               <AvatarInitials name={speaker.name} color={c} />
                             )}
@@ -360,12 +367,14 @@ export default function TrainingDetailPage() {
                         </div>
 
                         {speaker.showCv !== false && (
-                          <button
+                          <motion.button
+                            whileTap={{ scale: 0.97 }}
                             onClick={() => setSelectedSpeaker(speaker)}
-                            className="mt-4 flex items-center justify-center gap-2 rounded-xl border border-border bg-white px-3 py-2.5 text-[0.74rem] font-extrabold text-dark/70 hover:text-dark hover:border-dark/20 transition-colors"
+                            className="group/btn relative mt-4 flex items-center justify-center gap-1.5 rounded-xl border border-border bg-white px-3 py-2.5 text-[0.74rem] font-extrabold text-dark/70 transition-colors duration-300 hover:text-white overflow-hidden"
                           >
-                            <Eye size={13} /> Preview CV
-                          </button>
+                            <span className="absolute inset-0 -translate-x-full transition-transform duration-300 group-hover/btn:translate-x-0" style={{ backgroundColor: c }} />
+                            <Eye size={13} className="relative" /> <span className="relative">Preview CV</span>
+                          </motion.button>
                         )}
                       </motion.div>
                     ))}
@@ -1038,7 +1047,7 @@ function AvatarInitials({ name, color }: { name: string; color: string }) {
 
   return (
     <div className="w-full h-full flex items-center justify-center font-black text-[0.82rem]"
-      style={{ backgroundColor: color + "12", color }}>
+      style={{ background: `linear-gradient(135deg, ${color}22, ${color}0A)`, color }}>
       {initials || "GR"}
     </div>
   );
