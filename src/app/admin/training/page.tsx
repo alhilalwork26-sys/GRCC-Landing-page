@@ -754,35 +754,45 @@ export default function AdminTraining() {
 
                     {/* Varian harga tambahan (mis. Online/Offline/biaya tambahan) — tampilan saja, tidak dipakai kalkulasi pendaftaran */}
                     <Field label="Varian Harga (opsional)" note="Untuk info harga berbeda, mis. Online/Offline/tambahan — tampil di halaman training, tidak memengaruhi harga pendaftaran">
-                      <div className="flex flex-col gap-2">
+                      <div className="flex flex-col gap-3">
                         {(form.price_tiers??[]).map((tier, ti) => (
-                          <div key={tier.id} className="flex gap-2 items-center">
-                            <input value={tier.label}
-                              onChange={e=>{
-                                const tiers=[...(form.price_tiers??[])];
-                                tiers[ti]={...tiers[ti],label:e.target.value};
-                                setForm({...form,price_tiers:tiers});
-                              }}
-                              placeholder="Online" className="input flex-1 text-[0.82rem]"/>
-                            <input type="number" value={tier.price??""}
-                              onChange={e=>{
-                                const tiers=[...(form.price_tiers??[])];
-                                tiers[ti]={...tiers[ti],price:+e.target.value||null};
-                                setForm({...form,price_tiers:tiers});
-                              }}
-                              placeholder="2900000" className="input w-[130px] text-[0.82rem]"/>
-                            <input value={tier.price_label}
-                              onChange={e=>{
-                                const tiers=[...(form.price_tiers??[])];
-                                tiers[ti]={...tiers[ti],price_label:e.target.value};
-                                setForm({...form,price_tiers:tiers});
-                              }}
-                              placeholder="Rp 2.900.000" className="input flex-1 text-[0.82rem]"/>
+                          <div key={tier.id} className="relative rounded-xl border border-border bg-[#FAFAFA] p-3.5 flex flex-col gap-3">
                             <button type="button"
                               onClick={()=>setForm({...form,price_tiers:(form.price_tiers??[]).filter((_,i)=>i!==ti)})}
-                              className="w-8 h-9 rounded-lg bg-red-50 hover:bg-red-100 flex items-center justify-center flex-shrink-0 transition-colors">
-                              <X size={12} className="text-red-400"/>
+                              className="absolute top-3 right-3 w-6 h-6 rounded-lg bg-red-50 hover:bg-red-100 flex items-center justify-center flex-shrink-0 transition-colors">
+                              <X size={11} className="text-red-400"/>
                             </button>
+                            <div className="pr-8">
+                              <Field label="Label Varian">
+                                <input value={tier.label}
+                                  onChange={e=>{
+                                    const tiers=[...(form.price_tiers??[])];
+                                    tiers[ti]={...tiers[ti],label:e.target.value};
+                                    setForm({...form,price_tiers:tiers});
+                                  }}
+                                  placeholder="Online" className="input text-[0.82rem]"/>
+                              </Field>
+                            </div>
+                            <div className="grid grid-cols-2 gap-3">
+                              <Field label="Harga (angka)" note="Untuk kalkulasi diskon">
+                                <input type="number" value={tier.price??""}
+                                  onChange={e=>{
+                                    const tiers=[...(form.price_tiers??[])];
+                                    tiers[ti]={...tiers[ti],price:+e.target.value||null};
+                                    setForm({...form,price_tiers:tiers});
+                                  }}
+                                  placeholder="2900000" className="input text-[0.82rem]"/>
+                              </Field>
+                              <Field label="Label Harga" note="Teks di website">
+                                <input value={tier.price_label}
+                                  onChange={e=>{
+                                    const tiers=[...(form.price_tiers??[])];
+                                    tiers[ti]={...tiers[ti],price_label:e.target.value};
+                                    setForm({...form,price_tiers:tiers});
+                                  }}
+                                  placeholder="Rp 2.900.000" className="input text-[0.82rem]"/>
+                              </Field>
+                            </div>
                           </div>
                         ))}
                         <button type="button"
