@@ -13,7 +13,7 @@ import {
 import Navbar from "@/components/Navbar";
 import TaxInvoiceSection from "@/components/TaxInvoiceSection";
 import TaxInvoiceRequestForm from "@/components/TaxInvoiceRequestForm";
-import { supabase, TrainingItem, CustomField, PromoCode, Participant } from "@/lib/supabase";
+import { supabase, TrainingItem, CustomField, PromoCode, Participant, PriceTier } from "@/lib/supabase";
 import { siteConfig, whatsappHref } from "@/lib/site-config";
 import {
   TAX_INVOICE_KEY,
@@ -205,7 +205,12 @@ export default function DaftarGrupPage() {
   const [selectedSessionIdx, setSelectedSessionIdx] = useState<number | null>(null);
   const hasPriceTiers = (training?.price_tiers?.length ?? 0) > 0;
   const hasScheduleChoice = (training?.sessions?.length ?? 0) > 1;
-  const selectedTier = training?.price_tiers?.find(t => t.id === selectedTierId) ?? null;
+  // Harga utama (Investasi) juga jadi salah satu opsi bila ada varian harga lain
+  const baseTier: PriceTier | null = hasPriceTiers && (training?.price || training?.price_label)
+    ? { id: "__base__", label: "", price: training?.price ?? null, price_label: training?.price_label ?? "", note: training?.price_note ?? null }
+    : null;
+  const allTiers: PriceTier[] = baseTier ? [baseTier, ...(training?.price_tiers ?? [])] : (training?.price_tiers ?? []);
+  const selectedTier = allTiers.find(t => t.id === selectedTierId) ?? null;
   const selectedSession = selectedSessionIdx != null ? training?.sessions?.[selectedSessionIdx] ?? null : null;
 
   // PIC form
@@ -615,7 +620,7 @@ export default function DaftarGrupPage() {
                               <p className="text-[0.68rem] font-extrabold uppercase tracking-[0.15em] mb-1" style={{ color: accent }}>Pilih Varian Harga</p>
                               <h3 className="text-[0.95rem] font-extrabold text-dark mb-3">Paket mana yang sesuai kebutuhan grup Anda?</h3>
                               <div className="grid gap-2 sm:grid-cols-2">
-                                {training!.price_tiers!.map((tier) => {
+                                {allTiers.map((tier) => {
                                   const active = selectedTierId === tier.id;
                                   const tierTitle = tier.label?.trim() || tier.note?.trim() || "Varian Harga";
                                   const tierSubNote = tier.label?.trim() ? tier.note : null;
