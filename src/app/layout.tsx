@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { TransitionProvider } from "@/components/TransitionProvider";
 import ChatWidget from "@/components/ChatWidget";
-import { GoogleAnalytics } from "@next/third-parties/google";
+import Analytics from "@/components/Analytics";
 import JsonLd from "@/components/JsonLd";
 import { organizationJsonLd, websiteJsonLd } from "@/lib/seo";
 
@@ -78,7 +78,7 @@ export default function RootLayout({
         <ChatWidget />
       </body>
       {process.env.NEXT_PUBLIC_GA_ID && (
-        <GoogleAnalytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
+        <Analytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
       )}
     </html>
   );
