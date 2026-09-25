@@ -3,6 +3,7 @@ import "./globals.css";
 import { TransitionProvider } from "@/components/TransitionProvider";
 import ChatWidget from "@/components/ChatWidget";
 import Analytics from "@/components/Analytics";
+import BrochureFab from "@/components/BrochureFab";
 import JsonLd from "@/components/JsonLd";
 import { organizationJsonLd, websiteJsonLd } from "@/lib/seo";
 
@@ -76,6 +77,7 @@ export default function RootLayout({
       <body className="font-sans">
         <TransitionProvider>{children}</TransitionProvider>
         <ChatWidget />
+        <BrochureFab />
       </body>
       {process.env.NEXT_PUBLIC_GA_ID && (
         <Analytics gaId={process.env.NEXT_PUBLIC_GA_ID} />
