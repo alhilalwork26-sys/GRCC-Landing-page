@@ -16,6 +16,9 @@ export default function BrochureFab() {
   const pathname = usePathname();
   const [items, setItems] = useState<BrochureItem[]>([]);
   const [open, setOpen] = useState(false);
+  const [teaser, setTeaser] = useState(false);
+  const [hover, setHover] = useState(false);
+  const engaged = useRef(false);
   const wrapRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -33,6 +36,20 @@ export default function BrochureFab() {
     });
     return () => { cancelled = true; };
   }, []);
+
+  const hasItems = items.length > 0;
+  useEffect(() => {
+    if (!hasItems) return;
+    const timers: ReturnType<typeof setTimeout>[] = [];
+    const cycle = () => {
+      if (engaged.current) return;
+      setTeaser(true);
+      timers.push(setTimeout(() => setTeaser(false), 6000));
+      timers.push(setTimeout(cycle, 36000));
+    };
+    timers.push(setTimeout(cycle, 3500));
+    return () => timers.forEach(clearTimeout);
+  }, [hasItems]);
 
   useEffect(() => {
     if (!open) return;
@@ -95,14 +112,34 @@ export default function BrochureFab() {
         )}
       </AnimatePresence>
 
+      <AnimatePresence>
+        {(teaser || hover) && !open && (
+          <motion.div
+            initial={{ opacity: 0, x: 16, scale: 0.85 }}
+            animate={{ opacity: 1, x: 0, scale: 1 }}
+            exit={{ opacity: 0, x: 12, scale: 0.9 }}
+            transition={{ type: "spring", stiffness: 420, damping: 26 }}
+            style={{ transformOrigin: "right center" }}
+            className="pointer-events-none absolute bottom-[0.35rem] right-[3.9rem] w-max max-w-[220px]"
+          >
+            <div className="relative rounded-2xl rounded-br-md border border-black/[0.08] bg-white px-3.5 py-2.5 shadow-[0_14px_34px_-10px_rgba(0,0,0,0.25)]">
+              <p className="text-[0.76rem] font-extrabold leading-snug text-dark">Butuh brosur program?</p>
+              <p className="mt-0.5 text-[0.68rem] leading-snug text-muted">Klik untuk download PDF-nya</p>
+              <span className="absolute -right-1.5 bottom-3 h-3 w-3 rotate-45 border-r border-t border-black/[0.08] bg-white" />
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
       <motion.button
         initial={{ scale: 0, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ type: "spring", stiffness: 380, damping: 22, delay: 0.4 }}
         whileHover={{ scale: 1.08 }}
         whileTap={{ scale: 0.93 }}
-        onClick={() => setOpen((v) => !v)}
-        title="Download Brosur Program"
+        onClick={() => { engaged.current = true; setTeaser(false); setOpen((v) => !v); }}
+        onHoverStart={() => setHover(true)}
+        onHoverEnd={() => setHover(false)}
         aria-label="Download Brosur Program"
         className="flex h-12 w-12 items-center justify-center rounded-full border border-black/[0.08] bg-white text-[#4F46E5] shadow-[0_10px_28px_-8px_rgba(0,0,0,0.25)]"
       >
