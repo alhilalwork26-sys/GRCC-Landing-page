@@ -14,6 +14,7 @@ import {
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ShareTrainingButton from "@/components/ShareTrainingButton";
+import TestimonialCarousel, { CarouselApi } from "@/components/TestimonialCarousel";
 import { supabase, TrainingItem, TrainingSession, TestimonialItem } from "@/lib/supabase";
 import { whatsappHref } from "@/lib/site-config";
 import { parseTrainingSection } from "@/lib/training-sections";
@@ -710,33 +711,46 @@ function TAvatar({ name, src, color }: { name: string; src?: string | null; colo
   );
 }
 
-function TCard({ t, index, color }: { t: TestimonialItem; index: number; color: string }) {
+function TCard({ t, color, api }: { t: TestimonialItem; color: string; api: CarouselApi }) {
+  const [open, setOpen] = useState(false);
+  const long = t.content.length > 240;
+
+  const toggle = () => {
+    api.hold(!open);
+    setOpen(!open);
+  };
+
   return (
     <motion.div
-      initial={{ opacity: 0, y: 28 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-40px" }}
-      transition={{ duration: 0.5, delay: index * 0.1, ease: [0.4, 0, 0.2, 1] }}
       whileHover={{ y: -4, boxShadow: "0 12px 40px rgba(0,0,0,0.09)" }}
-      className="bg-white rounded-2xl border border-black/[0.07] flex flex-col gap-0 overflow-hidden h-full"
+      className="bg-white rounded-2xl border border-black/[0.07] flex flex-col gap-0 overflow-hidden h-full select-none"
       style={{ boxShadow: "0 2px 12px rgba(0,0,0,0.05)" }}
     >
-      {/* Color bar */}
       <div className="h-[3px] w-full" style={{ backgroundColor: color }} />
 
       <div className="flex flex-col gap-4 p-6 flex-1">
-        {/* Top row: stars + quote icon */}
         <div className="flex items-start justify-between gap-3">
           <TStarRating rating={t.rating} color={color} />
           <Quote size={22} style={{ color: color + "28" }} className="fill-current flex-shrink-0 mt-0.5" />
         </div>
 
-        {/* Content */}
-        <p className="text-[0.875rem] leading-[1.9] text-dark/60 flex-1 italic">
-          &ldquo;{t.content}&rdquo;
-        </p>
+        <div className="flex-1">
+          <p className={`text-[0.875rem] leading-[1.9] text-dark/60 italic ${open || !long ? "" : "line-clamp-6"}`}>
+            &ldquo;{t.content}&rdquo;
+          </p>
+          {long && (
+            <button
+              type="button"
+              onClick={toggle}
+              onPointerDownCapture={(e) => e.stopPropagation()}
+              className="mt-2 text-[0.74rem] font-extrabold"
+              style={{ color }}
+            >
+              {open ? "Tutup" : "Baca selengkapnya"}
+            </button>
+          )}
+        </div>
 
-        {/* Bottom: author */}
         <div className="flex items-center gap-3 pt-4 border-t border-black/[0.06]">
           <TAvatar name={t.name} src={t.avatar_url} color={color} />
           <div className="min-w-0 flex-1">
@@ -788,7 +802,7 @@ function TrainingTestimonialsSection({ trainingId, color }: { trainingId: string
       .eq("training_id", trainingId)
       .order("featured", { ascending: false })
       .order("created_at", { ascending: false })
-      .limit(6)
+      .limit(12)
       .then(({ data: specific }) => {
         if (specific && specific.length > 0) {
           setItems(specific);
@@ -898,11 +912,18 @@ function TrainingTestimonialsSection({ trainingId, color }: { trainingId: string
             {[1, 2, 3].map(n => <TSkeletonCard key={n} />)}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
-            {items.map((t, i) => (
-              <TCard key={t.id} t={t} index={i} color={color} />
-            ))}
-          </div>
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: "-40px" }}
+            transition={{ duration: 0.6, ease: [0.4, 0, 0.2, 1] }}
+          >
+            <TestimonialCarousel
+              items={items}
+              accent={color}
+              renderItem={(t, _i, api) => <TCard t={t} color={color} api={api} />}
+            />
+          </motion.div>
         )}
 
         {/* CTA */}
