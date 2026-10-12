@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import TestimonialCarousel, { CarouselApi } from "@/components/TestimonialCarousel";
 import { motion } from "framer-motion";
 import { Star, Quote } from "lucide-react";
 import { supabase, TestimonialItem } from "@/lib/supabase";
@@ -54,20 +55,22 @@ function shortProgramLabel(name: string | null) {
 
 const ACCENT_COLORS = ["#4F46E5", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6", "#0EA5E9"];
 
-function TestimonialCard({ t, index }: { t: TestimonialItem; index: number }) {
+function TestimonialCard({ t, index, api }: { t: TestimonialItem; index: number; api: CarouselApi }) {
   const color = ACCENT_COLORS[index % ACCENT_COLORS.length];
+  const [open, setOpen] = useState(false);
+  const long = t.content.length > 240;
+
+  const toggle = () => {
+    api.hold(!open);
+    setOpen(!open);
+  };
 
   return (
     <motion.div
-      initial={{ opacity: 0, y: 32 }}
-      whileInView={{ opacity: 1, y: 0 }}
-      viewport={{ once: true, margin: "-40px" }}
-      transition={{ duration: 0.55, delay: index * 0.1, ease: [0.4, 0, 0.2, 1] }}
       whileHover={{ y: -4 }}
-      className="bg-white rounded-2xl border border-black/[0.07] p-6 flex flex-col gap-4 h-full"
+      className="bg-white rounded-2xl border border-black/[0.07] p-6 flex flex-col gap-4 h-full select-none"
       style={{ boxShadow: "0 2px 16px rgba(0,0,0,0.05)" }}
     >
-      {/* Top: rating + quote icon */}
       <div className="flex items-center justify-between">
         <StarRating rating={t.rating} />
         <motion.div
@@ -78,12 +81,23 @@ function TestimonialCard({ t, index }: { t: TestimonialItem; index: number }) {
         </motion.div>
       </div>
 
-      {/* Content */}
-      <p className="text-[0.88rem] leading-[1.85] text-dark/65 flex-1 italic">
-        &ldquo;{t.content}&rdquo;
-      </p>
+      <div className="flex-1">
+        <p className={`text-[0.88rem] leading-[1.85] text-dark/65 italic ${open || !long ? "" : "line-clamp-6"}`}>
+          &ldquo;{t.content}&rdquo;
+        </p>
+        {long && (
+          <button
+            type="button"
+            onClick={toggle}
+            onPointerDownCapture={(e) => e.stopPropagation()}
+            className="mt-2 text-[0.76rem] font-extrabold"
+            style={{ color }}
+          >
+            {open ? "Tutup" : "Baca selengkapnya"}
+          </button>
+        )}
+      </div>
 
-      {/* Training tag */}
       {t.training_name && (
         <div
           className="text-[0.65rem] font-bold tracking-[0.08em] uppercase px-2.5 py-1 rounded-full self-start"
@@ -93,7 +107,6 @@ function TestimonialCard({ t, index }: { t: TestimonialItem; index: number }) {
         </div>
       )}
 
-      {/* Author */}
       <div className="flex items-center gap-3 pt-3 border-t border-black/[0.06]">
         <Avatar name={t.name} src={t.avatar_url} color={color} />
         <div className="min-w-0">
@@ -155,7 +168,7 @@ export default function Testimonials() {
   const tabs = Array.from(
     new Map(items.filter(i => i.training_id).map(i => [i.training_id as string, shortProgramLabel(i.training_name)])).entries()
   );
-  const shown = tab === "all" ? items.slice(0, 3) : items.filter(i => i.training_id === tab).slice(0, 6);
+  const shown = tab === "all" ? items.slice(0, 12) : items.filter(i => i.training_id === tab).slice(0, 12);
 
   return (
     <section className="py-[clamp(80px,10vw,140px)] bg-white">
@@ -207,11 +220,12 @@ export default function Testimonials() {
             {[1, 2, 3].map(n => <SkeletonCard key={n} />)}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {shown.map((t, i) => (
-              <TestimonialCard key={t.id} t={t} index={i} />
-            ))}
-          </div>
+          <TestimonialCarousel
+            key={tab}
+            items={shown}
+            accent="#4F46E5"
+            renderItem={(t, i, api) => <TestimonialCard t={t} index={i} api={api} />}
+          />
         )}
 
         {/* Bottom note */}
