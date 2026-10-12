@@ -58,7 +58,7 @@ const ACCENT_COLORS = ["#4F46E5", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6", "#
 function TestimonialCard({ t, index, api }: { t: TestimonialItem; index: number; api: CarouselApi }) {
   const color = ACCENT_COLORS[index % ACCENT_COLORS.length];
   const [open, setOpen] = useState(false);
-  const long = t.content.length > 240;
+  const long = t.content.length > 160;
 
   const toggle = () => {
     api.hold(!open);
@@ -82,7 +82,7 @@ function TestimonialCard({ t, index, api }: { t: TestimonialItem; index: number;
       </div>
 
       <div className="flex-1">
-        <p className={`text-[0.88rem] leading-[1.85] text-dark/65 italic ${open || !long ? "" : "line-clamp-6"}`}>
+        <p className={`text-[0.88rem] leading-[1.85] text-dark/65 italic ${open || !long ? "" : "line-clamp-4"}`}>
           &ldquo;{t.content}&rdquo;
         </p>
         {long && (
@@ -223,7 +223,6 @@ export default function Testimonials() {
           <TestimonialCarousel
             key={tab}
             items={shown}
-            accent="#4F46E5"
             renderItem={(t, i, api) => <TestimonialCard t={t} index={i} api={api} />}
           />
         )}

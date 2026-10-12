@@ -713,7 +713,7 @@ function TAvatar({ name, src, color }: { name: string; src?: string | null; colo
 
 function TCard({ t, color, api }: { t: TestimonialItem; color: string; api: CarouselApi }) {
   const [open, setOpen] = useState(false);
-  const long = t.content.length > 240;
+  const long = t.content.length > 160;
 
   const toggle = () => {
     api.hold(!open);
@@ -735,7 +735,7 @@ function TCard({ t, color, api }: { t: TestimonialItem; color: string; api: Caro
         </div>
 
         <div className="flex-1">
-          <p className={`text-[0.875rem] leading-[1.9] text-dark/60 italic ${open || !long ? "" : "line-clamp-6"}`}>
+          <p className={`text-[0.875rem] leading-[1.9] text-dark/60 italic ${open || !long ? "" : "line-clamp-4"}`}>
             &ldquo;{t.content}&rdquo;
           </p>
           {long && (
@@ -920,7 +920,6 @@ function TrainingTestimonialsSection({ trainingId, color }: { trainingId: string
           >
             <TestimonialCarousel
               items={items}
-              accent={color}
               renderItem={(t, _i, api) => <TCard t={t} color={color} api={api} />}
             />
           </motion.div>
