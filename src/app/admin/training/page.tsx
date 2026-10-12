@@ -196,7 +196,7 @@ export default function AdminTraining() {
     if (!form) return;
     const allowed = ["image/jpeg","image/png","image/webp"];
     if (!allowed.includes(file.type)) { showMsg("Format poster harus JPG, PNG, atau WebP.", false); return; }
-    if (file.size > 15 * 1024 * 1024) { showMsg("Poster maksimal 15MB.", false); return; }
+    if (file.size > 50 * 1024 * 1024) { showMsg("Poster maksimal 50MB.", false); return; }
     setUploadingPoster(true);
     const ext = file.name.split(".").pop();
     const filename = `training-posters/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
@@ -213,7 +213,7 @@ export default function AdminTraining() {
     if (!form) return;
     const allowed = ["image/jpeg","image/png","image/webp"];
     if (!allowed.includes(file.type)) { showMsg("Format poster harus JPG, PNG, atau WebP.", false); return; }
-    if (file.size > 15 * 1024 * 1024) { showMsg("Poster maksimal 15MB.", false); return; }
+    if (file.size > 50 * 1024 * 1024) { showMsg("Poster maksimal 50MB.", false); return; }
     setUploadingPosterPortrait(true);
     const ext = file.name.split(".").pop();
     const filename = `training-posters/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
@@ -229,7 +229,7 @@ export default function AdminTraining() {
   const uploadBrochure = async (file: File) => {
     if (!form) return;
     if (file.type !== "application/pdf") { showMsg("Brosur harus PDF.", false); return; }
-    if (file.size > 20 * 1024 * 1024) { showMsg("Brosur maksimal 20MB.", false); return; }
+    if (file.size > 50 * 1024 * 1024) { showMsg("Brosur maksimal 50MB.", false); return; }
     setUploadingBrochure(true);
     const filename = `${Date.now()}-${Math.random().toString(36).slice(2)}.pdf`;
     const { data, error } = await supabase.storage
@@ -851,7 +851,7 @@ export default function AdminTraining() {
                           </span>
                           <span className="text-left">
                             <span className="block text-[0.8rem] font-bold text-dark">Upload poster (JPG / PNG / WebP)</span>
-                            <span className="block text-[0.7rem] text-muted">Maks. 15MB. Tampil di kartu training.</span>
+                            <span className="block text-[0.7rem] text-muted">Maks. 50MB. Tampil di kartu training.</span>
                           </span>
                         </button>
                       )}
@@ -894,7 +894,7 @@ export default function AdminTraining() {
                           </span>
                           <span className="text-left">
                             <span className="block text-[0.8rem] font-bold text-dark">Upload poster portrait (JPG / PNG / WebP)</span>
-                            <span className="block text-[0.7rem] text-muted">Maks. 15MB. Rasio ideal 3:4 atau 2:3.</span>
+                            <span className="block text-[0.7rem] text-muted">Maks. 50MB. Rasio ideal 3:4 atau 2:3.</span>
                           </span>
                         </button>
                       )}
@@ -935,7 +935,7 @@ export default function AdminTraining() {
                           </span>
                           <span className="text-left">
                             <span className="block text-[0.8rem] font-bold text-dark">Upload brosur PDF</span>
-                            <span className="block text-[0.7rem] text-muted">Maks. 20MB. Tampil sebagai tombol &ldquo;Lihat Brosur&rdquo;.</span>
+                            <span className="block text-[0.7rem] text-muted">Maks. 50MB. Tampil sebagai tombol &ldquo;Lihat Brosur&rdquo;.</span>
                           </span>
                         </button>
                       )}

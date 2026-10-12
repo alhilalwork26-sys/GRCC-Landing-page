@@ -227,12 +227,12 @@ values (
   'insight-images',
   'insight-images',
   true,
-  15728640,
+  52428800,
   array['image/jpeg','image/png','image/webp']
 )
 on conflict (id) do update set
   public = true,
-  file_size_limit = 15728640,
+  file_size_limit = 52428800,
   allowed_mime_types = array['image/jpeg','image/png','image/webp'];
 
 drop policy if exists "Public read insight images" on storage.objects;
