@@ -44,6 +44,14 @@ function Avatar({ name, src, color }: { name: string; src?: string | null; color
   );
 }
 
+function shortProgramLabel(name: string | null) {
+  if (!name) return "Program";
+  const abbr = name.match(/\(([A-Za-z]{2,})\)/)?.[1] ?? name.match(/\b([A-Z]{3,})\b/)?.[1];
+  const batch = name.match(/batch\s*\d+/i)?.[0];
+  if (abbr) return batch ? `${abbr} ${batch.replace(/batch/i, "Batch")}` : abbr;
+  return name.length > 28 ? name.slice(0, 26) + "…" : name;
+}
+
 const ACCENT_COLORS = ["#4F46E5", "#10B981", "#F59E0B", "#EF4444", "#8B5CF6", "#0EA5E9"];
 
 function TestimonialCard({ t, index }: { t: TestimonialItem; index: number }) {
@@ -129,6 +137,7 @@ function SkeletonCard() {
 export default function Testimonials() {
   const [items, setItems]   = useState<TestimonialItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [tab, setTab] = useState("all");
 
   useEffect(() => {
     supabase
@@ -137,11 +146,16 @@ export default function Testimonials() {
       .eq("published", true)
       .order("featured", { ascending: false })
       .order("created_at", { ascending: false })
-      .limit(3)
+      .limit(60)
       .then(({ data }) => { setItems(data ?? []); setLoading(false); });
   }, []);
 
   if (!loading && items.length === 0) return null;
+
+  const tabs = Array.from(
+    new Map(items.filter(i => i.training_id).map(i => [i.training_id as string, shortProgramLabel(i.training_name)])).entries()
+  );
+  const shown = tab === "all" ? items.slice(0, 3) : items.filter(i => i.training_id === tab).slice(0, 6);
 
   return (
     <section className="py-[clamp(80px,10vw,140px)] bg-white">
@@ -173,6 +187,20 @@ export default function Testimonials() {
           </h2>
         </motion.div>
 
+        {tabs.length > 0 && (
+          <div className="flex flex-wrap gap-2 mb-8">
+            {[["all", "Semua"] as [string, string], ...tabs].map(([key, label]) => (
+              <button key={key} onClick={() => setTab(key)}
+                className={`relative text-[0.78rem] font-bold px-4 py-2 rounded-full border transition-colors ${tab === key ? "text-white border-dark" : "text-dark/65 border-black/[0.1] hover:border-dark/30"}`}>
+                {tab === key && (
+                  <motion.span layoutId="testi-tab" className="absolute inset-0 rounded-full bg-dark" transition={{ type: "spring", stiffness: 420, damping: 34 }} />
+                )}
+                <span className="relative">{label}</span>
+              </button>
+            ))}
+          </div>
+        )}
+
         {/* Cards */}
         {loading ? (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -180,7 +208,7 @@ export default function Testimonials() {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {items.map((t, i) => (
+            {shown.map((t, i) => (
               <TestimonialCard key={t.id} t={t} index={i} />
             ))}
           </div>

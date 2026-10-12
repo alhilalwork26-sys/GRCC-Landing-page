@@ -21,6 +21,8 @@ export default function AdminTestimonials() {
   const [editId,  setEditId]  = useState<string | null>(null);
   const [saving,  setSaving]  = useState(false);
   const [msg,     setMsg]     = useState<{ text: string; ok: boolean } | null>(null);
+  const [trainings, setTrainings] = useState<{ id: string; title: string }[]>([]);
+  const [filter,  setFilter]  = useState<string>("all");
 
   const showMsg = (text: string, ok = true) => {
     setMsg({ text, ok });
@@ -35,8 +37,26 @@ export default function AdminTestimonials() {
   };
 
   useEffect(() => { load(); }, []);
+  useEffect(() => {
+    supabase.from("training").select("id,title").order("created_at", { ascending: false })
+      .then(({ data }) => setTrainings(data ?? []));
+  }, []);
 
-  const openNew  = () => { setForm({ ...EMPTY }); setEditId(null); };
+  const sectionKey = (i: TestimonialItem) => i.training_id ?? "general";
+  const sectionTitle = (key: string) =>
+    key === "general" ? "Umum (semua program)" : (trainings.find(t => t.id === key)?.title ?? "Program lain");
+  const sections = Array.from(new Set(items.map(sectionKey)))
+    .sort((a, b) => (a === "general" ? 1 : 0) - (b === "general" ? 1 : 0));
+  const visibleItems = filter === "all" ? items : items.filter(i => sectionKey(i) === filter);
+  const grouped = sections
+    .filter(k => filter === "all" || k === filter)
+    .map(k => ({ key: k, title: sectionTitle(k), list: visibleItems.filter(i => sectionKey(i) === k) }));
+
+  const openNew  = () => {
+    setForm({ ...EMPTY, training_id: filter !== "all" && filter !== "general" ? filter : null,
+      training_name: filter !== "all" && filter !== "general" ? sectionTitle(filter) : null });
+    setEditId(null);
+  };
   const openEdit = (item: TestimonialItem) => {
     const { id, created_at, ...rest } = item;
     setForm(rest); setEditId(id);
@@ -125,8 +145,27 @@ export default function AdminTestimonials() {
         </div>
       ) : (
         <div className="flex flex-col gap-3">
+          {sections.length > 1 && (
+            <div className="flex flex-wrap gap-2 mb-1">
+              {[{ key: "all", label: "Semua", count: items.length },
+                ...sections.map(k => ({ key: k, label: sectionTitle(k), count: items.filter(i => sectionKey(i) === k).length }))
+              ].map(c => (
+                <button key={c.key} onClick={() => setFilter(c.key)}
+                  className={`text-[0.74rem] font-bold px-3 py-1.5 rounded-full border transition-colors max-w-[260px] truncate ${filter === c.key ? "bg-dark text-white border-dark" : "bg-white text-dark/70 border-border hover:border-dark/30"}`}>
+                  {c.label} <span className="opacity-60">· {c.count}</span>
+                </button>
+              ))}
+            </div>
+          )}
+          {grouped.map(group => (
+          <div key={group.key} className="flex flex-col gap-3">
+            <div className="flex items-center gap-3 pt-2">
+              <p className="text-[0.7rem] font-extrabold uppercase tracking-[0.14em] text-muted truncate">{group.title}</p>
+              <span className="text-[0.66rem] font-bold px-2 py-0.5 rounded-full bg-dark/[0.06] text-dark/60">{group.list.length}</span>
+              <div className="h-px flex-1 bg-border" />
+            </div>
           <AnimatePresence>
-            {items.map((item, idx) => (
+            {group.list.map((item, idx) => (
               <motion.div key={item.id}
                 initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, scale: 0.97 }}
                 transition={{ duration: 0.22, delay: idx * 0.03 }}
@@ -199,6 +238,8 @@ export default function AdminTestimonials() {
               </motion.div>
             ))}
           </AnimatePresence>
+          </div>
+          ))}
           {items.length === 0 && (
             <div className="bg-white rounded-2xl border border-border py-14 text-center">
               <MessageSquareQuote size={32} className="mx-auto text-muted/30 mb-3" />
@@ -258,12 +299,27 @@ export default function AdminTestimonials() {
                       className="input resize-none" />
                   </div>
 
-                  {/* Training name */}
+                  {/* Program / section */}
                   <div>
-                    <label className="label">Nama Pelatihan <span className="normal-case tracking-normal ml-1 opacity-60">— opsional</span></label>
-                    <input value={form.training_name ?? ""} onChange={e => setForm({ ...form, training_name: e.target.value || null })}
-                      placeholder="Internal Control over Financial Reporting" className="input" />
+                    <label className="label">Section Program</label>
+                    <select value={form.training_id ?? ""}
+                      onChange={e => {
+                        const id = e.target.value || null;
+                        setForm({ ...form, training_id: id, training_name: id ? (trainings.find(t => t.id === id)?.title ?? null) : null });
+                      }}
+                      className="input">
+                      <option value="">Umum (tampil di homepage / semua program)</option>
+                      {trainings.map(t => <option key={t.id} value={t.id}>{t.title}</option>)}
+                    </select>
+                    <p className="text-[0.68rem] text-muted mt-1">Testimoni program tertentu tampil di halaman program tersebut dan di tab programnya pada homepage.</p>
                   </div>
+                  {!form.training_id && (
+                    <div>
+                      <label className="label">Label Pelatihan <span className="normal-case tracking-normal ml-1 opacity-60">— opsional</span></label>
+                      <input value={form.training_name ?? ""} onChange={e => setForm({ ...form, training_name: e.target.value || null })}
+                        placeholder="Internal Control over Financial Reporting" className="input" />
+                    </div>
+                  )}
 
                   {/* Rating */}
                   <div>

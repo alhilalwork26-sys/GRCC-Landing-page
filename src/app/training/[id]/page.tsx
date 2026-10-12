@@ -781,7 +781,6 @@ function TrainingTestimonialsSection({ trainingId, color }: { trainingId: string
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // First fetch testimonials specific to this training
     supabase
       .from("testimonials")
       .select("*")
@@ -789,25 +788,25 @@ function TrainingTestimonialsSection({ trainingId, color }: { trainingId: string
       .eq("training_id", trainingId)
       .order("featured", { ascending: false })
       .order("created_at", { ascending: false })
-      .limit(3)
+      .limit(6)
       .then(({ data: specific }) => {
-        if (specific && specific.length >= 2) {
+        if (specific && specific.length > 0) {
           setItems(specific);
           setLoading(false);
-        } else {
-          // fallback: mix specific + general
-          supabase
-            .from("testimonials")
-            .select("*")
-            .eq("published", true)
-            .order("featured", { ascending: false })
-            .order("created_at", { ascending: false })
-            .limit(3)
-            .then(({ data: all }) => {
-              setItems(all ?? []);
-              setLoading(false);
-            });
+          return;
         }
+        supabase
+          .from("testimonials")
+          .select("*")
+          .eq("published", true)
+          .is("training_id", null)
+          .order("featured", { ascending: false })
+          .order("created_at", { ascending: false })
+          .limit(3)
+          .then(({ data: general }) => {
+            setItems(general ?? []);
+            setLoading(false);
+          });
       });
   }, [trainingId]);
 
