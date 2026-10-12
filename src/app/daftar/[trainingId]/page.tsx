@@ -21,7 +21,8 @@ import {
   needsTaxInvoice,
 } from "@/lib/tax-invoice";
 import { getPublicCustomFields } from "@/lib/training-facilitators";
-import { hasTrainingSessions, trainingDateLabel, trainingTimeLabel } from "@/lib/training-schedule";
+import { hasTrainingSessions, isMandatorySchedule, isScheduleChoice, trainingDateLabel, trainingTimeLabel } from "@/lib/training-schedule";
+import MandatorySchedule from "@/components/MandatorySchedule";
 
 const INFO_SOURCE_KEY = "sumber_informasi";
 const INFO_SOURCE_OPTIONS = [
@@ -330,7 +331,8 @@ export default function DaftarPage() {
   const [selectedTierId, setSelectedTierId] = useState<string | null>(null);
   const [selectedSessionIdx, setSelectedSessionIdx] = useState<number | null>(null);
   const hasPriceTiers = (training?.price_tiers?.length ?? 0) > 0;
-  const hasScheduleChoice = (training?.sessions?.length ?? 0) > 1;
+  const hasScheduleChoice = isScheduleChoice(training?.sessions);
+  const hasMandatorySchedule = isMandatorySchedule(training?.sessions);
   // Harga utama (Investasi) juga jadi salah satu opsi bila ada varian harga lain
   const baseTier: PriceTier | null = hasPriceTiers && (training?.price || training?.price_label)
     ? { id: "__base__", label: "", price: training?.price ?? null, price_label: training?.price_label ?? "", note: training?.price_note ?? null }
@@ -710,6 +712,12 @@ export default function DaftarPage() {
                       exit={{ opacity: 0 }}
                       transition={{ duration: 0.35 }}
                     >
+                      {hasMandatorySchedule && (
+                        <div className="mb-6">
+                          <MandatorySchedule sessions={training.sessions!} accent={accent} />
+                        </div>
+                      )}
+
                       {(hasScheduleChoice || hasPriceTiers) && (
                         <div className="mb-10 rounded-2xl border border-black/[0.08] bg-white p-6 flex flex-col gap-6">
                           {hasScheduleChoice && (

@@ -666,6 +666,24 @@ export default function AdminTraining() {
                           <input value={form.location} onChange={e=>setForm({...form,location:e.target.value})}
                             placeholder="Zoom / Surabaya" className="input"/>
                         </Field>
+                        {form.sessions.length > 1 && (() => {
+                          const pick = form.sessions!.every((x: TrainingSession) => x.selectable);
+                          return (
+                            <div className="flex items-start gap-3 p-3 rounded-xl bg-dark/[0.03] border border-border">
+                              <div className="flex-1">
+                                <p className="text-[0.78rem] font-semibold">Peserta memilih salah satu jadwal</p>
+                                <p className="text-[0.68rem] text-muted mt-0.5">
+                                  {pick ? "Di formulir, peserta memilih satu sesi (jadwal alternatif)." : "Nonaktif: peserta wajib mengikuti semua sesi (tampil sebagai timeline, tanpa pilihan)."}
+                                </p>
+                              </div>
+                              <div
+                                onClick={() => setForm({ ...form, sessions: form.sessions!.map((x: TrainingSession) => ({ ...x, selectable: !pick })) })}
+                                className={`w-10 h-5 rounded-full transition-colors relative cursor-pointer flex-shrink-0 mt-0.5 ${pick ? "bg-dark" : "bg-dark/20"}`}>
+                                <span className={`absolute top-0.5 w-4 h-4 rounded-full bg-white shadow transition-all ${pick ? "left-5" : "left-0.5"}`}/>
+                              </div>
+                            </div>
+                          );
+                        })()}
                         {form.sessions.map((session: TrainingSession, si: number) => (
                           <div key={si} className="border border-border rounded-xl p-3 bg-[#FAFAFA] flex flex-col gap-2.5">
                             {/* Session header: date + day */}
@@ -722,7 +740,7 @@ export default function AdminTraining() {
                           </div>
                         ))}
                         <button type="button"
-                          onClick={()=>setForm({...form,sessions:[...(form.sessions||[]),{date:"",day:"",times:[""]}]})}
+                          onClick={()=>setForm({...form,sessions:[...(form.sessions||[]),{date:"",day:"",times:[""],selectable:(form.sessions||[]).length>0 && form.sessions!.every((x: TrainingSession)=>x.selectable)}]})}
                           className="flex items-center justify-center gap-1.5 text-[0.75rem] font-bold border border-dashed border-border rounded-xl py-2.5 text-dark/50 hover:text-dark hover:border-dark/30 transition-all">
                           <Plus size={12}/> Tambah Sesi
                         </button>

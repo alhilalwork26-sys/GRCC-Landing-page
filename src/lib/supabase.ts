@@ -52,6 +52,7 @@ export interface TrainingSession {
   date: string;    // "17 April 2026"
   day: string;     // "Jumat"
   times: string[]; // ["15:30 - 17:30 WIB", "19:30 - 20:30"]
+  selectable?: boolean; // true = peserta memilih salah satu sesi; default semua sesi wajib
 }
 
 export interface PriceTier {

@@ -4,6 +4,14 @@ export function hasTrainingSessions(training?: Pick<TrainingItem, "sessions"> | 
   return Array.isArray(training?.sessions) && training.sessions.length > 0;
 }
 
+export function isScheduleChoice(sessions?: TrainingSession[] | null) {
+  return Array.isArray(sessions) && sessions.length > 1 && sessions.every((s) => s.selectable);
+}
+
+export function isMandatorySchedule(sessions?: TrainingSession[] | null) {
+  return Array.isArray(sessions) && sessions.length > 1 && !isScheduleChoice(sessions);
+}
+
 export function trainingDateLabel(
   training?: Pick<TrainingItem, "date_start" | "date_end" | "sessions"> | null
 ) {
