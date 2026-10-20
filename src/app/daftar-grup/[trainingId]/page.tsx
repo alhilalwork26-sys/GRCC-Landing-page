@@ -8,7 +8,7 @@ import {
   ArrowLeft, Calendar, MapPin, User, Building2, Briefcase,
   Mail, Phone, CreditCard, Upload, Check, ChevronRight,
   AlertCircle, Loader2, FileText, X, Sparkles,
-  Tag, BadgePercent, CheckCircle2, Users, Plus, Trash2,
+  Tag, BadgePercent, CheckCircle2, Users, Plus, Minus, Trash2,
 } from "lucide-react";
 import Navbar from "@/components/Navbar";
 import TaxInvoiceSection from "@/components/TaxInvoiceSection";
@@ -504,11 +504,38 @@ export default function DaftarGrupPage() {
                   <p className="text-muted text-[0.85rem] mt-2">
                     Isi data PIC terlebih dahulu, kemudian data tiap peserta. Semua kolom bertanda <span className="text-red-500">*</span> wajib diisi.
                   </p>
-                  {/* Group badge */}
-                  <div className="mt-4 inline-flex items-center gap-2 px-3.5 py-2 rounded-xl border text-[0.78rem] font-semibold"
-                    style={{ borderColor: accent + "40", backgroundColor: accent + "08", color: accent }}>
-                    <Users size={14} />
-                    {participants.length} peserta · 1 bukti pembayaran
+                  {/* Jumlah peserta (minimal 2) */}
+                  <div className="mt-4 flex flex-wrap items-center gap-3">
+                    <div className="inline-flex items-center gap-3 rounded-xl border pl-3.5 pr-1.5 py-1.5"
+                      style={{ borderColor: accent + "40", backgroundColor: accent + "08" }}>
+                      <span className="flex items-center gap-2 text-[0.78rem] font-semibold" style={{ color: accent }}>
+                        <Users size={14} /> Jumlah peserta
+                      </span>
+                      <div className="flex items-center gap-1 rounded-lg bg-white p-1 shadow-sm">
+                        <motion.button type="button" whileTap={{ scale: 0.88 }}
+                          onClick={() => removeParticipant(participants.length - 1)}
+                          disabled={participants.length <= 2}
+                          aria-label="Kurangi peserta"
+                          className="flex h-7 w-7 items-center justify-center rounded-md text-dark/70 transition-colors hover:bg-dark/[0.06] disabled:opacity-30 disabled:pointer-events-none">
+                          <Minus size={14} />
+                        </motion.button>
+                        <AnimatePresence mode="popLayout" initial={false}>
+                          <motion.span key={participants.length}
+                            initial={{ y: 8, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ y: -8, opacity: 0 }}
+                            transition={{ duration: 0.18 }}
+                            className="w-8 text-center text-[0.95rem] font-extrabold text-dark">
+                            {participants.length}
+                          </motion.span>
+                        </AnimatePresence>
+                        <motion.button type="button" whileTap={{ scale: 0.88 }}
+                          onClick={addParticipant}
+                          aria-label="Tambah peserta"
+                          className="flex h-7 w-7 items-center justify-center rounded-md text-dark/70 transition-colors hover:bg-dark/[0.06]">
+                          <Plus size={14} />
+                        </motion.button>
+                      </div>
+                    </div>
+                    <span className="text-[0.74rem] text-muted">Minimal 2 peserta · 1 bukti pembayaran</span>
                   </div>
                 </div>
 
@@ -553,6 +580,7 @@ export default function DaftarGrupPage() {
                         training={training}
                         accent={accent}
                         group
+                        participantCount={participants.length}
                         onBack={() => setCustomData((prev) => {
                           const next = { ...prev };
                           delete next[TAX_INVOICE_KEY];

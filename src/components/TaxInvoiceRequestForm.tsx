@@ -23,6 +23,7 @@ type Props = {
   training: TrainingItem;
   accent: string;
   group?: boolean;
+  participantCount?: number;
   onBack: () => void;
 };
 
@@ -42,7 +43,7 @@ const inputCls = (error?: string) =>
       : "border-black/[0.08] focus:border-black/20 focus:ring-black/[0.04]"
   }`;
 
-export default function TaxInvoiceRequestForm({ trainingId, training, accent, group = false, onBack }: Props) {
+export default function TaxInvoiceRequestForm({ trainingId, training, accent, group = false, participantCount, onBack }: Props) {
   const [form, setForm] = useState<FormState>(EMPTY);
   const [npwpFile, setNpwpFile] = useState<File | null>(null);
   const [dragging, setDragging] = useState(false);
@@ -111,7 +112,7 @@ export default function TaxInvoiceRequestForm({ trainingId, training, accent, gr
         },
         status: "pending",
         is_group: group,
-        participant_count: 1,
+        participant_count: group ? participantCount ?? 2 : 1,
       });
       if (insertErr) throw insertErr;
 
@@ -127,6 +128,7 @@ export default function TaxInvoiceRequestForm({ trainingId, training, accent, gr
           jabatan: "PIC Finance",
           telepon: form.whatsapp.trim(),
           taxInvoiceRequested: true,
+          participantCount: group ? participantCount ?? 2 : undefined,
           trainingDate: trainingDateLabel(training) ?? undefined,
           trainingTime: trainingTimeLabel(training) ?? undefined,
           trainingLocation: training.location ?? undefined,
