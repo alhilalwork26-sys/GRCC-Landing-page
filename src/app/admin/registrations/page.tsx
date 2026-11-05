@@ -8,7 +8,7 @@ import {
   Download, ExternalLink, X, ChevronDown, Users2,
   FileText, Phone, Mail, Building2, Briefcase,
   Receipt, Tag, RefreshCw, AlertCircle, Users,
-  Database, GraduationCap, CircleDollarSign, Trash2,
+  Database, GraduationCap, CircleDollarSign, Trash2, UserCheck, Upload, Loader2,
 } from "lucide-react";
 import {
   TAX_INVOICE_COMPANY_KEY,
@@ -26,11 +26,23 @@ const INFO_SOURCE_KEY = "sumber_informasi";
 const PRICE_TIER_KEY = "varian_harga_dipilih";
 const SCHEDULE_KEY = "jadwal_dipilih";
 
+const REGISTERED_KEY = "status_terdaftar";
+const FAKTUR_FILE_KEY = "faktur_pajak_file";
+
 const STATUS_CONFIG = {
-  pending:   { label: "Menunggu",      color: "#F59E0B", bg: "#FEF3C7", icon: Clock         },
-  confirmed: { label: "Dikonfirmasi",  color: "#10B981", bg: "#D1FAE5", icon: CheckCircle2  },
-  rejected:  { label: "Ditolak",       color: "#EF4444", bg: "#FEE2E2", icon: XCircle       },
+  pending:    { label: "Menunggu",      color: "#F59E0B", bg: "#FEF3C7", icon: Clock         },
+  confirmed:  { label: "Dikonfirmasi",  color: "#10B981", bg: "#D1FAE5", icon: CheckCircle2  },
+  registered: { label: "Terdaftar",     color: "#4F46E5", bg: "#E0E7FF", icon: UserCheck    },
+  rejected:   { label: "Ditolak",       color: "#EF4444", bg: "#FEE2E2", icon: XCircle       },
 } as const;
+
+type StatusKey = keyof typeof STATUS_CONFIG;
+
+// "Terdaftar" disimpan sebagai status "confirmed" + penanda di custom_data,
+// supaya tidak perlu mengubah constraint kolom status di database.
+function statusKey(r: Pick<Registration, "status" | "custom_data">): StatusKey {
+  return r.status === "confirmed" && r.custom_data?.[REGISTERED_KEY] === "Ya" ? "registered" : r.status;
+}
 
 function formatDate(s: string) {
   return new Date(s).toLocaleDateString("id-ID", {
@@ -39,7 +51,7 @@ function formatDate(s: string) {
   });
 }
 
-function StatusBadge({ status }: { status: Registration["status"] }) {
+function StatusBadge({ status }: { status: StatusKey }) {
   const cfg = STATUS_CONFIG[status];
   const Icon = cfg.icon;
   return (
@@ -83,17 +95,21 @@ function escapeCsv(value: unknown) {
 
 // ── Detail Modal ──────────────────────────────────────────────────────────────
 function DetailModal({
-  reg, training, onClose, onStatusChange,
+  reg, training, onClose, onChange,
 }: {
   reg: Registration;
   training: TrainingItem | undefined;
   onClose: () => void;
-  onStatusChange: (id: string, status: Registration["status"]) => void;
+  onChange: (id: string, patch: Partial<Registration>) => void;
 }) {
   const [updating, setUpdating] = useState(false);
   const [proofUrl, setProofUrl] = useState<string | null>(null);
   const [npwpPhotoUrl, setNpwpPhotoUrl] = useState<string | null>(null);
   const npwpPhotoPath = reg.custom_data?.[TAX_INVOICE_NPWP_PHOTO_KEY];
+  const fakturPath = reg.custom_data?.[FAKTUR_FILE_KEY];
+  const [fakturUrl, setFakturUrl] = useState<string | null>(null);
+  const [uploadingFaktur, setUploadingFaktur] = useState(false);
+  const [fakturError, setFakturError] = useState<string | null>(null);
 
   useEffect(() => {
     let alive = true;
@@ -135,24 +151,90 @@ function DetailModal({
     return () => { alive = false; };
   }, [npwpPhotoPath]);
 
-  const updateStatus = async (status: Registration["status"]) => {
+  useEffect(() => {
+    let alive = true;
+    async function resolveFakturUrl() {
+      if (!fakturPath) {
+        setFakturUrl(null);
+        return;
+      }
+      const { data } = await supabase.storage
+        .from("payment-proofs")
+        .createSignedUrl(fakturPath, 60 * 60);
+      if (alive) setFakturUrl(data?.signedUrl ?? null);
+    }
+    resolveFakturUrl();
+    return () => { alive = false; };
+  }, [fakturPath]);
+
+  const updateStatus = async (key: StatusKey) => {
     setUpdating(true);
+    const status: Registration["status"] = key === "registered" ? "confirmed" : key;
+    const custom_data = { ...(reg.custom_data ?? {}) };
+    if (key === "registered") custom_data[REGISTERED_KEY] = "Ya";
+    else delete custom_data[REGISTERED_KEY];
+
     const { error } = await supabase
       .from("registrations")
-      .update({ status })
+      .update({ status, custom_data })
       .eq("id", reg.id);
     if (!error) {
-      onStatusChange(reg.id, status);
+      onChange(reg.id, { status, custom_data });
       // Kirim email notifikasi ke peserta saat confirmed/rejected
-      if (status === "confirmed" || status === "rejected") {
+      if (key === "confirmed" || key === "rejected") {
         fetch("/api/status-update-email", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ registrationId: reg.id, newStatus: status }),
+          body: JSON.stringify({ registrationId: reg.id, newStatus: key }),
         }).catch(() => {/* silent */});
       }
     }
     setUpdating(false);
+  };
+
+  const saveFakturPath = async (path: string | null) => {
+    const custom_data = { ...(reg.custom_data ?? {}) };
+    if (path) custom_data[FAKTUR_FILE_KEY] = path;
+    else delete custom_data[FAKTUR_FILE_KEY];
+    const { error } = await supabase
+      .from("registrations")
+      .update({ custom_data })
+      .eq("id", reg.id);
+    if (!error) onChange(reg.id, { custom_data });
+    return !error;
+  };
+
+  const uploadFaktur = async (file: File | undefined) => {
+    if (!file) return;
+    setFakturError(null);
+    const allowed = ["application/pdf", "image/jpeg", "image/png", "image/webp"];
+    if (!allowed.includes(file.type)) { setFakturError("Format harus PDF, JPG, PNG, atau WebP."); return; }
+    if (file.size > 15 * 1024 * 1024) { setFakturError("Ukuran file maksimal 15MB."); return; }
+
+    setUploadingFaktur(true);
+    const ext = file.name.split(".").pop()?.toLowerCase() || "pdf";
+    const path = `${reg.training_id ?? "umum"}/faktur-pajak/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`;
+    const { error: upErr } = await supabase.storage
+      .from("payment-proofs")
+      .upload(path, file, { contentType: file.type, upsert: false });
+    if (upErr) {
+      setFakturError(`Gagal upload: ${upErr.message}`);
+      setUploadingFaktur(false);
+      return;
+    }
+    const saved = await saveFakturPath(path);
+    if (!saved) {
+      await supabase.storage.from("payment-proofs").remove([path]);
+      setFakturError("File terunggah tetapi gagal disimpan ke data peserta. Coba lagi.");
+    }
+    setUploadingFaktur(false);
+  };
+
+  const removeFaktur = async () => {
+    if (!fakturPath || !confirm("Hapus file Faktur Pajak ini dari data peserta?")) return;
+    const saved = await saveFakturPath(null);
+    if (saved) await supabase.storage.from("payment-proofs").remove([fakturPath]);
+    else setFakturError("Gagal menghapus file.");
   };
 
   const fields = [
@@ -164,7 +246,7 @@ function DetailModal({
     { icon: Tag,       label: "NPWP",             value: reg.npwp || "—" },
   ];
   const visibleCustomEntries = Object.entries(reg.custom_data ?? {})
-    .filter(([key]) => key !== TAX_INVOICE_NPWP_PHOTO_KEY);
+    .filter(([key]) => key !== TAX_INVOICE_NPWP_PHOTO_KEY && key !== FAKTUR_FILE_KEY && key !== REGISTERED_KEY);
 
   return (
     <AnimatePresence>
@@ -187,7 +269,7 @@ function DetailModal({
           <div className="flex items-start justify-between p-6 border-b border-border">
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-1 flex-wrap">
-                <StatusBadge status={reg.status} />
+                <StatusBadge status={statusKey(reg)} />
                 {reg.is_group && (
                   <span className="inline-flex items-center gap-1 text-[0.62rem] font-bold px-2 py-0.5 rounded-full bg-indigo-100 text-indigo-700">
                     <Users size={9} /> GRUP · {reg.participant_count} peserta
@@ -388,6 +470,65 @@ function DetailModal({
               </div>
             )}
 
+            {/* Faktur Pajak (diunggah admin setelah finance memproses) */}
+            {(needsTaxInvoice(reg.custom_data) || fakturPath) && (
+              <div>
+                <p className="text-[0.65rem] font-bold tracking-[0.12em] uppercase text-muted mb-3">
+                  Faktur Pajak
+                </p>
+                {fakturPath ? (
+                  <div className="rounded-xl border border-border overflow-hidden">
+                    {fakturPath.match(/\.(jpg|jpeg|png|webp|gif)$/i) && fakturUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={fakturUrl} alt="Faktur Pajak" className="w-full max-h-64 object-contain bg-[#F7F7F5]" />
+                    ) : (
+                      <div className="flex items-center gap-3 p-4 bg-[#F7F7F5]">
+                        <Receipt size={20} className="text-amber-600" />
+                        <p className="text-[0.82rem] text-dark font-medium flex-1 truncate">
+                          {fakturPath.split("/").pop()}
+                        </p>
+                      </div>
+                    )}
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-2 p-3 border-t border-border bg-white">
+                      <a href={fakturUrl ?? "#"} target="_blank" rel="noopener noreferrer"
+                        className="flex items-center gap-1.5 text-[0.75rem] font-semibold text-dark hover:text-dark/70 transition-colors">
+                        <ExternalLink size={13} /> Buka di Tab Baru
+                      </a>
+                      <a href={fakturUrl ?? "#"} download
+                        className="flex items-center gap-1.5 text-[0.75rem] font-semibold text-muted hover:text-dark transition-colors">
+                        <Download size={13} /> Download
+                      </a>
+                      <label className={`flex items-center gap-1.5 text-[0.75rem] font-semibold text-muted hover:text-dark transition-colors cursor-pointer ${uploadingFaktur ? "pointer-events-none opacity-60" : ""}`}>
+                        {uploadingFaktur ? <Loader2 size={13} className="animate-spin" /> : <Upload size={13} />}
+                        {uploadingFaktur ? "Mengunggah…" : "Ganti File"}
+                        <input type="file" accept="application/pdf,image/jpeg,image/png,image/webp" className="hidden"
+                          onChange={(e) => { uploadFaktur(e.target.files?.[0]); e.target.value = ""; }} />
+                      </label>
+                      <button type="button" onClick={removeFaktur}
+                        className="ml-auto flex items-center gap-1.5 text-[0.75rem] font-semibold text-red-400 hover:text-red-600 transition-colors">
+                        <Trash2 size={13} /> Hapus
+                      </button>
+                    </div>
+                  </div>
+                ) : (
+                  <label className={`flex flex-col items-center justify-center gap-1.5 rounded-xl border-2 border-dashed border-amber-200 bg-amber-50/50 px-4 py-6 text-center cursor-pointer transition-colors hover:bg-amber-50 ${uploadingFaktur ? "pointer-events-none opacity-70" : ""}`}>
+                    {uploadingFaktur ? <Loader2 size={20} className="animate-spin text-amber-600" /> : <Upload size={20} className="text-amber-600" />}
+                    <span className="text-[0.82rem] font-bold text-amber-800">
+                      {uploadingFaktur ? "Mengunggah…" : "Upload Faktur Pajak"}
+                    </span>
+                    <span className="text-[0.7rem] text-amber-700/70">PDF, JPG, PNG, atau WebP · maks 15MB</span>
+                    <input type="file" accept="application/pdf,image/jpeg,image/png,image/webp" className="hidden"
+                      onChange={(e) => { uploadFaktur(e.target.files?.[0]); e.target.value = ""; }} />
+                  </label>
+                )}
+                {fakturError && (
+                  <p className="mt-2 flex items-center gap-1.5 text-[0.74rem] text-red-500">
+                    <AlertCircle size={12} /> {fakturError}
+                  </p>
+                )}
+              </div>
+            )}
+
             {/* Bukti Pembayaran */}
             <div>
               <p className="text-[0.65rem] font-bold tracking-[0.12em] uppercase text-muted mb-3">
@@ -460,17 +601,17 @@ function DetailModal({
             <p className="text-[0.68rem] font-bold uppercase tracking-widest text-muted mb-3">
               Ubah Status
             </p>
-            <div className="flex gap-2">
-              {(["pending", "confirmed", "rejected"] as const).map((s) => {
+            <div className="flex flex-wrap gap-2">
+              {(["pending", "confirmed", "registered", "rejected"] as const).map((s) => {
                 const cfg = STATUS_CONFIG[s];
                 const Icon = cfg.icon;
-                const isActive = reg.status === s;
+                const isActive = statusKey(reg) === s;
                 return (
                   <button
                     key={s}
                     onClick={() => updateStatus(s)}
                     disabled={updating || isActive}
-                    className="flex-1 flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-[0.78rem] font-bold transition-all border disabled:opacity-60 disabled:cursor-not-allowed"
+                    className="flex-1 min-w-[7.5rem] flex items-center justify-center gap-1.5 py-2.5 rounded-xl text-[0.78rem] font-bold transition-all border disabled:opacity-60 disabled:cursor-not-allowed"
                     style={
                       isActive
                         ? { backgroundColor: cfg.bg, color: cfg.color, borderColor: cfg.color + "40" }
@@ -543,7 +684,7 @@ function RegistrationRow({
         <p className="text-[0.78rem] text-dark/70 font-semibold line-clamp-1">{getInfoSource(reg)}</p>
       </td>
       <td className="py-4 px-3">
-        <StatusBadge status={reg.status} />
+        <StatusBadge status={statusKey(reg)} />
       </td>
       <td className="py-4 px-3 hidden sm:table-cell">
         <p className="text-[0.72rem] text-muted">{formatDate(reg.created_at)}</p>
@@ -583,7 +724,7 @@ export default function AdminRegistrations() {
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<Registration | null>(null);
   const [search, setSearch] = useState("");
-  const [filterStatus, setFilterStatus] = useState<"all" | Registration["status"]>("all");
+  const [filterStatus, setFilterStatus] = useState<"all" | StatusKey>("all");
   const [filterTraining, setFilterTraining] = useState<string>("all");
   const [filterType, setFilterType] = useState<"all" | "individu" | "grup">("all");
   const [showFilters, setShowFilters] = useState(false);
@@ -603,11 +744,11 @@ export default function AdminRegistrations() {
   useEffect(() => { load(); }, [load]);
 
   // Update selected when status changes
-  const handleStatusChange = (id: string, status: Registration["status"]) => {
+  const handleRegistrationChange = (id: string, patch: Partial<Registration>) => {
     setRegistrations((prev) =>
-      prev.map((r) => (r.id === id ? { ...r, status } : r))
+      prev.map((r) => (r.id === id ? { ...r, ...patch } : r))
     );
-    setSelected((prev) => (prev?.id === id ? { ...prev, status } : prev));
+    setSelected((prev) => (prev?.id === id ? { ...prev, ...patch } : prev));
   };
 
   const deleteRegistration = async (reg: Registration) => {
@@ -650,7 +791,7 @@ export default function AdminRegistrations() {
 
   // Filtered list
   const filtered = registrations.filter((r) => {
-    if (filterStatus !== "all" && r.status !== filterStatus) return false;
+    if (filterStatus !== "all" && statusKey(r) !== filterStatus) return false;
     if (filterTraining !== "all" && r.training_id !== filterTraining) return false;
     if (filterType === "grup" && !r.is_group) return false;
     if (filterType === "individu" && r.is_group) return false;
@@ -681,9 +822,10 @@ export default function AdminRegistrations() {
   // Counts
   const counts = {
     all:       registrations.length,
-    pending:   registrations.filter((r) => r.status === "pending").length,
-    confirmed: registrations.filter((r) => r.status === "confirmed").length,
-    rejected:  registrations.filter((r) => r.status === "rejected").length,
+    pending:    registrations.filter((r) => statusKey(r) === "pending").length,
+    confirmed:  registrations.filter((r) => statusKey(r) === "confirmed").length,
+    registered: registrations.filter((r) => statusKey(r) === "registered").length,
+    rejected:   registrations.filter((r) => statusKey(r) === "rejected").length,
     grup:      registrations.filter((r) => r.is_group).length,
     taxInvoice: registrations.filter((r) => needsTaxInvoice(r.custom_data)).length,
   };
@@ -731,6 +873,7 @@ export default function AdminRegistrations() {
       "Email Aktif",
       "Nomor WA Aktif",
       "Foto NPWP",
+      "Faktur Pajak Diunggah",
       "Kode Promo",
       "Harga Awal",
       "Diskon",
@@ -749,7 +892,7 @@ export default function AdminRegistrations() {
         t?.date_start ?? "",
         r.is_group ? "Grup" : "Individu",
         r.participant_count || 1,
-        STATUS_CONFIG[r.status].label,
+        STATUS_CONFIG[statusKey(r)].label,
         getInfoSource(r),
         r.custom_data?.[PRICE_TIER_KEY] ?? "",
         r.custom_data?.[SCHEDULE_KEY] ?? "",
@@ -759,6 +902,7 @@ export default function AdminRegistrations() {
         r.custom_data?.[TAX_INVOICE_EMAIL_KEY] ?? "",
         r.custom_data?.[TAX_INVOICE_PHONE_KEY] ?? "",
         r.custom_data?.[TAX_INVOICE_NPWP_PHOTO_KEY] ?? "",
+        r.custom_data?.[FAKTUR_FILE_KEY] ? "Ya" : "",
         r.promo_code ?? "",
         r.original_price ?? "",
         r.discount_amount ?? "",
@@ -853,11 +997,12 @@ export default function AdminRegistrations() {
         ))}
       </div>
 
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-3 mb-6">
+      <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3 mb-6">
         {([
           ["all",       "Total",     "#4F46E5", Users2,       "status" ],
           ["pending",   "Menunggu",  "#F59E0B", Clock,        "status" ],
           ["confirmed", "Dikonfirmasi", "#10B981", CheckCircle2, "status" ],
+          ["registered", "Terdaftar", "#4F46E5", UserCheck,  "status" ],
           ["rejected",  "Ditolak",   "#EF4444", XCircle,      "status" ],
           ["grup",      "Grup",      "#6366F1", Users,        "type"   ],
         ] as const).map(([key, label, color, Icon, kind], idx) => {
@@ -868,7 +1013,7 @@ export default function AdminRegistrations() {
             <motion.button
               key={key}
               onClick={() => {
-                if (kind === "status") setFilterStatus(key as "all" | Registration["status"]);
+                if (kind === "status") setFilterStatus(key as "all" | StatusKey);
                 else setFilterType((prev) => prev === "grup" ? "all" : "grup");
               }}
               initial={{ opacity: 0, y: 12 }}
@@ -1062,7 +1207,7 @@ export default function AdminRegistrations() {
           reg={selected}
           training={trainingMap[selected.training_id ?? ""]}
           onClose={() => setSelected(null)}
-          onStatusChange={handleStatusChange}
+          onChange={handleRegistrationChange}
         />
       )}
     </div>
