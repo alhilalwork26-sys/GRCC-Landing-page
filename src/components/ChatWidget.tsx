@@ -16,7 +16,7 @@ const QUICK_PROMPTS = [
   "Program apa saja yang ada di GRCC?",
   "Bagaimana cara mendaftar pelatihan?",
   "Apakah ada training online?",
-  "Rekomendasikan program untuk saya",
+  "Ada program sertifikasi BNSP?",
 ];
 
 // ── Markdown-light renderer ───────────────────────────────────────────────────
@@ -32,11 +32,18 @@ function renderMessage(text: string) {
       elements.push(<p key={key++} className="font-bold text-[0.88rem] mt-3 mb-1">{line.slice(3)}</p>);
     } else if (line.startsWith("**") && line.endsWith("**")) {
       elements.push(<p key={key++} className="font-bold text-[0.83rem]">{line.slice(2, -2)}</p>);
+    } else if (/^\s+[-•]\s+/.test(line)) {
+      elements.push(
+        <div key={key++} className="flex items-start gap-2 text-[0.8rem] leading-[1.6] ml-4 opacity-90">
+          <span className="mt-[0.55em] w-1 h-1 rounded-full bg-current flex-shrink-0 opacity-50" />
+          <span dangerouslySetInnerHTML={{ __html: inlineFormat(line.replace(/^\s+[-•]\s+/, "")) }} />
+        </div>
+      );
     } else if (line.startsWith("• ") || line.startsWith("- ")) {
       elements.push(
         <div key={key++} className="flex items-start gap-2 text-[0.82rem] leading-[1.65]">
           <span className="mt-[0.5em] w-1.5 h-1.5 rounded-full bg-current flex-shrink-0 opacity-50" />
-          <span dangerouslySetInnerHTML={{ __html: inlineBold(line.slice(2)) }} />
+          <span dangerouslySetInnerHTML={{ __html: inlineFormat(line.slice(2)) }} />
         </div>
       );
     } else if (line === "") {
@@ -44,7 +51,7 @@ function renderMessage(text: string) {
     } else {
       elements.push(
         <p key={key++} className="text-[0.83rem] leading-[1.7]"
-          dangerouslySetInnerHTML={{ __html: inlineBold(line) }} />
+          dangerouslySetInnerHTML={{ __html: inlineFormat(line) }} />
       );
     }
   }
@@ -52,8 +59,18 @@ function renderMessage(text: string) {
   return <div className="flex flex-col gap-0.5">{elements}</div>;
 }
 
-function inlineBold(text: string) {
-  return text.replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>");
+function escapeHtml(text: string) {
+  return text.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+}
+
+function inlineFormat(text: string) {
+  return escapeHtml(text)
+    .replace(/\*\*(.*?)\*\*/g, "<strong>$1</strong>")
+    .replace(/(^|[\s(])_([^_]+)_(?=[\s).,!?]|$)/g, "$1<em>$2</em>")
+    .replace(
+      /\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g,
+      '<a href="$2" target="_blank" rel="noopener noreferrer" class="underline font-semibold">$1</a>'
+    );
 }
 
 // ── Typing indicator ──────────────────────────────────────────────────────────
