@@ -222,10 +222,13 @@ function DetailModal({
       setUploadingFaktur(false);
       return;
     }
+    const previousPath = fakturPath;
     const saved = await saveFakturPath(path);
     if (!saved) {
       await supabase.storage.from("payment-proofs").remove([path]);
       setFakturError("File terunggah tetapi gagal disimpan ke data peserta. Coba lagi.");
+    } else if (previousPath) {
+      await supabase.storage.from("payment-proofs").remove([previousPath]);
     }
     setUploadingFaktur(false);
   };
