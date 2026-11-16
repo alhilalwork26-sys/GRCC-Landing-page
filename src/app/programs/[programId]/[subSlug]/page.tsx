@@ -13,7 +13,7 @@ import {
 import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import ShareTrainingButton from "@/components/ShareTrainingButton";
-import { supabase, TrainingItem, PromoCode, ProgramItem, SubProgramItem } from "@/lib/supabase";
+import { supabase, TrainingItem, PromoCode, ProgramItem, SubProgramItem, PriceTier } from "@/lib/supabase";
 import { siteConfig, telHref, whatsappHref } from "@/lib/site-config";
 import { renderIcon } from "@/lib/iconMap";
 import { trainingDateLabel, trainingTimeLabel } from "@/lib/training-schedule";
@@ -111,7 +111,19 @@ function BookingWidget({
     return digits ? parseInt(digits, 10) : 0;
   };
 
-  const price    = selected?.price ?? parsePriceLabel(selected?.price_label);
+  const [tierId, setTierId] = useState<string | null>(null);
+  const tiers: PriceTier[] = selected
+    ? [
+        ...((selected.price || selected.price_label)
+          ? [{ id: "__base__", label: "", price: selected.price, price_label: selected.price_label, note: selected.price_note } as PriceTier]
+          : []),
+        ...(selected.price_tiers ?? []),
+      ]
+    : [];
+  const chosenTier = tiers.length > 1 ? (tiers.find((t) => t.id === tierId) ?? tiers[0]) : tiers[0];
+  const tierName = (t: PriceTier) => [t.label, t.note].filter((x) => x && x.trim()).join(" — ").replace(/\s+/g, " ").trim() || "Paket";
+
+  const price    = chosenTier ? (chosenTier.price ?? parsePriceLabel(chosenTier.price_label)) : 0;
   const subtotal = price * qty;
 
   const discountAmt = appliedPromo && subtotal > 0
@@ -246,6 +258,28 @@ function BookingWidget({
           </div>
         </div>}
 
+        {/* Varian harga */}
+        {!hidePrice && tiers.length > 1 && (
+          <div>
+            <label className="block text-[0.7rem] font-bold tracking-[0.1em] uppercase text-muted mb-2">Pilih Paket</label>
+            <div className="flex flex-col gap-2">
+              {tiers.map((t) => {
+                const active = chosenTier?.id === t.id;
+                return (
+                  <button key={t.id} type="button" onClick={() => setTierId(t.id)}
+                    className="flex items-center justify-between gap-3 rounded-xl border px-3.5 py-2.5 text-left transition-colors"
+                    style={{ borderColor: active ? accent : "rgba(0,0,0,0.1)", backgroundColor: active ? accent + "0A" : "white" }}>
+                    <span className="min-w-0 text-[0.78rem] font-semibold text-dark">{tierName(t)}</span>
+                    <span className="flex-shrink-0 text-[0.8rem] font-extrabold" style={{ color: accent }}>
+                      {t.price ? formatRupiah(t.price) : t.price_label}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
         {/* Qty */}
         <div>
           <label className="block text-[0.7rem] font-bold tracking-[0.1em] uppercase text-muted mb-2">Jumlah Peserta</label>
@@ -341,7 +375,7 @@ function BookingWidget({
         {!hidePrice && <div className="rounded-xl bg-[#F7F7F5] px-4 py-3 flex flex-col gap-1.5">
           <div className="flex items-center justify-between text-[0.78rem] text-muted">
             <span>Harga per peserta</span>
-            <span>{selected?.price_label || (price > 0 ? formatRupiah(price) : "—")}</span>
+            <span>{price > 0 ? formatRupiah(price) : chosenTier?.price_label || selected?.price_label || "—"}</span>
           </div>
           <div className="flex items-center justify-between text-[0.78rem] text-muted">
             <span>Jumlah peserta</span>
