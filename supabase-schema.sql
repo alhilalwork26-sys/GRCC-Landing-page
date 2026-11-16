@@ -277,3 +277,5 @@ insert into insights (type, tag, title, excerpt, date, location, img, color, fea
 -- Sub-program: syarat pelatihan & untuk siapa (satu poin per baris)
 alter table sub_programs add column if not exists requirements text;
 alter table sub_programs add column if not exists audience text;
+alter table sub_programs add column if not exists price_info text;
+alter table sub_programs add column if not exists price_note text;

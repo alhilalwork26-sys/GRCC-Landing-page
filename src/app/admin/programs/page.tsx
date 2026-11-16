@@ -36,7 +36,7 @@ const EMPTY_PROGRAM: Omit<ProgramItem,"id"|"created_at"|"updated_at"> = {
 const EMPTY_SUB: Omit<SubProgramItem,"id"|"program_id"|"created_at"|"updated_at"> = {
   name: "", slug: "", description: "", order_index: 0, active: true, brochure_url: null,
   hide_price: false, hide_schedule: false,
-  requirements: "", audience: "",
+  requirements: "", audience: "", price_info: "", price_note: "",
 };
 
 function toSlug(s: string) {
@@ -111,6 +111,18 @@ function SubModal({
                 className="input resize-y font-[inherit]" style={{ minHeight: 180 }} />
             </div>
 
+            <div>
+              <label className="label">Harga</label>
+              <textarea rows={4} value={form.price_info ?? ""}
+                onChange={e => setForm(f => ({ ...f, price_info: e.target.value }))}
+                placeholder={"Satu harga per baris, format: Nama : Nominal\nPelatihan Offline/ Online : 7.400.000\nExam (On-Site) : 2.800.000"}
+                className="input resize-y font-mono text-[0.8rem]" />
+              <input value={form.price_note ?? ""}
+                onChange={e => setForm(f => ({ ...f, price_note: e.target.value }))}
+                placeholder="Catatan harga, mis. Harga sudah termasuk PPN 11%"
+                className="input mt-2" />
+              <p className="text-[0.68rem] text-muted mt-1">Tampil di halaman program. Nonaktif jika &quot;Sembunyikan Harga&quot; dinyalakan.</p>
+            </div>
             <div>
               <label className="label">Syarat Pelatihan</label>
               <textarea rows={5} value={form.requirements ?? ""}
@@ -284,9 +296,11 @@ export default function AdminPrograms() {
     // Kolom requirements/audience baru ada setelah SQL di supabase-schema.sql dijalankan;
     // jika keduanya kosong, tidak dikirim agar simpan tetap jalan sebelum migrasi.
     const extra: Record<string, string | null> = {};
-    if ((data.requirements ?? "").trim() || (data.audience ?? "").trim() || data.id) {
+    if ((data.requirements ?? "").trim() || (data.audience ?? "").trim() || (data.price_info ?? "").trim() || (data.price_note ?? "").trim() || data.id) {
       extra.requirements = (data.requirements ?? "").trim() || null;
       extra.audience = (data.audience ?? "").trim() || null;
+      extra.price_info = (data.price_info ?? "").trim() || null;
+      extra.price_note = (data.price_note ?? "").trim() || null;
     }
     let error;
     if (data.id) {
@@ -308,8 +322,8 @@ export default function AdminPrograms() {
     }
     setSavingSub(false);
     if (error) {
-      flash(/requirements|audience/.test(error.message)
-        ? "Gagal: kolom Syarat/Untuk Siapa belum ada di database. Jalankan SQL di supabase-schema.sql dulu."
+      flash(/requirements|audience|price_info|price_note/.test(error.message)
+        ? "Gagal: kolom Syarat/Untuk Siapa/Harga belum ada di database. Jalankan SQL di supabase-schema.sql dulu."
         : `Gagal menyimpan: ${error.message}`);
       return;
     }

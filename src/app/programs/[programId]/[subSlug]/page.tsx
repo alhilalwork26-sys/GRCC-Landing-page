@@ -633,6 +633,45 @@ export default function SubProgramPage() {
                 </div>
               </motion.div>
 
+              {/* Harga (diisi dari admin sub-program) */}
+              {!sub.hide_price && toLines(sub.price_info).length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 24 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.65 }}
+                >
+                  <p className="text-[0.65rem] font-bold tracking-[0.2em] uppercase text-muted mb-4">Investasi</p>
+                  <div className="bg-white rounded-2xl border border-border p-7">
+                    <div className="flex flex-col divide-y divide-border">
+                      {toLines(sub.price_info).map((line, i) => {
+                        const idx = line.lastIndexOf(":");
+                        const label = idx > 0 ? line.slice(0, idx).trim() : line;
+                        const amount = idx > 0 ? line.slice(idx + 1).trim() : "";
+                        return (
+                          <motion.div
+                            key={i}
+                            initial={{ opacity: 0, x: -10 }}
+                            whileInView={{ opacity: 1, x: 0 }}
+                            viewport={{ once: true }}
+                            transition={{ duration: 0.4, delay: i * 0.06 }}
+                            className="flex flex-wrap items-baseline justify-between gap-x-6 gap-y-1 py-3.5 first:pt-0 last:pb-0"
+                          >
+                            <span className="text-dark/70 text-[0.92rem] font-semibold">{label}</span>
+                            {amount && (
+                              <span className="font-extrabold text-[1.25rem] tracking-tight" style={{ color: program.accent }}>
+                                {/^[\d.,\s]+$/.test(amount) ? `Rp ${amount}` : amount}
+                              </span>
+                            )}
+                          </motion.div>
+                        );
+                      })}
+                    </div>
+                    {sub.price_note && <p className="mt-4 text-[0.76rem] italic text-muted">{sub.price_note}</p>}
+                  </div>
+                </motion.div>
+              )}
+
               {/* Syarat & Untuk Siapa */}
               {([
                 { title: "Syarat Pelatihan", items: toLines(sub.requirements), Icon: Check },

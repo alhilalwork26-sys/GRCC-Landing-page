@@ -176,6 +176,8 @@ export interface SubProgramItem {
   hide_schedule: boolean;
   requirements?: string | null;
   audience?: string | null;
+  price_info?: string | null;
+  price_note?: string | null;
   created_at: string;
   updated_at: string;
 }
