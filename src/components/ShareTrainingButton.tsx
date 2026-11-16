@@ -4,8 +4,9 @@ import { MouseEvent, useState } from "react";
 import { Check, Share2 } from "lucide-react";
 
 type ShareTrainingButtonProps = {
-  trainingId: string;
+  trainingId?: string;
   title: string;
+  currentPage?: boolean;
   accent?: string;
   className?: string;
   label?: string;
@@ -15,6 +16,7 @@ type ShareTrainingButtonProps = {
 export default function ShareTrainingButton({
   trainingId,
   title,
+  currentPage = false,
   accent = "#4F46E5",
   className = "",
   label = "Bagikan",
@@ -45,7 +47,9 @@ export default function ShareTrainingButton({
     event.preventDefault();
     event.stopPropagation();
 
-    const url = new URL(`/training/${trainingId}`, window.location.origin).toString();
+    const url = currentPage
+      ? window.location.href.split("#")[0]
+      : new URL(`/training/${trainingId}`, window.location.origin).toString();
     const shareData = {
       title: `${title} | GRCC`,
       text: `Saya ingin membagikan pelatihan GRCC: ${title}`,

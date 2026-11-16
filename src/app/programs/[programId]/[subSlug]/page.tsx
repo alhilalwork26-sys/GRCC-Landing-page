@@ -436,6 +436,8 @@ function BookingWidget({
           </button>
         )}
 
+        <ShareTrainingButton currentPage title={subName} accent={accent} className="w-full py-3 text-[0.85rem]" />
+
         <p className="text-center text-[0.7rem] text-muted">
           {selected ? "Individu atau grup? Pilih sesuai kebutuhan" : "Pilih sesi pelatihan terlebih dahulu"}
         </p>
