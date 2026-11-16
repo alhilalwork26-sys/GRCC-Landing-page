@@ -21,6 +21,13 @@ import dynamic from "next/dynamic";
 
 const FlipBookModal = dynamic(() => import("@/components/FlipBookModal"), { ssr: false });
 
+function toLines(text?: string | null) {
+  return (text ?? "")
+    .split("\n")
+    .map((l) => l.replace(/^\s*(?:[-•*]|\d+[.)])\s*/, "").trim())
+    .filter(Boolean);
+}
+
 function formatRupiah(n: number) {
   return "Rp " + n.toLocaleString("id-ID");
 }
@@ -625,6 +632,44 @@ export default function SubProgramPage() {
                   </div>
                 </div>
               </motion.div>
+
+              {/* Syarat & Untuk Siapa */}
+              {([
+                { title: "Syarat Pelatihan", items: toLines(sub.requirements), Icon: Check },
+                { title: "Untuk Siapa Pelatihan Ini", items: toLines(sub.audience), Icon: Users },
+              ] as const).filter((b) => b.items.length > 0).map(({ title, items, Icon }) => (
+                <motion.div
+                  key={title}
+                  initial={{ opacity: 0, y: 24 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true }}
+                  transition={{ duration: 0.65 }}
+                >
+                  <p className="text-[0.65rem] font-bold tracking-[0.2em] uppercase text-muted mb-4">{title}</p>
+                  <div className="bg-white rounded-2xl border border-border p-7">
+                    <ul className="flex flex-col gap-3.5">
+                      {items.map((item, i) => (
+                        <motion.li
+                          key={i}
+                          initial={{ opacity: 0, x: -10 }}
+                          whileInView={{ opacity: 1, x: 0 }}
+                          viewport={{ once: true }}
+                          transition={{ duration: 0.4, delay: i * 0.06 }}
+                          className="flex items-start gap-3"
+                        >
+                          <span
+                            className="mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full"
+                            style={{ backgroundColor: program.accent + "18", color: program.accent }}
+                          >
+                            <Icon size={12} />
+                          </span>
+                          <span className="min-w-0 flex-1 text-dark/70 text-[0.9rem] leading-[1.75]">{item}</span>
+                        </motion.li>
+                      ))}
+                    </ul>
+                  </div>
+                </motion.div>
+              ))}
 
               {/* Upcoming Training */}
               <motion.div

@@ -174,6 +174,8 @@ export interface SubProgramItem {
   brochure_url: string | null;
   hide_price: boolean;
   hide_schedule: boolean;
+  requirements?: string | null;
+  audience?: string | null;
   created_at: string;
   updated_at: string;
 }

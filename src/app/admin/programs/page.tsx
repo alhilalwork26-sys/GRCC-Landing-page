@@ -36,6 +36,7 @@ const EMPTY_PROGRAM: Omit<ProgramItem,"id"|"created_at"|"updated_at"> = {
 const EMPTY_SUB: Omit<SubProgramItem,"id"|"program_id"|"created_at"|"updated_at"> = {
   name: "", slug: "", description: "", order_index: 0, active: true, brochure_url: null,
   hide_price: false, hide_schedule: false,
+  requirements: "", audience: "",
 };
 
 function toSlug(s: string) {
@@ -108,6 +109,23 @@ function SubModal({
                 onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
                 placeholder="Deskripsi lengkap sub-program&#10;&#10;Paragraf baru dipisah baris kosong"
                 className="input resize-y font-[inherit]" style={{ minHeight: 180 }} />
+            </div>
+
+            <div>
+              <label className="label">Syarat Pelatihan</label>
+              <textarea rows={5} value={form.requirements ?? ""}
+                onChange={e => setForm(f => ({ ...f, requirements: e.target.value }))}
+                placeholder={"Satu syarat per baris, mis.\nLulusan D3 dengan pengalaman kerja minimal 1 tahun\nMembawa laptop"}
+                className="input resize-y font-[inherit]" />
+              <p className="text-[0.68rem] text-muted mt-1">Satu poin per baris. Tampil sebagai daftar di halaman program. Kosongkan jika tidak ada.</p>
+            </div>
+            <div>
+              <label className="label">Untuk Siapa Pelatihan Ini</label>
+              <textarea rows={5} value={form.audience ?? ""}
+                onChange={e => setForm(f => ({ ...f, audience: e.target.value }))}
+                placeholder={"Satu target peserta per baris, mis.\nInternal auditor\nRisk & compliance officer"}
+                className="input resize-y font-[inherit]" />
+              <p className="text-[0.68rem] text-muted mt-1">Satu poin per baris. Tampil sebagai daftar di halaman program. Kosongkan jika tidak ada.</p>
             </div>
 
             {/* Brosur PDF */}
@@ -263,22 +281,38 @@ export default function AdminPrograms() {
   const saveSub = async (data: typeof EMPTY_SUB & { id?: string }) => {
     if (!selected) return;
     setSavingSub(true);
+    // Kolom requirements/audience baru ada setelah SQL di supabase-schema.sql dijalankan;
+    // jika keduanya kosong, tidak dikirim agar simpan tetap jalan sebelum migrasi.
+    const extra: Record<string, string | null> = {};
+    if ((data.requirements ?? "").trim() || (data.audience ?? "").trim() || data.id) {
+      extra.requirements = (data.requirements ?? "").trim() || null;
+      extra.audience = (data.audience ?? "").trim() || null;
+    }
+    let error;
     if (data.id) {
-      await supabase.from("sub_programs").update({
+      ({ error } = await supabase.from("sub_programs").update({
         name: data.name, slug: data.slug, description: data.description,
         active: data.active, brochure_url: data.brochure_url ?? null,
         hide_price: data.hide_price, hide_schedule: data.hide_schedule,
-      }).eq("id", data.id);
+        ...extra,
+      }).eq("id", data.id));
     } else {
       const maxOrder = selectedSubs.length > 0 ? Math.max(...selectedSubs.map(s => s.order_index)) + 1 : 0;
-      await supabase.from("sub_programs").insert({
+      ({ error } = await supabase.from("sub_programs").insert({
         program_id: selected, name: data.name, slug: data.slug,
         description: data.description, active: data.active, order_index: maxOrder,
         brochure_url: data.brochure_url ?? null,
         hide_price: data.hide_price, hide_schedule: data.hide_schedule,
-      });
+        ...extra,
+      }));
     }
     setSavingSub(false);
+    if (error) {
+      flash(/requirements|audience/.test(error.message)
+        ? "Gagal: kolom Syarat/Untuk Siapa belum ada di database. Jalankan SQL di supabase-schema.sql dulu."
+        : `Gagal menyimpan: ${error.message}`);
+      return;
+    }
     flash(data.id ? "Sub-program diperbarui!" : "Sub-program ditambahkan!");
     setSubModal(null);
     load();
