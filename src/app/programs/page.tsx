@@ -8,6 +8,7 @@ import Navbar from "@/components/Navbar";
 import Footer from "@/components/Footer";
 import { supabase, ProgramItem, SubProgramItem, TrainingItem, ComingSoonPost } from "@/lib/supabase";
 import { renderIcon } from "@/lib/iconMap";
+import ShareTrainingButton from "@/components/ShareTrainingButton";
 import { seoLandingPages } from "@/lib/seo-landing-pages";
 import dynamic from "next/dynamic";
 const FlipBookModal = dynamic(() => import("@/components/FlipBookModal"), { ssr: false });
@@ -44,16 +45,25 @@ function SubCard({ sub, accent, index, programId, onOpenBrochure }: {
         <ChevronRight size={14} className="flex-shrink-0 mt-1 text-muted/40 opacity-0 group-hover:opacity-100 transition-opacity"
           style={{ color: accent }} />
       </Link>
-      {sub.brochure_url && (
-        <button
-          onClick={() => onOpenBrochure(sub)}
-          className="flex items-center gap-2 w-full mt-1 px-3 py-2 rounded-lg text-[0.75rem] font-semibold border border-dashed transition-all hover:opacity-80"
-          style={{ borderColor: accent + "50", color: accent, backgroundColor: accent + "08" }}
-        >
-          <BookOpen size={13} />
-          Lihat Brosur
-        </button>
-      )}
+      <div className="flex items-center gap-2 mt-1">
+        {sub.brochure_url && (
+          <button
+            onClick={() => onOpenBrochure(sub)}
+            className="flex flex-1 items-center gap-2 px-3 py-2 rounded-lg text-[0.75rem] font-semibold border border-dashed transition-all hover:opacity-80"
+            style={{ borderColor: accent + "50", color: accent, backgroundColor: accent + "08" }}
+          >
+            <BookOpen size={13} />
+            Lihat Brosur
+          </button>
+        )}
+        <ShareTrainingButton
+          variant="icon"
+          path={`/programs/${programId}/${sub.slug}`}
+          title={sub.name}
+          accent={accent}
+          className="ml-auto border border-black/[0.08] !shadow-none"
+        />
+      </div>
     </motion.div>
   );
 }

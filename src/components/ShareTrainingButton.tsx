@@ -7,6 +7,7 @@ type ShareTrainingButtonProps = {
   trainingId?: string;
   title: string;
   currentPage?: boolean;
+  path?: string;
   accent?: string;
   className?: string;
   label?: string;
@@ -17,6 +18,7 @@ export default function ShareTrainingButton({
   trainingId,
   title,
   currentPage = false,
+  path,
   accent = "#4F46E5",
   className = "",
   label = "Bagikan",
@@ -47,7 +49,9 @@ export default function ShareTrainingButton({
     event.preventDefault();
     event.stopPropagation();
 
-    const url = currentPage
+    const url = path
+      ? new URL(path, window.location.origin).toString()
+      : currentPage
       ? window.location.href.split("#")[0]
       : new URL(`/training/${trainingId}`, window.location.origin).toString();
     const shareData = {

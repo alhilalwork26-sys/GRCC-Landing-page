@@ -5,6 +5,7 @@ import { createClient } from "@supabase/supabase-js";
 import Footer from "@/components/Footer";
 import JsonLd from "@/components/JsonLd";
 import Navbar from "@/components/Navbar";
+import ShareTrainingButton from "@/components/ShareTrainingButton";
 import type { SubProgramItem, TrainingItem } from "@/lib/supabase";
 import { whatsappHref } from "@/lib/site-config";
 import { getSeoLandingPage, seoLandingPages } from "@/lib/seo-landing-pages";
@@ -155,6 +156,11 @@ export default async function SeoLandingPage({ params }: Props) {
               >
                 Lihat Semua Program <span aria-hidden="true">-&gt;</span>
               </Link>
+              <ShareTrainingButton
+                currentPage
+                title={page.title}
+                className="!w-auto !rounded-xl !border !border-white/15 !bg-transparent !px-5 !py-3 !text-[0.85rem] !font-bold !text-white/76 hover:!bg-white/10"
+              />
             </div>
           </div>
         </section>
