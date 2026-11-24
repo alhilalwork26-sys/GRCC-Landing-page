@@ -36,7 +36,7 @@ const EMPTY_PROGRAM: Omit<ProgramItem,"id"|"created_at"|"updated_at"> = {
 const EMPTY_SUB: Omit<SubProgramItem,"id"|"program_id"|"created_at"|"updated_at"> = {
   name: "", slug: "", description: "", order_index: 0, active: true, brochure_url: null,
   hide_price: false, hide_schedule: false,
-  requirements: "", audience: "", price_info: "", price_note: "",
+  requirements: "", audience: "", price_info: "", price_note: "", price_title: "", requirements_title: "", audience_title: "",
 };
 
 function toSlug(s: string) {
@@ -113,6 +113,10 @@ function SubModal({
 
             <div>
               <label className="label">Harga</label>
+              <input value={form.price_title ?? ""}
+                onChange={e => setForm(f => ({ ...f, price_title: e.target.value }))}
+                placeholder="Judul blok — default: Investasi"
+                className="input mb-2 font-semibold" />
               <textarea rows={4} value={form.price_info ?? ""}
                 onChange={e => setForm(f => ({ ...f, price_info: e.target.value }))}
                 placeholder={"Satu harga per baris, format: Nama : Nominal\nPelatihan Offline/ Online : 7.400.000\nExam (On-Site) : 2.800.000"}
@@ -125,6 +129,10 @@ function SubModal({
             </div>
             <div>
               <label className="label">Syarat Pelatihan</label>
+              <input value={form.requirements_title ?? ""}
+                onChange={e => setForm(f => ({ ...f, requirements_title: e.target.value }))}
+                placeholder="Judul blok — default: Syarat Pelatihan"
+                className="input mb-2 font-semibold" />
               <textarea rows={5} value={form.requirements ?? ""}
                 onChange={e => setForm(f => ({ ...f, requirements: e.target.value }))}
                 placeholder={"Satu syarat per baris, mis.\nLulusan D3 dengan pengalaman kerja minimal 1 tahun\nMembawa laptop"}
@@ -133,6 +141,10 @@ function SubModal({
             </div>
             <div>
               <label className="label">Untuk Siapa Pelatihan Ini</label>
+              <input value={form.audience_title ?? ""}
+                onChange={e => setForm(f => ({ ...f, audience_title: e.target.value }))}
+                placeholder="Judul blok — default: Untuk Siapa Pelatihan Ini"
+                className="input mb-2 font-semibold" />
               <textarea rows={5} value={form.audience ?? ""}
                 onChange={e => setForm(f => ({ ...f, audience: e.target.value }))}
                 placeholder={"Satu target peserta per baris, mis.\nInternal auditor\nRisk & compliance officer"}
@@ -296,6 +308,12 @@ export default function AdminPrograms() {
     // Kolom requirements/audience baru ada setelah SQL di supabase-schema.sql dijalankan;
     // jika keduanya kosong, tidak dikirim agar simpan tetap jalan sebelum migrasi.
     const extra: Record<string, string | null> = {};
+    const titleExtra: Record<string, string | null> = {};
+    for (const k of ["price_title", "requirements_title", "audience_title"] as const) {
+      const v = (data[k] ?? "").trim();
+      if (v || data.id) titleExtra[k] = v || null;
+    }
+    Object.assign(extra, titleExtra);
     if ((data.requirements ?? "").trim() || (data.audience ?? "").trim() || (data.price_info ?? "").trim() || (data.price_note ?? "").trim() || data.id) {
       extra.requirements = (data.requirements ?? "").trim() || null;
       extra.audience = (data.audience ?? "").trim() || null;
@@ -322,7 +340,7 @@ export default function AdminPrograms() {
     }
     setSavingSub(false);
     if (error) {
-      flash(/requirements|audience|price_info|price_note/.test(error.message)
+      flash(/requirements|audience|price_info|price_note|_title/.test(error.message)
         ? "Gagal: kolom Syarat/Untuk Siapa/Harga belum ada di database. Jalankan SQL di supabase-schema.sql dulu."
         : `Gagal menyimpan: ${error.message}`);
       return;

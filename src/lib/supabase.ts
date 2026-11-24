@@ -178,6 +178,9 @@ export interface SubProgramItem {
   audience?: string | null;
   price_info?: string | null;
   price_note?: string | null;
+  price_title?: string | null;
+  requirements_title?: string | null;
+  audience_title?: string | null;
   created_at: string;
   updated_at: string;
 }

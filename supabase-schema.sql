@@ -279,3 +279,6 @@ alter table sub_programs add column if not exists requirements text;
 alter table sub_programs add column if not exists audience text;
 alter table sub_programs add column if not exists price_info text;
 alter table sub_programs add column if not exists price_note text;
+alter table sub_programs add column if not exists price_title text;
+alter table sub_programs add column if not exists requirements_title text;
+alter table sub_programs add column if not exists audience_title text;

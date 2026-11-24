@@ -677,7 +677,7 @@ export default function SubProgramPage() {
                   viewport={{ once: true }}
                   transition={{ duration: 0.65 }}
                 >
-                  <p className="text-[0.65rem] font-bold tracking-[0.2em] uppercase text-muted mb-4">Investasi</p>
+                  <p className="text-[0.65rem] font-bold tracking-[0.2em] uppercase text-muted mb-4">{sub.price_title?.trim() || "Investasi"}</p>
                   <div className="bg-white rounded-2xl border border-border p-7">
                     <div className="flex flex-col divide-y divide-border">
                       {toLines(sub.price_info).map((line, i) => {
@@ -710,8 +710,8 @@ export default function SubProgramPage() {
 
               {/* Syarat & Untuk Siapa */}
               {([
-                { title: "Syarat Pelatihan", items: toLines(sub.requirements), Icon: Check },
-                { title: "Untuk Siapa Pelatihan Ini", items: toLines(sub.audience), Icon: Users },
+                { title: sub.requirements_title?.trim() || "Syarat Pelatihan", items: toLines(sub.requirements), Icon: Check },
+                { title: sub.audience_title?.trim() || "Untuk Siapa Pelatihan Ini", items: toLines(sub.audience), Icon: Users },
               ] as const).filter((b) => b.items.length > 0).map(({ title, items, Icon }) => (
                 <motion.div
                   key={title}
